@@ -1,0 +1,21 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : 09.11.2018, 11:30:46
+    Author     : deshenja
+*/
+
+/* spectator can see all republic, can_edit NO. eye - sign of auth spectator */
+
+.breadcrumb {
+    background-color: #cae3f9 !important;
+}
+
+.navbar-inverse .navbar-nav>.open>a {
+    background-color: #81c3fb !important
+}
+
+.dropdown-menu li a:hover {color: #f5f255;background-color: #cae3f9 }
