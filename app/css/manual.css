@@ -1563,3 +1563,8 @@ ol.tree
     width: 55%;
 }
 /*---- открыть доступ на ред списка смен ----*/
+
+
+#tbl_count_position_wrapper{
+    width: 50% !important;
+}

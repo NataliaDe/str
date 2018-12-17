@@ -9731,7 +9731,6 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 
         $data['duty'] = $duty;
 
-        $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
         $data['is_btn_confirm'] = is_btn_confirm($change);
         $data['duty_ch'] = duty_ch(); //номер деж смены
 
@@ -16816,12 +16815,206 @@ $sql=$sql.' group by record_id ';
 
     /*     * *************************  END Подробный отчет ТЕХНИКА, АСВ, П,ПО (от МОГИЛЕВ)   ************************************ */
 
+/* count positions */
+    $app->get('/count_position', function () use ($app) {
 
 
+            $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
+        $data['region'][] = array('id' => 8, 'name' => 'РОСН');
+        $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
+        $data['region'][] = array('id' => 12, 'name' => 'Авиация');
 
+//        $data['region'][] = array('id' => 160, 'name' => 'РОСН г.Минск');
+//        $data['region'][] = array('id' => 163, 'name' => 'РОСН г.Пинск');
+
+//        $data['region'][] = array('id' => 169, 'name' => 'УГЗ г.Минск');
+//        $data['region'][] = array('id' => 171, 'name' => 'УГЗ г.Гомель');
+//        $data['region'][] = array('id' => 170, 'name' => 'УГЗ г.Борисов');
+
+
+         $data['locorg'] = R::getAll('SELECT * FROM ss.caption '); // вместе с  ЦП
+        $data['diviz'] = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+
+
+        $data['position']=R::getAll("select * from position");
+
+        //bread
+        $data['bread_active'] = 'Отчет по должностям';
+        $data['title_name'] = 'Отчет по должностям';
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php');
+        $app->render('report/teh_in_trip/bread.php', $data);
+        $app->render('report/count_position/form.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+
+  $app->post('/count_position', function () use ($app) {
+
+        $region = $app->request()->post('region'); //oblast
+        $grochs = $app->request()->post('locorg'); //grochs
+        $divizion = $app->request()->post('diviz'); //pasp
+
+        $pos_search = (isset($_POST['position_search']) && !empty($_POST['position_search'])) ? $_POST['position_search'] : 0;
+        //print_r($pos_search);
+
+        $cp = array(8, 9, 12);
+        $where = 0;
+//        echo $region.'<br>';
+//         echo $grochs.'<br>';
+//          echo $divizion.'<br>';
+//exit();
+        $head = array();
+        $head_pos= array();
+
+        /* request inf */
+        if (isset($divizion) && !empty($divizion)) {
+            $head_diviz = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org WHERE rec.id = ' . $divizion . ' order by rec.divizion_num ASC');
+
+            foreach ($head_diviz as $v) {
+                $head[] = $v['name'];
+            }
+        }
+        if (isset($grochs) && !empty($grochs)) {//by grochs
+            $head_locorg = R::getAll('SELECT * FROM ss.caption WHERE locorg_id = ' . $grochs);
+            foreach ($head_locorg as $v) {
+                $head[] = $v['locor'];
+            }
+        }
+
+        if (isset($region) && !empty($region)) {
+
+            if (in_array($region, $cp)) {//rosn,ugz,avia
+
+                switch ($region) {
+                    case 8:
+                        $head[] = 'РОСН';
+
+                        break;
+                    case 9:
+                        $head[] = 'УГЗ';
+                        break;
+
+                    default:
+                        $head[] = 'Авиация';
+                        break;
+                }
+            } else {// region
+
+                $head_region = R::getAll('SELECT name,id FROM ss.regions WHERE id = ' . $region);
+
+                foreach ($head_region as $v) {
+                    if($v['id'] != 3){
+                    $head[] = $v['name'].' обл.';
+                    }
+                    else{
+                        $head[] = $v['name'];
+                    }
+                }
+            }
+        }
+
+        if ($pos_search != 0) {
+            $head_position = R::getAll('SELECT name FROM position WHERE id IN ( ' . implode(',', $pos_search).')');
+            foreach ($head_position as $v) {
+                $head_pos[] = $v['name'];
+            }
+        }
+        /* END request inf */
+
+
+        $sql = "SELECT COUNT(l.`id`) AS cnt, po.`name` AS name_pos , po.`id` "
+            . " FROM POSITION AS po LEFT JOIN listfio AS l ON po.`id`=l.`id_position` "
+            . " LEFT JOIN cardch AS c ON l.`id_cardch`=c.`id` "
+            . " LEFT JOIN  ss.`records` AS rec  ON rec.`id`=c.`id_card`"
+            . " LEFT JOIN ss.`locorg` AS locor ON locor.`id`=rec.`id_loc_org`"
+            . " LEFT JOIN ss.`locals` AS loc ON loc.`id`=locor.`id_local` ";
+
+        if (isset($region) && !empty($region)) {
+            $where = 1;
+            $sql = $sql . ' WHERE ';
+            if (isset($divizion) && !empty($divizion)) {//by pasp
+                $sql = $sql . ' rec.`id` =  ' . $divizion;
+
+            } elseif (isset($grochs) && !empty($grochs)) {//by grochs
+                $sql = $sql . '  locor.`id` =  ' . $grochs;
+
+            } else {//by oblast
+                if (in_array($region, $cp)) {//rosn,ugz,avia
+                    $sql = $sql . ' locor.`id_organ` =  ' . $region;
+
+                } else {// region
+                    $sql = $sql . ' loc.`id_region` =  ' . $region;
+                    $sql = $sql . ' AND locor.`id_organ` NOT IN(8,9,12) '; //without rosn,ugz,avia
+
+                }
+            }
+        } else {
+            $head[] = 'по республике';
+        }
+
+        if ($pos_search != 0) {
+            if ($where == 0) {
+                $where = 1;
+                $sql = $sql . ' WHERE ';
+            } else {
+                $sql = $sql . ' AND ';
+            }
+
+            $sql = $sql . ' po.id  IN(' . implode(',', $pos_search) . ')';
+        }
+
+        $sql = $sql . "  group by po.`id`  ORDER BY `po`.`name`";
+//echo $sql;
+//exit();
+        $res = R::getAll($sql);
+        $data['res'] = $res;
+
+        $data['head']=$head;
+        $data['head_pos']=$head_pos;
+
+        /* show on screen */
+        if (!isset($_POST['export_to_excel'])) {
+            /* form */
+            $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
+            $data['region'][] = array('id' => 8, 'name' => 'РОСН');
+            $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
+            $data['region'][] = array('id' => 12, 'name' => 'Авиация');
+
+            $data['locorg'] = R::getAll('SELECT * FROM ss.caption '); // вместе с  ЦП
+            $data['diviz'] = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+            $data['select'] = 0; //available all regions
+            $data['select'] = 0; //доступны все область
+            $data['select_grochs'] = 0; //доступны все ГРОЧС
+            $data['select_pasp'] = 0; //доступны все части
+
+            $data['position'] = R::getAll("select * from position");
+
+            //bread
+            $data['bread_active'] = 'Отчет по должностям';
+            $data['title_name'] = 'Отчет по должностям';
+            $app->render('layouts/header.php', $data);
+            $app->render('layouts/menu.php');
+            $app->render('report/teh_in_trip/bread.php', $data);
+            $app->render('report/count_position/form.php', $data);
+            $app->render('report/count_position/result.php', $data);
+            $app->render('layouts/footer.php');
+        }
+        /* show on screen */ else {
+            /* export_to_excel */
+            exportToExcelCountPosition($res,$head,$head_pos);
+        }
+    });
 });
-
-
 
 
 
@@ -18035,5 +18228,71 @@ function saveMainCouOneText($id, $change, $id_pos_duty, $dateduty, $id_fio) {
 }
 
 /*---------- END export to Excel inf ch ЦОУ ------------*/
+
+
+
+      /*---------- export to Excel count position ------------*/
+    function exportToExcelCountPosition($result,$head,$head_pos) {
+
+    $objPHPExcel = new PHPExcel();
+    $objReader = PHPExcel_IOFactory::createReader("Excel2007");
+    $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/count_position.xlsx');
+//activate worksheet number 1
+    $objPHPExcel->setActiveSheetIndex(0);
+    $sheet = $objPHPExcel->getActiveSheet();
+//start row
+    $r = 9;
+    $i = 0;
+
+    /* +++++++++++++++++++++ style ++++++++++ */
+
+                $style_all = array(
+// full with color
+                'borders' => array(
+                  'allborders' => array(
+                      'style'=>  PHPExcel_Style_Border::BORDER_THIN
+                    )
+                )
+
+            );
+
+    /* +++++++++++++ end style +++++++++++++ */
+
+    //$sheet->setCellValue('A' . 2, $head);
+
+
+    $itogo = 0;
+    $k=0;
+
+    $sheet->setCellValue('A2', implode(', ', $head));
+    $sheet->setCellValue('A3', 'Должности: '.implode(', ', $head_pos));
+
+    foreach ($result as  $value) {
+$k++;
+        $sheet->setCellValue('A' . $r, $k);
+
+        $itogo+=$value['cnt'];
+
+        $sheet->setCellValue('B' . $r, $value['name_pos']);
+         $sheet->setCellValue('C' . $r, $value['cnt']);
+
+        $r++;
+    }
+
+$sheet->setCellValue('A' . $r, 'ИТОГО');
+$sheet->setCellValue('C' . $r, $itogo);
+
+   $sheet->getStyleByColumnAndRow(0, 9, 2, $r)->applyFromArray($style_all);
+
+    // save in file */
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="count_position.xlsx"');
+    header('Cache-Control: max-age=0');
+    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+    $objWriter->save('php://output');
+}
+
+/*---------- END export to Excel count position ------------*/
+
 
 $app->run();

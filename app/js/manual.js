@@ -84,7 +84,7 @@ $('#duty').val(duty);
 //if(duty<0)
 //$('#save_main').prop('disabled',true);
 //else
-//   $('#save_main').prop('disabled',false); 
+//   $('#save_main').prop('disabled',false);
 
 });
 $("#calc").keyup(function(){
@@ -93,7 +93,7 @@ $('#duty').val(duty);
 //if(duty<0)
 //$('#save_main').prop('disabled',true);
 //else
-//   $('#save_main').prop('disabled',false); 
+//   $('#save_main').prop('disabled',false);
 });
 
 /* техника. м.б. выбрано 1 из полей боев/рез-ремонт-ТО */
@@ -122,7 +122,7 @@ var on_every=Number($('#on_every').val());
 var on_reserve=Number($('#on_reserve').val());
 var s=on_every+on_reserve;
 var on_face=$('#listls').val()-$('#on_ill').val()-$('#on_holiday').val()-$('#on_trip').val()-$('#on_other').val()+Number(s);
-$('#face').val(on_face); 
+$('#face').val(on_face);
 
 /*наряд = налицо - б.р , вычислить автоматически, поле налицо не может быть отрицательным*/
   var duty= $('#face').val()-$('#calc').val();
@@ -140,7 +140,7 @@ $('#repaire' + j).val(0);
                 $('#to' + j).val(1);
 $('#repaire' + j).val(0);
     }
-  
+
 }
 function getTehTo(j){
     //alert($('#type' + j).val());
@@ -150,7 +150,7 @@ $('#repaire' + j).val(0);
     }
     else{
          $('#type' + j).val(1);
-$('#repaire' + j).val(0); 
+$('#repaire' + j).val(0);
     }
 }
 function getTehRepaire(j){
@@ -158,10 +158,10 @@ function getTehRepaire(j){
     if($('#repaire' + j).val()==1){
         $('#to' + j).val(3);
 $('#type' + j).val(3);
-    }  
+    }
     else{
         $('#to' + j).val(3);
-$('#type' + j).val(1); 
+$('#type' + j).val(1);
     }
 }
 /******************************************/
@@ -189,7 +189,7 @@ for (var i = 1; i <= 99; i++) {
         $this.val($this.val().substr(0, 250));
 
 });
-    
+
 }
 
 //technics
@@ -272,11 +272,11 @@ $('#powder'+i).keyup(function () {
 
 
 //всплывающая подсказка
- $(function () {  
-    $("[data-toggle='tooltip']").tooltip(); 
+ $(function () {
+    $("[data-toggle='tooltip']").tooltip();
   });
-  
-  
+
+
 //  $( "#danger-msg-animate" ).animate({
 //    width: "70%",
 //    opacity: 0.4,
@@ -287,15 +287,15 @@ $('#powder'+i).keyup(function () {
 //  }, 300 );
 
   // jQuery('#elId').animate({backgroundColor: "red", 300});
-  
+
  jQuery("#locorg").chained("#region"); //отчеты, зависимость района от области
  jQuery("#diviz").chained("#locorg");//зависимость ПАСЧ от выбранного ГРОЧС
- 
+
   jQuery("#lev").chained("#sub");//зависимость ПАСЧ от выбранного ГРОЧС
-  
+
    jQuery("#locnamecp").chained("#note");//зависимость ОУ ЦП от выбранного подразделения(РОСН)
    jQuery("#cardch").chained("#id_record");//зависимость cardch от records
-   
+
    /* форма выбора техники из др ПАСЧ */
    jQuery("#id_grochs_for_car").chained("#id_region_for_car"); // зависимость района от области
  jQuery("#id_diviz_for_car").chained("#id_grochs_for_car");//зависимость ПАСЧ от выбранного ГРОЧС
@@ -306,8 +306,8 @@ $(document).ready(function () {  // поиск значения в выпад м
 $(".chosen-select-deselect").chosen({
    allow_single_deselect: true,
    width: '100%'
-  
-}); 
+
+});
 });
 
 
@@ -364,7 +364,7 @@ $('#formCountIll')
                 }
             }
         });
-        
+
         $('#formCountHol')
         .bootstrapValidator({
             message: 'This value is not valid',
@@ -385,7 +385,7 @@ $('#formCountIll')
                 }
             }
         });
-        
+
             $('#formCountTrip')
         .bootstrapValidator({
             message: 'This value is not valid',
@@ -406,7 +406,7 @@ $('#formCountIll')
                 }
             }
         });
-        
+
                $('#formCountOther')
         .bootstrapValidator({
             message: 'This value is not valid',
@@ -429,7 +429,7 @@ $('#formCountIll')
         });
 
 
-        
+
         $(document).ready(function() {
             $('#formFillMain')
         .bootstrapValidator({
@@ -453,16 +453,16 @@ $('#formCountIll')
                 }
             },
                id_fio: {
-                    
+
                     validators: {
                         notEmpty: {
                             message: 'Выберите Ф.И.О. начальника смены'
                         }
                     }
                 }
-                 
+
             }
-            
+
 
         });
 
@@ -522,8 +522,8 @@ $('#formNewUser')
                         }
                     }
                 }
-             
-                
+
+
             }
 
         });
@@ -564,8 +564,8 @@ $('#formListFio')
             }
 
         });
-    
-        
+
+
         $('#editFormListFio')
         .bootstrapValidator({
             message: 'This value is not valid',
@@ -603,8 +603,8 @@ $('#formListFio')
             }
 
         });
-        
-         
+
+
 /*-------- DataTables -----------------*/
 (function ($, undefined) {
     $(function () {
@@ -634,11 +634,11 @@ $('#formListFio')
                        "order": [],
               "aoColumnDefs": [
       { "bSortable": false, "aTargets": [ 0,1,2,3,4,5,6,7,8 ] }
-    ] 
-            
+    ]
 
-     
-     
+
+
+
         });
     });
 })(jQuery);
@@ -669,8 +669,38 @@ $('#formListFio')
                 }
             }
         });
-        
-        
+
+
+                $('#tbl_count_position').DataTable({
+            language: {
+                "processing": "Подождите...",
+                "search": "Поиск:",
+                "lengthMenu": "Показать _MENU_ записей",
+                "info": "Записи с _START_ до _END_ из _TOTAL_ записей",
+                "infoEmpty": "Записи с 0 до 0 из 0 записей",
+                "infoFiltered": "(отфильтровано из _MAX_ записей)",
+                "infoPostFix": "",
+                "loadingRecords": "Загрузка записей...",
+                "zeroRecords": "Записи отсутствуют.",
+                "emptyTable": "В таблице отсутствуют данные",
+                "paginate": {
+                    "first": "Первая",
+                    "previous": "Предыдущая",
+                    "next": "Следующая",
+                    "last": "Последняя"
+                },
+                "aria": {
+                    "sortAscending": ": активировать для сортировки столбца по возрастанию",
+                    "sortDescending": ": активировать для сортировки столбца по убыванию"
+                }
+            },
+                                   "order": [],
+              "aoColumnDefs": [
+      { "bSortable": false, "aTargets": [ 0,1,2 ] }
+    ]
+        });
+
+
         /*-------------- скрыть/отобразить колонки таблицы builder absent----------------*/
           var tbl_basic_inf_ch = $('#tbl_basic_inf_ch').DataTable( {
           language: {
@@ -696,22 +726,22 @@ $('#formListFio')
                 }
             }
     } );
-        
+
             $('a.toggle-vis').on( 'click', function (e) {
         e.preventDefault();
- 
+
         // Get the column API object
         var column = tbl_basic_inf_ch.column( $(this).attr('data-column') );
- 
+
         // Toggle the visibility
         column.visible( ! column.visible() );
-       
-        
+
+
     } );
-    
+
     });
 
-    
+
 })(jQuery);
 
 $(document).ready(function() {
@@ -724,7 +754,7 @@ $('#tbluser tfoot th').each( function (i) {
         var x = $('#tbluser tfoot th').index($(this));
         var y = 1;
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск ' + title + '" />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск ' + title + '" />');
     }
 });
 $("#tbluser tfoot input").on( 'keyup change', function () {
@@ -739,7 +769,7 @@ $("#tbluser tfoot input").on( 'keyup change', function () {
 $('#tbl_general tfoot th').each( function (i) {
      var table = $('#tbl_general').DataTable();
     if(i !== 6){
-        
+
         if((i == 0)||(i == 3)||(i==4)||(i==7) ){
      //выпадающий список
      var y='tbl_general';
@@ -757,17 +787,17 @@ $('#tbl_general tfoot th').each( function (i) {
                     select.append('<option value="' + d + '">' + d + '</option>');
                 });
 
-        
+
         }
         else{
             var title = $('#tbl_general tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_general tfoot th').index($(this));
         var y = 1;
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
         }
-       
+
     }
 });
 $("#tbl_general tfoot input").on( 'keyup change', function () {
@@ -782,7 +812,7 @@ $("#tbl_general tfoot input").on( 'keyup change', function () {
 $('#tbl_list_fio tfoot th').each( function (i) {
      var table = $('#tbl_list_fio').DataTable();
    // if((i !== 5)&&(i !== 6)){
-        
+
         if((i == 1)||(i == 2)){
      //выпадающий список
      var y = 1;
@@ -800,16 +830,16 @@ $('#tbl_list_fio tfoot th').each( function (i) {
                     select.append('<option value="' + d + '">' + d + '</option>');
                 });
 
-        
+
         }
         else{
             var title = $('#tbl_list_fio tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_list_fio tfoot th').index($(this));
         var y = 1;
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск ' + title + '" />');  
+        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск ' + title + '" />');
         }
-       
+
  //   }
 });
 
@@ -826,7 +856,7 @@ $("#tbl_list_fio tfoot input").on( 'keyup change', function () {
 /* таблица c информацией по отсутствующим в запроснике basic*/
 $('#tbl_basic_inf_ch tfoot th').each( function (i) {
      var table = $('#tbl_basic_inf_ch').DataTable();
-        
+
         if((i == 0)||(i == 1)||(i==5)||(i==8)){
      //выпадающий список
                 var select = $('<select class="' + i + '  noprint" id="sel' + i + '" ><option value=""></option></select>')
@@ -843,14 +873,14 @@ $('#tbl_basic_inf_ch tfoot th').each( function (i) {
                     select.append('<option value="' + d + '">' + d + '</option>');
                 });
 
-        
+
         }
         else{
             var title = $('#tbl_basic_inf_ch tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_basic_inf_ch tfoot th').index($(this));
         var y = 1;
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
         }
 });
@@ -866,7 +896,7 @@ $("#tbl_basic_inf_ch tfoot input").on( 'keyup change', function () {
 /*--------------------- таблица Запросы-больничные -------------------------*/
 $('#tbl_basic_inf_ill tfoot th').each( function (i) {
      var table = $('#tbl_basic_inf_ill').DataTable();
-        
+
         if((i == 0)||(i == 2)||(i==4) || (i==8) ){
      //выпадающий список
      var y='tbl_basic_inf_ill';
@@ -884,17 +914,17 @@ $('#tbl_basic_inf_ill tfoot th').each( function (i) {
                     select.append('<option value="' + d + '">' + d + '</option>');
                 });
 
-        
+
         }
         else{
             var title = $('#tbl_basic_inf_ill tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_basic_inf_ill tfoot th').index($(this));
         var y = 1;
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
         }
-       
+
 
 });
 $("#tbl_basic_inf_ill tfoot input").on( 'keyup change', function () {
@@ -907,7 +937,7 @@ $("#tbl_basic_inf_ill tfoot input").on( 'keyup change', function () {
 /*-------------- запросы-отпуска ----------------*/
 $('#tbl_basic_inf_hol tfoot th').each( function (i) {
      var table = $('#tbl_basic_inf_hol').DataTable();
-        
+
         if((i == 0)||(i == 2) ){
      //выпадающий список
      var y='tbl_basic_inf_hol';
@@ -925,17 +955,17 @@ $('#tbl_basic_inf_hol tfoot th').each( function (i) {
                     select.append('<option value="' + d + '">' + d + '</option>');
                 });
 
-        
+
         }
         else{
             var title = $('#tbl_basic_inf_hol tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_basic_inf_hol tfoot th').index($(this));
         var y = 'tbl_basic_inf_hol';
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
         }
-       
+
 
 });
 $("#tbl_basic_inf_hol tfoot input").on( 'keyup change', function () {
@@ -950,7 +980,7 @@ $("#tbl_basic_inf_hol tfoot input").on( 'keyup change', function () {
 /*-------------- запросы-командировка ----------------*/
 $('#tbl_basic_inf_trip tfoot th').each( function (i) {
      var table = $('#tbl_basic_inf_trip').DataTable();
-        
+
         if((i == 0)||(i == 2) ||(i == 8)  ){
      //выпадающий список
      var y='tbl_basic_inf_trip';
@@ -968,17 +998,17 @@ $('#tbl_basic_inf_trip tfoot th').each( function (i) {
                     select.append('<option value="' + d + '">' + d + '</option>');
                 });
 
-        
+
         }
         else{
             var title = $('#tbl_basic_inf_trip tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_basic_inf_trip tfoot th').index($(this));
         var y = 'tbl_basic_inf_trip';
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
         }
-       
+
 
 });
 $("#tbl_basic_inf_trip tfoot input").on( 'keyup change', function () {
@@ -993,7 +1023,7 @@ $("#tbl_basic_inf_trip tfoot input").on( 'keyup change', function () {
 /*-------------- запросы-др.причины ----------------*/
 $('#tbl_basic_inf_other tfoot th').each( function (i) {
      var table = $('#tbl_basic_inf_other').DataTable();
-        
+
         if((i == 0)||(i == 2)  ){
      //выпадающий список
      var y='tbl_basic_inf_other';
@@ -1016,7 +1046,7 @@ $('#tbl_basic_inf_other tfoot th').each( function (i) {
         var x = $('#tbl_basic_inf_other tfoot th').index($(this));
         var y = 'tbl_basic_inf_other';
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
         }
 });
@@ -1033,15 +1063,15 @@ $("#tbl_basic_inf_other tfoot input").on( 'keyup change', function () {
 /*-------------- открыть доступ на ред списка смен ----------------*/
 $('#tbl_user_open_listfio tfoot th').each( function (i) {
      var table = $('#tbl_user_open_listfio').DataTable();
-  
+
             var title = $('#tbl_user_open_listfio tfoot th').eq( $(this).index() ).text();
         var x = $('#tbl_user_open_listfio tfoot th').index($(this));
         var y = 'tbl_user_open_listfio';
         //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
-        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />'); 
+        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />');
        // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
-   
-        
+
+
 });
 $("#tbl_user_open_listfio tfoot input").on( 'keyup change', function () {
        var table = $('#tbl_user_open_listfio').DataTable();
@@ -1051,25 +1081,46 @@ $("#tbl_user_open_listfio tfoot input").on( 'keyup change', function () {
             .draw();
 });
 
-
-
-
-
-
 /*-------------- КОНЕЦ открыть доступ на ред списка смен ----------------*/
+
+
+/*--------------------- report table count position -------------------------*/
+$('#tbl_count_position tfoot th').each( function (i) {
+     var table = $('#tbl_count_position').DataTable();
+
+      //  if((i !== 0)){
+
+            var title = $('#tbl_count_position tfoot th').eq( $(this).index() ).text();
+      //  var x = $('#tbl_count_position tfoot th').index($(this));
+        //var y = 1;
+        //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
+        $(this).html('<input type="text" class="noprint" id="inpt" placeholder="Поиск"  />');
+       // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
+        //}
+
+
+});
+$("#tbl_count_position tfoot input").on( 'keyup change', function () {
+       var table = $('#tbl_count_position').DataTable();
+        table
+            .column( $(this).parent().index()+':visible' )
+            .search( this.value )
+            .draw();
+});
+/*-------------- END report table count position  ----------------*/
 
 
 });
 
 /*----- свернуть/развернуть меню -----*/
 function hideLeftmenu(){
-  
+
   var a=$('#leftmenu-offcanvas').css("display");
   if(a == 'none'){
-      
+
      $('#content-center').css({
       "margin-left": "16.66666667%"
-  });  
+  });
   $('#leftmenu-offcanvas').css({
       "display":"block"
   });
@@ -1077,7 +1128,7 @@ function hideLeftmenu(){
   else{
        $('#content-center').css({
       "margin-left": "0%"
-  });  
+  });
     $('#leftmenu-offcanvas').css({
       "display":"none"
   });
@@ -1114,7 +1165,7 @@ $('#formFillTrip')
 
                     }
                 },
-   
+
                                 prikaz_number2: {
                     message: 'The username is not valid',
                     validators: {

@@ -154,6 +154,10 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                             <a tabindex="-1" href="/str/v1/report/detail_teh/region" class="caret-spr_inf" target="_blank">Техника+Склад(Могилев, область)</a>
                         </li>
 
+                        <li class="dropdown-submenu">
+                            <a tabindex="-1" href="/str/v1/report/count_position" class="caret-spr_inf" target="_blank">Отчет по должностям</a>
+                        </li>
+
                     </ul>
                 </li>
                 <?php
