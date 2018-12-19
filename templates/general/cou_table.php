@@ -101,7 +101,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                             <td><?= $row['stat'] ?></td>
                             <td><?= $row['ch'] ?></td>
                             <td><?= $row['dateduty'] ?></td>
-<!--                            <td><? $row['descr'] ?></td>-->
+
 
                             <?php
                             //РЦУ может открыть доступ на ред.заступившей смене

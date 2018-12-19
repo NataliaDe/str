@@ -34,7 +34,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
             </button>
 
 
-            <img src="/str/app/images/man.png" onclick="hideLeftmenu();" class="navbar-brand" id="imglogo1" data-toggle="tooltip" data-placement="left"><a href="/str/general/1" id="logo1">Строевая записка ver 1.6 <span id="test-mode">опытная эксплуатация</span></a>
+            <img src="/str/app/images/man.png" onclick="hideLeftmenu();" class="navbar-brand" id="imglogo1" data-toggle="tooltip" data-placement="left"><a href="/str/general/1" id="logo1">Строевая записка ver 2.6 <span id="test-mode">опытная эксплуатация</span></a>
 
             <?php
             /* spectator can see all republic, can_edit NO. eye - sign of auth spectator */

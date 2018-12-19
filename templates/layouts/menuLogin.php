@@ -16,9 +16,9 @@
 
 
 
-            <a  href="#" id="logo1" ><img src="/str/app/images/man.png" class="navbar-brand" id="imglogo1" data-toggle="tooltip" data-placement="left">Строевая записка ver 1.6 <span id="test-mode">опытная эксплуатация</span></a>
+            <a  href="#" id="logo1" ><img src="/str/app/images/man.png" class="navbar-brand" id="imglogo1" data-toggle="tooltip" data-placement="left">Строевая записка ver 2.6 <span id="test-mode">опытная эксплуатация</span></a>
         </div>
-      
+
     <ul class="nav navbar-nav navbar-right">
 
  <li><a href="#" class="item-menu"><span  data-toggle="modal" data-target="#myModal" >Справка</span></a></li>

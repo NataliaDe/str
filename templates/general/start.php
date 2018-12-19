@@ -18,7 +18,7 @@
             <?php
         }
 
-            
+
                     if ((isset($tab)) && ($tab == 5)) {// active
             ?>
             <li class="active">
@@ -32,7 +32,7 @@
             <a href="/str/general/5" aria-controls="general_table" role="tab" >Недочеты</a></li>
 
             <?php
-            
+
                if ((isset($tab)) && ($tab == 4)) {// active
             ?>
             <li class="active">
@@ -44,7 +44,7 @@
             }
             ?>
             <a href="/str/general/4" aria-controls="general_table" role="tab" >ЦОУ, ШЛЧС</a></li>
-            
+
         <?php
         if ($_SESSION['ulevel'] == 1) {
 
@@ -72,10 +72,10 @@
                     <?php
                 }
                 ?>
-               <a href="/str/general/3" aria-controls="general_table" role="tab" >Новости <span class="badge" style="background-color: red;">1</span></a></li>
+               <a href="/str/general/3" aria-controls="general_table" role="tab" >Новости <span class="badge" style="background-color: red;">19.12.2018</span></a></li>
 
-                
-                
+
+
     </ul>
     <!-- Содержимое вкладок -->
 
