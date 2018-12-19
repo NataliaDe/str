@@ -6232,7 +6232,7 @@ return $main;
         /* ------------ КОНЕЦ  запрошенные параметры ---------- */
 
 
-       // результат поиска УМЧС без ЦОУ, ШЛЧС!!!!
+       // result for umchs with cou !!!!
 
         /*----------------------------- только родная техника - та, которая уехала в командировку - та, которая приехала из др.ПАСЧ ------------------------------------*/
             $sql = " SELECT   count(c.id_teh) as co, "
@@ -6259,8 +6259,8 @@ return $main;
                     . " AND  c.`id_teh` NOT IN "
                     . " (SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr WHERE (( ' " . $date_start . " ' BETWEEN tr.date1 AND tr.date2) OR( ' " . $date_start . " '  >= tr.date1 AND tr.date2 IS NULL)) )"
                     . " AND  c.`id_teh` NOT IN "
-                    . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) "
-                    . " and d.id not in (8,9)";
+                    . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
+                 //   . " and d.id not in (8,9)";
 
 
             //марка техники
@@ -6279,8 +6279,8 @@ return $main;
                     . " AND  c.`id_teh` NOT IN "
                     . " (SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr WHERE (( ' " . $date_start . " ' BETWEEN tr.date1 AND tr.date2) OR( ' " . $date_start . " '  >= tr.date1 AND tr.date2 IS NULL)) )"
                     . " AND  c.`id_teh` NOT IN "
-                    . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) "
-                    . " and d.id not in (8,9)";
+                    . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
+                 //   . " and d.id not in (8,9)";
 
 
                         if ($type == 1) {//UMCHS
@@ -6415,8 +6415,8 @@ return $main;
                     ."   LEFT JOIN `ss`.`organs` `orgg`     ON `locor`.`oforg` = `orgg`.`id` "
                     ."   LEFT JOIN `ss`.`regions` `reg`    ON `reg`.`id` = `loc`.`id_region` "
 
-                    . "  WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) "
-                    . " and re.id_divizion not in (8,9)";
+                    . "  WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ";
+                  //  . " and re.id_divizion not in (8,9)";
 
 
             //марка техники из др.подразделения
@@ -6434,8 +6434,8 @@ return $main;
                     ."   LEFT JOIN `ss`.`organs` `orgg`     ON `locor`.`oforg` = `orgg`.`id` "
                     ."   LEFT JOIN `ss`.`regions` `reg`    ON `reg`.`id` = `loc`.`id_region` "
 
-                    . "  WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) "
-                    . " and re.id_divizion not in (8,9)";
+                    . "  WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ";
+                 //   . " and re.id_divizion not in (8,9)";
 
 
             if (isset($t_n)) {//АЦ, АБР....
@@ -12516,6 +12516,9 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
         } else {
             //выбор id ПАСЧей этого ГРОЧС
             $id_pasp = R::getAll('select distinct id_pasp from spr_info_report where id_grochs = ?', array($id));
+
+            // cou
+             $id_pasp_cou = R::getAll('select distinct id_pasp from spr_info_cou where id_grochs = ?', array($id));
         }
         /***********дата, на которую надо выбирать данные *********/
            $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
@@ -12636,6 +12639,106 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
         //print_r($main);
         // print_r($text);
         $data['main'] = $main;
+
+        /* cou */
+
+        foreach ($id_pasp_cou as $value) {
+            if ($date == 0) {
+                $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ?  limit 1', array($value['id_pasp']));
+            } else {
+                $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'], $date));
+
+                if (empty($inf1)) {
+                    $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'], $yesterday));
+                }
+            }
+
+
+            $main_cou[$value['id_pasp']] = array();
+
+              foreach ($inf1 as $row) {
+
+                $dateduty = $row['dateduty'];
+                $ch = $row['ch'];
+
+//                 $main[$value['id_pasp']]['dateduty'] = $dateduty;
+//                 $main[$value['id_pasp']]['ch'] = $ch;
+                $main_cou[$value['id_pasp']] ['ch'] =  $ch;
+                $main_cou[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main_cou[$value['id_pasp']] ['shtat_ch'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND c.ch = ? ', array($value['id_pasp'],$ch));
+                $main_cou[$value['id_pasp']] ['vacant_ch'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND c.ch = ? AND l.is_vacant = ? ', array($value['id_pasp'],$ch,1));
+                $main_cou[$value['id_pasp']] ['face'] = 0;
+                $main_cou[$value['id_pasp']] ['calc'] = 0;
+                $main_cou[$value['id_pasp']] ['duty'] = 0;
+                $main_cou[$value['id_pasp']] ['gas'] = 0;
+                $main_cou[$value['id_pasp']] ['duty_date1'] = $dateduty;
+                $main_cou[$value['id_pasp']] ['duty_date2'] = $dateduty;
+                //отсутствующие
+                $main_cou[$value['id_pasp']] ['trip'] = getCountTrip($value['id_pasp'], $ch, $dateduty);
+                $main_cou[$value['id_pasp']] ['holiday'] = getCountHoliday($value['id_pasp'], $ch, $dateduty);
+                $main_cou[$value['id_pasp']] ['ill'] = getCountIll($value['id_pasp'], $ch, $dateduty);
+                $main_cou[$value['id_pasp']] ['other'] = getCountOther($value['id_pasp'], $ch, $dateduty);
+
+                //л/с подразделения
+                //по штату   по подразделению c ежедневниками
+                $main_cou[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
+                //вакансия по подразделению
+                $main_cou[$value['id_pasp']] ['vacant'] = R::getCell('select count(l.id) as vacant from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where l.is_vacant = ? AND c.id_card = ? ', array(1,$value['id_pasp']));
+
+
+                /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
+                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
+                                . ' t.place,t.is_cosmr, t.prikaz,l.fio, po.name as position FROM trip AS t '
+                                . 'inner join listfio AS l ON t.id_fio=l.id inner join str.position as po on po.id=l.id_position inner join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN t.date1 and t.date2) or(:today  >= t.date1 and t.date2 is NULL)) ', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+                $main_cou[$value['id_pasp']]['trip_inf'] = $trip;
+
+                /*                 * *******  ФИО, описание работников в  отпуске - текст  ******** */
+                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d-%m-%Y") AS date1,date_format(h.date2,"%d-%m-%Y") AS date2,'
+                                . ' h.prikaz, l.fio, po.name as position FROM holiday AS h '
+                                . 'inner join listfio AS l ON h.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id  inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN h.date1 and h.date2) or(:today  >= h.date1 and h.date2 is NULL))', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+                $main_cou[$value['id_pasp']]['holiday_inf'] = $holiday;
+
+                /*                 * *******  ФИО, описание работников на больничном - текст  ******** */
+                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d-%m-%Y") AS date1,date_format(i.date2,"%d-%m-%Y") AS date2,'
+                                . ' i.diagnosis,l.fio, ma.name as maim, po.name as position FROM ill AS i inner join listfio AS l '
+                                . 'ON i.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join maim AS ma ON i.maim=ma.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . 'AND (( :today BETWEEN i.date1 and i.date2) or(:today  >= i.date1 and i.date2 is NULL)) ', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+
+                $main_cou[$value['id_pasp']]['ill_inf'] = $ill;
+
+                /*                 * *******  ФИО, описание работников в наряде - текст  ******** */
+                $main_cou[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+               // $main_cou[$value['id_pasp']]['duty_inf'] = $row['fio_duty'];
+
+                /*                 * *******  ФИО, описание работников др.причины - текст  ******** */
+                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d-%m-%Y") AS date1, date_format(o.date2,"%d-%m-%Y") AS date2,'
+                                . ' o.reason, o.note, l.fio, po.name as position FROM other AS o inner join listfio AS l '
+                                . 'ON o.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN o.date1 and o.date2) or(:today  >= o.date1 and o.date2 is NULL))', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+
+                $main_cou[$value['id_pasp']]['other_inf'] = $other;
+
+                /*                 * *******  Ваканты - текст  ******** */
+                 $vacant_inf = R::getAll('SELECT   l.fio, po.name as position FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) and l.is_vacant = :is_vacant', [':id' => $value['id_pasp'], ':ch' => $ch,':is_vacant'=>1 ]);
+
+                 $main_cou[$value['id_pasp']]['vacant_inf'] = $vacant_inf;
+
+            }
+        }
+ $data['main_cou'] = $main_cou;
+        /* END cou */
 
         /*------- for fold up menu ------*/
         $data['grochs_active']=  get_id_grochs($id_pasp_active);
@@ -16930,7 +17033,7 @@ $sql=$sql.' group by record_id ';
 
 
         $sql = "SELECT COUNT(l.`id`) AS cnt, po.`name` AS name_pos , po.`id` "
-            . " FROM POSITION AS po LEFT JOIN listfio AS l ON po.`id`=l.`id_position` "
+            . " FROM  `position` AS po LEFT JOIN listfio AS l ON po.`id`=l.`id_position` "
             . " LEFT JOIN cardch AS c ON l.`id_cardch`=c.`id` "
             . " LEFT JOIN  ss.`records` AS rec  ON rec.`id`=c.`id_card`"
             . " LEFT JOIN ss.`locorg` AS locor ON locor.`id`=rec.`id_loc_org`"

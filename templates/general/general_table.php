@@ -89,7 +89,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                     <?php
                                 } else {
                                     ?>
-                                <tr class="info">                        
+                                <tr class="info">
                                     <?php
                                 }
                                 ?>
@@ -108,7 +108,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                             <td><?= $row['stat'] ?></td>
                             <td><?= $row['ch'] ?></td>
                             <td><?= $row['dateduty'] ?></td>
-    <!--                            <td><? $row['descr'] ?></td>-->
+
 
                             <?php
                             //РЦУ может открыть доступ на ред.заступившей смене
@@ -130,11 +130,11 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                         if ($row['dateduty'] == date("d-m-Y")) {
                                             if ($_SESSION['uid'] == $row['id_user']) {//закрыть доступ может тот, кто открывал
                                                 ?>
-                                                <a href="/str/close_update/<?= $row['id_main'] ?>" target="_blank"><button type="button" class="btn btn-xs btn-success"  data-toggle="tooltip" data-placement="bottom" title="Доступ открыт"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button></a>     
+                                                <a href="/str/close_update/<?= $row['id_main'] ?>" target="_blank"><button type="button" class="btn btn-xs btn-success"  data-toggle="tooltip" data-placement="bottom" title="Доступ открыт"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button></a>
                                                 <?php
                                             } else {
                                                 ?>
-                                                <a href="/str/close_update/<?= $row['id_main'] ?>"><button type="button" disabled="" class="btn btn-xs btn-success"  data-toggle="tooltip" data-placement="bottom" title="Доступ открыт"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button></a>     
+                                                <a href="/str/close_update/<?= $row['id_main'] ?>"><button type="button" disabled="" class="btn btn-xs btn-success"  data-toggle="tooltip" data-placement="bottom" title="Доступ открыт"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button></a>
                                                         <?php
                                                     }
                                                 }

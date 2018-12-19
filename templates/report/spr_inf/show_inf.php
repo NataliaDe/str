@@ -5,7 +5,7 @@ if(isset($main)&& !empty($main)){
      foreach ($main as $key => $value) {
          $date=$value['duty_date1'];
          break;
-     } 
+     }
 
     ?>
 <center><b>Информация за <?= $date ?></b></center>
@@ -65,13 +65,44 @@ if(isset($main)&& !empty($main)){
                 </tr>
                 <?php
             }
+
+            /* cou */
+if(isset($main_cou)&& !empty($main_cou)){
+  foreach ($main_cou as $key => $value) {
+                ?>
+                <tr>
+                    <td><?= $value['name'] ?>, смена <?= $value['ch'] ?></td>
+                    <td><?= $value['shtat'] ?></td>
+                    <td><?= $value['vacant'] ?></td>
+                    <td><?= $value['shtat_ch'] ?></td>
+                    <td><?= $value['vacant_ch'] ?></td>
+
+                    <td><?= $value['face'] ?></td>
+                    <td><?= $value['calc'] ?></td>
+
+                    <td><?= $value['trip'] ?></td>
+                    <td><?= $value['holiday'] ?></td>
+                    <td><?= $value['ill'] ?></td>
+                    <td><?= $value['duty'] ?></td>
+
+                    <td><?= $value['other'] ?></td>
+                    <td><?= $value['gas'] ?></td>
+
+
+
+                </tr>
+                <?php
+            }
+}
+
+ /* cou */
             ?>
 
         </tbody>
     </table>
     <br>
     <?php
-    
+
             foreach ($main as $key => $value) {
         ?>
      <br>
@@ -92,20 +123,20 @@ if(isset($main)&& !empty($main)){
                 <?php
             }
         }
-        
+
         //отпуск
                if (!empty($main[$key]['holiday_inf'])) {
             foreach ($main[$key]['holiday_inf'] as $holiday_inf) {
                 ?>
             <i><?= $holiday_inf['position'] . ' ' ?><?= $holiday_inf['fio'] ?> - <b>отпуск</b> c  <?= $holiday_inf['date1'] ?> по
                         <?php echo (($holiday_inf['date2']) != NULL) ? $holiday_inf['date2'] : '-'; ?> <?= ', '.$holiday_inf['prikaz']  ?>.
-                       
+
                     </i>
             <br>
                 <?php
             }
         }
-        
+
         //больные
            if (!empty($main[$key]['ill_inf'])) {
             foreach ($main[$key]['ill_inf'] as $ill_inf) {
@@ -113,7 +144,7 @@ if(isset($main)&& !empty($main)){
             <i><?= $ill_inf['position'] . ' ' ?><?= $ill_inf['fio'] ?> - <b>болен</b> c  <?= $ill_inf['date1'] ?> по
                         <?php echo (($ill_inf['date2']) != NULL) ? $ill_inf['date2'] : '-'; ?> <?= ', '.$ill_inf['maim'] . ' ' ?>.
                         <?= ', '. $ill_inf['diagnosis'] . ' ' ?>
-                       
+
                     </i>
             <br>
                 <?php
@@ -129,7 +160,7 @@ if(isset($main)&& !empty($main)){
             echo '<i>'.$main[$key]['duty_inf'].' - '.'<b>наряд.</b> с '.$d1_duty.' по '. $d2_duty.'</i>';
             echo '<br>';
         }
-        
+
                //др причины
                if (!empty($main[$key]['other_inf'])) {
             foreach ($main[$key]['other_inf'] as $other_inf) {
@@ -137,13 +168,13 @@ if(isset($main)&& !empty($main)){
             <i><?= $other_inf['position'] . ' ' ?><?= $other_inf['fio'] ?> - <b>другие причины</b> c  <?= $other_inf['date1'] ?> по
                         <?php echo (($other_inf['date2']) != NULL) ? $other_inf['date2'] : '-'; ?> <?= ', '.$other_inf['reason']  ?>
                           <?php echo (($other_inf['note']) != NULL) ? ', '.$other_inf['note'] : ''; ?>.
-                       
+
                     </i>
             <br>
                 <?php
             }
         }
-        
+
                   //ваканты
                if (!empty($main[$key]['vacant_inf'])) {
                  //  print_r($d2_duty)
@@ -154,8 +185,8 @@ if(isset($main)&& !empty($main)){
                 <?php
             }
         }
-        
-        
+
+
     }
     ?>
 <!-- <center> <a onclick="javascript:history.back();">  <button class="btn btn-warning" type="button" data-dismiss="modal">Назад</button></a></center>-->
@@ -173,5 +204,6 @@ if(isset($main)&& !empty($main)){
 </div>
 <?php
 }
+//print_r($main_cou);
 ?>
 

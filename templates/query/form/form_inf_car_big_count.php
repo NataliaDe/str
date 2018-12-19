@@ -9,7 +9,8 @@ include 'templates/query/pzform.php';
 
 <!--форма-->
 <span class="glyphicon glyphicon-hand-up" style="color: red;" ></span>&nbsp;&nbsp;
- Информация доступна за последние <b>3 дня</b>.  <span style="color: red;"> Данные представлены без учета ЦОУ.</span>
+ Информация доступна за последние <b>3 дня</b>.
+<!-- <span style="color: red;"> Данные представлены без учета ЦОУ.</span>-->
 <br><br><br>
 <form  role="form" id="formFillCar" method="POST" action="/str/builder/basic/inf_car_big_count/1#result_page">
 

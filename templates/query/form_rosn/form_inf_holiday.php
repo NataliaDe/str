@@ -6,7 +6,10 @@ include 'templates/query/pzform.php';
 </div>-->
 
 <!--форма-->
+<span class="glyphicon glyphicon-hand-up" style="color: red;" ></span>&nbsp;&nbsp;
 
+ <span style="color: red;">Для получения информации по ЦОУ необходимо в списке "Подчиненные" выбрать г.Минск и в полученном результате отфильтровать информацию по ЦОУ.</span>
+<br><br><br>
 <form  role="form" id="formFillCar" method="POST" action="/str/builder/basic/inf_holiday/2#result_page">
 
     <div class="row">
@@ -18,7 +21,7 @@ include 'templates/query/pzform.php';
 
                 <label for="date11"> c</label>
                 <div class="input-group date" id="date11">
-                 
+
                   		<?php
 				 if (isset($_POST['date_start']) && !empty($_POST['date_start'])) {
 					 ?>
@@ -30,7 +33,7 @@ include 'templates/query/pzform.php';
 					  <input type="text" class="form-control"  name="date_start" />
 					 <?php
 				 }
-				
+
 				?>
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -54,7 +57,7 @@ include 'templates/query/pzform.php';
 					  <input type="text" class="form-control" name="date_end" />
 					 <?php
 				 }
-				
+
 				?>
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -63,13 +66,13 @@ include 'templates/query/pzform.php';
             </div>
 
         </div>
-        
+
           <div class="col-lg-2">
                     <br>
             <div class="form-group">
                 <label for="ch">Смена</label>
                 <select class="form-control" name="ch" >
-                       <option value="">все</option>    
+                       <option value="">все</option>
                     <?php
 
                     for($i=1;$i<4;$i++){
@@ -102,9 +105,9 @@ include 'templates/query/pzform.php';
                                 }
                             }
                             ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                     <?php
-                                    
+
                         } else {
                             ?>
                             <option value="" selected="">все</option>
@@ -138,7 +141,7 @@ include 'templates/query/pzform.php';
                                 }
                             }
                                    ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                     <?php
                         } else {
                             ?>
@@ -171,7 +174,7 @@ include 'templates/query/pzform.php';
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-warning" name="export_to_excel">Экспорт в Excel</button>
-            </div>  
+            </div>
         </div>
 
     </center>
