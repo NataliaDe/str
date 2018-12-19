@@ -82,10 +82,21 @@ function basic_query() {
     if ($_SESSION['ulevel'] == 1) {//rcu
         $region = R::getAll('SELECT * FROM ss.regions'); //список 1 -область
         $locorg = R::getAll('SELECT * FROM ss.caption WHERE orgid not IN (' . implode(",", $cp_all) . ') '); //кроме ЦП
-        $diviz = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
-            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+//        $diviz = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+//            concat(d.name," №" ,rec.divizion_num)  end as name,
+//            id_loc_org as idlocorg,
+//            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+//            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+                $diviz = R::getAll('SELECT  (CASE WHEN (rec.divizion_num = 0) THEN (CASE WHEN (`rec`.`cou_with_slhs` = 0) THEN `d`.`name` '
+                    . 'ELSE CONCAT(`d`.`name`," ш") END) ELSE (CASE WHEN (`rec`.`cou_with_slhs` = 0) THEN CONCAT(`d`.`name`," №",`rec`.`divizion_num`) '
+                    . 'ELSE CONCAT(`d`.`name`," №",`rec`.`divizion_num`," ш") END) END) as name,
+            id_loc_org as idlocorg,
             rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
-            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC');
+
+
+
+            //
 //  $diviz = R::getAll('SELECT DISTINCT id, name FROM divizions WHERE id=? OR id=?', array(2, 3)); //pasp, pasch
         /* $diviznum = R::getAll('SELECT rec.id as recid,rec.divizionNum,idDivizion, idLocOrg,d.id, d.name FROM records AS rec inner join divizions AS d
           on rec.idDivizion=d.id '); */
@@ -293,8 +304,11 @@ function cou_query() {
 
 
 
-        $diviz = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
-            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+        $diviz = R::getAll('SELECT   (CASE WHEN (rec.divizion_num = 0) THEN (CASE WHEN (`rec`.`cou_with_slhs` = 0) THEN `d`.`name` '
+                    . 'ELSE CONCAT(`d`.`name`," ш") END) ELSE (CASE WHEN (`rec`.`cou_with_slhs` = 0) THEN CONCAT(`d`.`name`," №",`rec`.`divizion_num`) '
+                    . 'ELSE CONCAT(`d`.`name`," №",`rec`.`divizion_num`," ш") END) END) as name,
+
+id_loc_org as idlocorg,
             rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
             on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org where d.id = ? or d.id = ? order by rec.divizion_num ASC',array(8,9)); //ЦОУ, ШЛЧС
 
@@ -6236,34 +6250,35 @@ return $main;
 
         /*----------------------------- только родная техника - та, которая уехала в командировку - та, которая приехала из др.ПАСЧ ------------------------------------*/
             $sql = " SELECT   count(c.id_teh) as co, "
-                    . "     `reg`.`name`        AS `region_name`,"
-                    . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`,"
-                    . " `re`.`id`         AS `id_pasp`,"
-                    . " (CASE WHEN (`org`.`id` = 8) THEN `org`.`name` WHEN (`org`.`id` = 7) THEN CONCAT(`org`.`name`,' №',`locor`.`no`,' ',REPLACE(`loc`.`name`,'ий','ого'),' ',`orgg`.`name`) "
-                    . "  ELSE CONCAT(`loc`.`name`,' ',`org`.`name`) END) AS `organ`,"
-                    . "  `org`.`id`         AS `org_id`,"
-                    . " (CASE WHEN (`org`.`id` = 8) THEN CONCAT(`org`.`name`,' - ',`loc`.`name`) WHEN (`re`.`divizion_num` = 0) THEN `d`.`name` "
-                    . "ELSE CONCAT(`d`.`name`,'-',`re`.`divizion_num`) END) AS `divizion` "
+            . "     `reg`.`name`        AS `region_name`,"
+            . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`,"
+            . " `re`.`id`         AS `id_pasp`,"
+            . " (CASE WHEN (`org`.`id` = 8) THEN `org`.`name` WHEN (`org`.`id` = 7) THEN CONCAT(`org`.`name`,' №',`locor`.`no`,' ',REPLACE(`loc`.`name`,'ий','ого'),' ',`orgg`.`name`) "
+            . "  ELSE CONCAT(`loc`.`name`,' ',`org`.`name`) END) AS `organ`,"
+            . "  `org`.`id`         AS `org_id`,"
+            // . " (CASE WHEN (`org`.`id` = 8) THEN CONCAT(`org`.`name`,' - ',`loc`.`name`) WHEN (`re`.`divizion_num` = 0) THEN `d`.`name` "
+            //. "ELSE CONCAT(`d`.`name`,'-',`re`.`divizion_num`) END) AS `divizion` "
+            . "(CASE WHEN (`org`.`id` = 8) THEN (CASE WHEN (`re`.`cou_with_slhs` = 1) THEN CONCAT(`d`.`name`,' ','ш - ',`loc`.`name`)"
+            . " ELSE CONCAT(`d`.`name`,' - ',`loc`.`name`) END) "
+            . "WHEN (`re`.`divizion_num` = 0) THEN (CASE WHEN (`re`.`cou_with_slhs` = 1) THEN CONCAT(`d`.`name`,' ','ш') ELSE `d`.`name` END)"
+            . " ELSE CONCAT(`d`.`name`,' № ',`re`.`divizion_num`) END) AS `divizion`"
 
-                    . " FROM str.car AS c LEFT JOIN ss.technics AS t ON t.id=c.id_teh"
-                    . " LEFT JOIN ss.records AS re ON re.id=t.id_record "
-                    . " LEFT JOIN ss.locorg AS locor ON locor.id=re.id_loc_org"
-                    . " LEFT JOIN ss.locals AS loc ON loc.id=locor.id_local"
-                    . " left join ss.views as vie on vie.id=t.id_view"
-                    ."  LEFT JOIN `ss`.`divizions` `d`  on  `d`.`id` = `re`.`id_divizion` "
-                    ." LEFT JOIN `ss`.`organs` `org`    ON `locor`.`id_organ` = `org`.`id`"
-                    ."   LEFT JOIN `ss`.`organs` `orgg`     ON `locor`.`oforg` = `orgg`.`id` "
-                    ."   LEFT JOIN `ss`.`regions` `reg`    ON `reg`.`id` = `loc`.`id_region` "
-                    . " WHERE c.dateduty = ' " . $date_start . "'"
-
-                    . " AND  c.`id_teh` NOT IN "
-                    . " (SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr WHERE (( ' " . $date_start . " ' BETWEEN tr.date1 AND tr.date2) OR( ' " . $date_start . " '  >= tr.date1 AND tr.date2 IS NULL)) )"
-                    . " AND  c.`id_teh` NOT IN "
-                    . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
-                 //   . " and d.id not in (8,9)";
-
-
-            //марка техники
+            . " FROM str.car AS c LEFT JOIN ss.technics AS t ON t.id=c.id_teh"
+            . " LEFT JOIN ss.records AS re ON re.id=t.id_record "
+            . " LEFT JOIN ss.locorg AS locor ON locor.id=re.id_loc_org"
+            . " LEFT JOIN ss.locals AS loc ON loc.id=locor.id_local"
+            . " left join ss.views as vie on vie.id=t.id_view"
+            . "  LEFT JOIN `ss`.`divizions` `d`  on  `d`.`id` = `re`.`id_divizion` "
+            . " LEFT JOIN `ss`.`organs` `org`    ON `locor`.`id_organ` = `org`.`id`"
+            . "   LEFT JOIN `ss`.`organs` `orgg`     ON `locor`.`oforg` = `orgg`.`id` "
+            . "   LEFT JOIN `ss`.`regions` `reg`    ON `reg`.`id` = `loc`.`id_region` "
+            . " WHERE c.dateduty = ' " . $date_start . "'"
+            . " AND  c.`id_teh` NOT IN "
+            . " (SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr WHERE (( ' " . $date_start . " ' BETWEEN tr.date1 AND tr.date2) OR( ' " . $date_start . " '  >= tr.date1 AND tr.date2 IS NULL)) )"
+            . " AND  c.`id_teh` NOT IN "
+            . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
+        //   . " and d.id not in (8,9)";
+        //марка техники
                       $sql_mark = " SELECT   t.mark as mark, `re`.`id` AS `id_pasp` "
                     . " FROM str.car AS c LEFT JOIN ss.technics AS t ON t.id=c.id_teh"
                     . " LEFT JOIN ss.records AS re ON re.id=t.id_record "

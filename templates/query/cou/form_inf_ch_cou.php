@@ -9,7 +9,7 @@ include 'templates/query/pzform.php';
 
 <!--форма-->
  <span class="glyphicon glyphicon-hand-up" style="color: red;" ></span>&nbsp;&nbsp;
- <span style="color: red;">  Информация доступна за последние <b>3 дня</b></span>
+ <span style="color: red;">  Информация доступна за последние <b>3 дня</b>. Для просмотра информации по ЦОУ РОСН - выберите область "г. Минск".</span>
 <br><br><br>
 <form  role="form" id="formFillCar" method="POST" action="/str/v2/card/builder/basic/inf_ch_cou/<?= $type ?>#result_page">
 
