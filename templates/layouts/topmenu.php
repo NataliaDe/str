@@ -54,6 +54,12 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
 
             <ul class="nav navbar-nav navbar-right">
 
+<!--                search by fio-->
+ <li ><a href="/str/search_by_fio" class="item-menu"><span><i class="fa fa-search" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="Поиск" target="_blank"></i></span></a></li>
+
+
+
+
                 <?php
 
                 /* any user can auth as spectator */

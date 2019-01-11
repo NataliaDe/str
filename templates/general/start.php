@@ -71,8 +71,10 @@
                 <li>
                     <?php
                 }
-                ?>
-               <a href="/str/general/3" aria-controls="general_table" role="tab" >Новости <span class="badge" style="background-color: red;">22.12.2018</span></a></li>
+
+                    include __DIR__.'/news_head.php';
+                    ?>
+                    </li>
 
 
 

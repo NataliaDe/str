@@ -213,7 +213,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                             <?php
                             if (isset($dateduty) && ($dateduty != $today)) {
                                 //кто заступал начальником смены прошлый раз
-                                // на сегодня начальник смены доступен в списке или нет.если нет - вывод 
+                                // на сегодня начальник смены доступен в списке или нет.если нет - вывод
 
                                 if (isset($past_head_fio) && !empty($past_head_fio)) {
                                     ?>
@@ -231,7 +231,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                                                                                                         </div>
                                                                                                     </div>-->
 
-                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right" 
+                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступал прошлый раз: <?php
                                                 foreach ($past_head_fio as $value) {
@@ -279,11 +279,11 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                     </div>
 
-               
+
                     <div class="row">
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="everydayfio[]">Заступают ежедневники
-                        
-                        
+
+
                              <?php
                     if (isset($dateduty) && ($dateduty != $today)) {
                         //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
@@ -291,7 +291,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                             ?>
 
 
-                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right" 
+                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступали прошлый раз: <?php
                                                  foreach ($past_everyday_fio as $value) {
@@ -304,8 +304,8 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                         }
                     }
                     ?>
-                        
-                        
+
+
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                             <div class="form-group">
@@ -339,15 +339,15 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                     </div>
 
-                   
+
 
                     <div class="row">
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="reserve[]">Заступают из другого подразделения (смены)
-                        
-                        
-                        
+
+
+
                           <?php
-                          
+
                            if (isset($dateduty) && ($dateduty != $today)) {
                         //вывод тех, кто заступал из др пасч прошлый раз
                         if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
@@ -367,7 +367,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                             </div>-->
 
 
-                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right" 
+                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступали прошлый раз: <?php
                                                  foreach ($past_reserve_fio as $value) {
@@ -381,8 +381,8 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                         }
                     }
                             ?>
-                        
-                        
+
+
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                             <div class="form-group">
@@ -431,7 +431,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                             </div>
 
-                        </div>  
+                        </div>
 
                     </div>
 
@@ -451,7 +451,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                         <?php
                         // }
                         ?>
-                        
+
                                                     </div>
                                                 </div>-->
                     </div>
@@ -489,10 +489,10 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="count_everyday">Ежедневники</label>
                         <div class="col-sm-6 col-lg-1 col-md-4 col-xs-9">
-                            <div class="form-group">                                 
+                            <div class="form-group">
                                 <input type="text" class="form-control" style="background-color:  #d4e062 !important;" placeholder="0" value="<?= $count_everyday ?>" disabled="" id="on_every">
                             </div>
-                        </div>  
+                        </div>
 
                     </div>
 
@@ -549,7 +549,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                                 <input type="text" class="form-control" style="background-color:  #d4e062 !important;" placeholder="0" value="<?= $count_past_reserve_fio ?>" disabled="" id="on_reserve">
 
                             </div>
-                        </div> 
+                        </div>
                     </div>
 
 
@@ -584,7 +584,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                                 ?>
                             </div>
                             <hr>
-                        </div>  
+                        </div>
 
                     </div>
 
@@ -593,6 +593,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                     <div class="row">
 
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="face">Налицо
+                            <span class="glyphicon glyphicon-star" style="color: red;" data-toggle="tooltip" data-placement="left" title="Налицо = по списку - на бол.- в отпуске - в ком. - др.причины + еж. + из.др.подразд. = боевой расчет + наряд"></span>
                             <?php
                             if ((isset($face) && ($face != $on_face_rule) ) || (!isset($face) && (0 != $on_face_rule) )) {
                                 $error_face = 1;
@@ -632,7 +633,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                             </div>
 
                         </div>
-                        <button type="button" class="btn btn-success " onclick="getCountOnFace();"> <i class="fa fa-refresh fa-lg tilt" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Автоподсчет" ></i></button> 
+                        <button type="button" class="btn btn-success " onclick="getCountOnFace();"> <i class="fa fa-refresh fa-lg tilt" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Автоподсчет" ></i></button>
 
 
                     </div>
@@ -704,7 +705,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                             </div>
 
-                        </div>                   
+                        </div>
 
                     </div>
 
@@ -731,8 +732,8 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                     </div>
 
                     <!--                    <div class="row">
-                                                   
-                                            
+
+
                                                    <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fio_duty">Ф.И.О в наряде</label>
                                             <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                                                 <div class="form-group">
@@ -747,7 +748,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                         <?php
                     }
                     ?>
-                    
+
                                                 </div>
                                             </div>
                                         </div>-->

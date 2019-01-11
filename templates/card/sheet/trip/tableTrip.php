@@ -30,7 +30,7 @@
                 foreach ($trip as $row) {
                     $i++;
                     ?>
-                    <tr> 
+                    <tr>
                         <td><?= $i ?></td>
 
 
@@ -122,7 +122,7 @@
                                     <?php
                                 }
                                 ?>
-                            
+
 
                             <div class="row">
                                 <div class="col-lg-12">
@@ -199,7 +199,7 @@
                                     foreach ($type_trip as $ty) {
                                         if ($ty['id'] == $row['id_type']) {
                                             printf("<p><option value='%s' selected><label>%s</label></option></p>", $ty['id'], $ty['name']);
-                                        } else {
+                                        } elseif($ty['id'] != 4) {// except 'auto'
                                             printf("<p><option value='%s'><label>%s</label></option></p>", $ty['id'], $ty['name']);
                                         }
                                     }

@@ -1068,6 +1068,57 @@ $app->get('/logout', function () use ($app) {
     $app->redirect('login');
 });
 
+
+/* seacrh by fio */
+$app->group('/search_by_fio',$is_auth, function () use ($app) {
+
+
+
+    //form
+    $app->get('/', function () use ($app) {
+
+        $data['bread'][] = 'Поиск работника по фамилии';
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php');
+        $app->render('bread/bread.php', $data);
+
+        $app->render('search_by_fio/form.php', $data);
+
+
+        $app->render('layouts/footer.php');
+    });
+
+
+    //search
+    $app->post('/', function () use ($app) {
+
+
+        if ($app->request->isAjax()) {
+            /* fio */
+            $str = $_POST['str'];
+            $data['str'] = $str;
+
+            if(!empty($str)){
+                            /* select from bd */
+            $data['result'] = R::getAll('SELECT * FROM list_of_change  WHERE region_name IS NOT NULL AND fio LIKE ' . '"%' . $str . '%"');
+            }
+            else{
+                $data['result'] =array();
+            }
+
+            /* not found */
+            if (empty($data['result'])) {
+                echo '<center><b>Поиск не дал результатов</b></center>';
+            } else {
+                $view = $app->render('search_by_fio/result.php', $data);
+                $response = ['success' => TRUE, 'view' => $view];
+            }
+        }
+    });
+});
+
+
 /* * ********************* МЕНЮ ************************ */
 
 function prepareMenu($menu) {
@@ -9378,6 +9429,17 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
             if ($mainstr->calc != $count_fio_on_car)
                 $error_field['calc'] = 1; //ошибка
 
+
+            /* 6: shtat-spisok=vakant */
+            if (($mainstr->countls - $mainstr->listls) != $mainstr->vacant)
+                $error_field['vacant_form_main_table'] = 1; //ошибка
+
+
+                /* 7: br + naryd = face */
+            if (($mainstr->calc + $mainstr->duty) != $mainstr->face)
+                $error_field['br_duty_face_from_main_table'] = 1; //ошибка
+
+            $data['error_field']=$error_field;
                 /*                 * *********************************************************    КОНЕЦ проверки формул   ********************************************************************** */
 
             if (!in_array(1, $error_field)) {//формулы выполняется
@@ -10392,7 +10454,7 @@ if($date1 != NULL){
          $data['organ_active']=R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
         /*------- END для развертывания меню ------*/
 
-          $data['type_trip']=R::getAll('select * from typetrip where id <> ?',array(4));
+          $data['type_trip']=R::getAll('select * from typetrip ');
             $data['vid_document']=R::getAll('select * from str.viddocument ');//вид документы
             $data['vid_position']=R::getAll('select * from str.vidposition ');//должность, чей приказ
 
@@ -14999,7 +15061,7 @@ $styleArray = array(
       //native_all_calc - общий бр из КУСиС для ПАСЧ, учитывая только родные машины. Если заступила чужая машина-ее б.р. не учитваем
         $sql = 'select native_all_calc, dateduty, divizion_name, locorg, region_id, locorg_id,record_id,region_name,organ_id,'
 
- .' sum(calculation) as calculation, sum(br) as br , case when( sum(calculation)>sum(br)) then 1 else 0 end as is_vivod'
+ .' sum(calculation) as calculation, sum(br) as br , case when( native_all_calc>SUM(br)) then 1 else 0 end as is_vivod'
 
  .' from br  where dateduty = ?  ';//вся боевая техника, где мин б.р. не равен бр
         $param[] = $date;
@@ -15172,7 +15234,8 @@ $sql=$sql.' group by record_id ';
                     }
 
                     $sheet->setCellValue('B' . $r, $row['divizion_name'] . ', ' . $row['locorg']);
-                    $sheet->setCellValue('C' . $r, $row['calculation']);
+                   // $sheet->setCellValue('C' . $r, $row['calculation']);
+                    $sheet->setCellValue('C' . $r, $row['native_all_calc']);
                     $sheet->setCellValue('D' . $r, $row['br']);
                     $r++;
                 }
@@ -18250,7 +18313,7 @@ function saveMainCouOneText($id, $change, $id_pos_duty, $dateduty, $id_fio) {
 
 
       /*---------- export to Excel inf ch ЦОУ ------------*/
-    function exportToExcelInfChCou($main, $shtat, $absent, $count_fio_on_car,$head) {
+function exportToExcelInfChCou($main, $shtat, $absent, $count_fio_on_car,$head) {
 
     $objPHPExcel = new PHPExcel();
     $objReader = PHPExcel_IOFactory::createReader("Excel2007");

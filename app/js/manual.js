@@ -1400,3 +1400,65 @@ $('#prikaz_date10').on('dp.change dp.show', function (e) {
 $(document).ready(function() {
     $('.js-example-basic-multiple').select2();
 });
+
+
+
+/*------------------------  search by fio -------------------------------- */
+ $('#studentSearch').on({
+        'keyup': function (event) {
+            var $th = $(this);
+
+            clearTimeout($th.data('inputTimeOut'));
+
+            var timeout = setTimeout(function ($th) {
+
+                if ($th.val().trim().length > 2) {
+
+                    studentsSearchMethod();
+
+                } else if ($th.val().trim().length == 0) {
+
+                    studentsSearchMethod();
+
+                }
+            }, 300, $th);
+
+            $th.data('inputTimeOut', timeout);
+        },
+        'keydown': function (event) {
+            var $th = $(this);
+            clearTimeout($th.data('inputTimeOut'));
+            $th.data();
+        },
+        'keypress': function (event) {
+            if (event.which == '13') {
+                event.preventDefault();
+            }
+        }
+    });
+
+
+function studentsSearchMethod() {
+   // alert($('#studentSearch').val());
+   var str=$('#studentSearch').val();
+    $.ajax({
+        type: 'POST',
+        url: '/str/search_by_fio',
+       // dataType: 'json',
+        data: {
+            str: str
+
+        },
+
+        success: function (response) {
+
+            $('#search-by-fio').fadeOut("slow", function () {
+                //$('h1.m-n > *:not(:first)').remove();
+                $('#search-by-fio').html(response);
+                $('#search-by-fio').fadeIn("slow");
+                console.log("it Work");
+            });
+
+        }
+    });
+}
