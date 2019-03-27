@@ -1462,3 +1462,41 @@ function studentsSearchMethod() {
         }
     });
 }
+
+
+/* detail inf about worker */
+
+$('#show_detail_by_fio').on({
+        'click': function (event) {
+           // alert('1');
+   var date=$('#date').val();
+   var id_fio=$('#id_fio').val();
+//       alert(date);
+//       alert(id_fio);
+   if(date && id_fio){
+           $.ajax({
+        type: 'POST',
+        url: '/str/search_by_fio/detail',
+       // dataType: 'json',
+        data: {
+            date: date,
+            id_fio: id_fio
+
+        },
+
+        success: function (response) {
+
+            $('#search-by-fio').fadeOut("slow", function () {
+                //$('h1.m-n > *:not(:first)').remove();
+                $('#search-by-fio').html(response);
+                $('#search-by-fio').fadeIn("slow");
+                console.log("it Work");
+            });
+
+        }
+    });
+   }
+
+        }
+
+    });

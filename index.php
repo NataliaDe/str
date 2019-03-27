@@ -534,31 +534,69 @@ $app->group('/general', $is_auth, function () use ($app) {
     }
 
     //Общая инф о заполненности строевых ЦОУ
-        function getGeneralTableCou() {
-        $cp=array(ROSN,UGZ,AVIA);
+        function getGeneralTableCou()
+    {
+        $cp = array(ROSN, UGZ, AVIA);
+
+        $result = array();
         if ($_SESSION['ulevel'] == 1) {//rcu
+            $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou');
+
+            if (!empty($ids_card)) {
+
+                foreach ($ids_card as $value) {
+                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m WHERE m.id_record = ? ORDER BY m.dateduty DESC LIMIT 1', array($value['id_record']));
+                }
+            }
+
             //строевая по РБ
-            return R::getAll('select * FROM general_table_cou');
+            // return R::getAll('select * FROM general_table_cou');
+            return $result;
         }
         if ($_SESSION['ulevel'] == 2) {//obl
+            $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou WHERE id_region=? ', array($_SESSION['uregions']));
 
-                //все ЦОУ по obl
-                return R::getAll('select * FROM general_table_cou WHERE id_region=? ', array($_SESSION['uregions']));
+            if (!empty($ids_card)) {
 
+                foreach ($ids_card as $value) {
+                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m WHERE m.id_record = ? ORDER BY m.dateduty DESC LIMIT 1', array($value['id_record']));
+                }
+            }
+
+            //все ЦОУ по obl
+            // return R::getAll('select * FROM general_table_cou WHERE id_region=? ', array($_SESSION['uregions']));
+            return $result;
         }
 
         if ($_SESSION['ulevel'] == 3) {//grochs
+            $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
 
-                //строевая по grochs
-                return R::getAll('select * FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
+            if (!empty($ids_card)) {
 
+                foreach ($ids_card as $value) {
+                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m WHERE m.id_record = ? ORDER BY m.dateduty DESC LIMIT 1', array($value['id_record']));
+                }
+            }
+
+            //строевая по grochs
+            // return R::getAll('select * FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
+            return $result;
         }
         if ($_SESSION['ulevel'] == 4) {//pasp
+            //
+        //             $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
+            if (!empty($ids_card)) {
+
+                foreach ($ids_card as $value) {
+                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m  WHERE id_record=?', array($_SESSION['urec']));
+                }
+            }
+
             //строевая по pasp
-            return R::getAll('select * FROM general_table_cou WHERE id_record=?', array($_SESSION['urec']));
+            //return R::getAll('select * FROM general_table_cou WHERE id_record=?', array($_SESSION['urec']));
+            return $result;
         }
     }
-
     //вкладка о заполненности строевой записки
     $app->get('/:tab', function ($tab) use ($app) {
 
@@ -1072,12 +1110,12 @@ $app->get('/logout', function () use ($app) {
 /* seacrh by fio */
 $app->group('/search_by_fio',$is_auth, function () use ($app) {
 
-
-
     //form
     $app->get('/', function () use ($app) {
 
         $data['bread'][] = 'Поиск работника по фамилии';
+
+        $data['convex_item']['search_by_fio']=1;// item 'search' is active
 
         $app->render('layouts/header.php', $data);
         $app->render('layouts/menu.php');
@@ -1089,8 +1127,7 @@ $app->group('/search_by_fio',$is_auth, function () use ($app) {
         $app->render('layouts/footer.php');
     });
 
-
-    //search
+    //search Ajax
     $app->post('/', function () use ($app) {
 
 
@@ -1112,6 +1149,210 @@ $app->group('/search_by_fio',$is_auth, function () use ($app) {
                 echo '<center><b>Поиск не дал результатов</b></center>';
             } else {
                 $view = $app->render('search_by_fio/result.php', $data);
+                $response = ['success' => TRUE, 'view' => $view];
+            }
+        }
+    });
+
+
+        //detail information by worker
+    $app->get('/detail/:id', function ($id) use ($app) {
+
+        $data['bread'][] = 'Поиск работника по фамилии';
+        $data['convex_item']['search_by_fio']=1;// item 'search' is active
+
+        $data['id']=$id;//if of fio
+
+
+            /* select from bd - inf about worker */
+        $data['result'] = R::getAll('SELECT * FROM list_of_change  WHERE region_name IS NOT NULL AND id_fio = ?',array($id));
+
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php');
+        $app->render('bread/bread.php', $data);
+
+        $app->render('search_by_fio/detail/form.php', $data);
+
+
+        $app->render('layouts/footer.php');
+    });
+
+            //detail information by worker
+    $app->post('/detail', function () use ($app) {
+
+                if ($app->request->isAjax()) {
+
+            /* date for seacrh */
+            $date = $_POST['date'];
+            $data['date'] = $date;
+
+            /* convert date to YYYY-MM-DD */
+            $d_search = new DateTime($date);
+            $date_search = $d_search->Format('Y-m-d');
+
+            /* fio */
+            $id_fio = $_POST['id_fio'];
+
+
+
+            /* select from bd - inf about worker */
+             $data['result'] = R::getAll('SELECT * FROM list_of_change  WHERE region_name IS NOT NULL AND id_fio = ?',array($id_fio));
+
+
+ if (!empty($data['result'])) {
+
+
+             /* ill */
+            $data['ill'] = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d-%m-%Y") AS date1,'
+                . 'date_format(i.date2,"%d-%m-%Y") AS date2,'
+                    . ' i.diagnosis, i.deregister, date_format(i.date_insert,"%d-%m-%Y") AS date_insert, i.maim, ma.name as maim_name, u.name as u_name, c.id_card as id_card, c.ch '
+                . ' FROM ill AS i inner join maim AS ma ON i.maim=ma.id  inner join user as u ON u.id=i.id_user '
+                                                    . ' inner join listfio as l ON i.id_fio=l.id'
+                    . ' inner join cardch as c ON l.id_cardch=c.id '
+                    . ' WHERE i.id_fio = :id AND ( (:today = date_format(i.date_insert,"%Y-%m-%d" )) or ( :today BETWEEN i.date1 and i.date2) or(:today  >= i.date1 and i.date2 is NULL)) ', [':id'=>$id_fio, ':today' => $date_search]);
+
+
+                         /* holiday */
+            $data['holiday'] = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d-%m-%Y") AS date1,date_format(h.date2,"%d-%m-%Y") AS date2,'
+                    . ' h.prikaz, h.deregister,date_format(h.date_insert,"%d-%m-%Y") AS date_insert, u.name as u_name, c.id_card as id_card, c.ch FROM holiday AS h '
+                    . ' inner join user as u ON u.id=h.id_user '
+                                    . ' inner join listfio as l ON h.id_fio=l.id'
+                    . ' inner join cardch as c ON l.id_cardch=c.id '
+                    . ' WHERE h.id_fio = :id AND '
+                    . ' ( ( :today BETWEEN h.date1 and h.date2) or(:today  >= h.date1 and h.date2 is NULL))', [':id'=>$id_fio, ':today' => $date_search]);
+
+            /* trip */
+            $data['trip'] = R::getAll('SELECT t.t_id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
+                    . ' t.place,t.is_cosmr, t.prikaz, date_format(t.date_insert,"%d-%m-%Y") AS date_insert, t.place, t.type_trip, t.prikaz, t.note,'
+                    . ' u.name as u_name, c.id_card as id_card, c.ch FROM builder_basic_inf_trip AS t '
+                    . ' inner join user as u ON u.id=t.id_user '
+                    . ' inner join listfio as l ON t.id_fio=l.id'
+                    . ' inner join cardch as c ON l.id_cardch=c.id '
+                    . ' WHERE  t.id_fio = :id AND '
+                    . '  ( ( :today BETWEEN t.date1 and t.date2) or(:today  >= t.date1 and t.date2 is NULL)) ', [':id' => $id_fio, ':today' => $date_search]);
+
+
+            /* other */
+                    $data['other'] = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d-%m-%Y") AS date1, date_format(o.date2,"%d-%m-%Y") AS date2,'
+                        . ' o.reason, o.note, date_format(o.date_insert,"%d-%m-%Y") AS date_insert, u.name as u_name, c.id_card as id_card, c.ch  FROM other AS o  '
+                        . ' inner join user as u ON u.id=o.id_user'
+                        . ' inner join listfio as l ON o.id_fio=l.id'
+                        . ' inner join cardch as c ON l.id_cardch=c.id '
+                        . ' WHERE o.id_fio = :id '
+                        . ' AND (( :today BETWEEN o.date1 and o.date2) or(:today  >= o.date1 and o.date2 is NULL))', [':id' => $id_fio,  ':today' => $date_search]);
+
+
+                /* duty as everyday  */
+                 $data['everyday'] = R::getAll('SELECT * FROM fio_in_everyday_duty as e '
+                        . ' WHERE e.id_fio = ? '
+                        . 'AND e.date_duty = ? ', array($id_fio, $date_search));
+
+
+            /* from other pasp */
+                 $data['reserve_fio'] = R::getAll('SELECT * FROM fio_on_reserve as e '
+                        . ' WHERE e.id_fio = ? '
+                        . 'AND e.date_duty = ? ', array($id_fio, $date_search));
+
+
+                 /* worker is head of ch in main table */
+                 $data['main'] = R::getAll('SELECT * FROM fio_on_head_main as e '
+                        . ' WHERE e.id_fio = ? '
+                        . 'AND e.date_duty = ? ', array($id_fio, $date_search));
+
+
+
+                /* worker is on posduty in maincou - for cou */
+ $data['maincou'] = R::getAll('SELECT * FROM fio_on_maincou as e '
+                        . ' WHERE e.id_fio = ? '
+                        . 'AND e.date_duty = ? ', array($id_fio, $date_search));
+
+
+            /* br, on car */
+            $br = R::getAssoc("CALL search_fio_on_car('{$id_fio}','{$date_search}');");
+            $sign = 0;
+            foreach ($br as $value => $key) {
+                if ($value['sign'] == 2) {
+                    $sign++;
+                }
+            }
+            if ($sign > 0) {
+                foreach ($br as $value => $key) {
+                    if ($value['sign'] == 1) {
+                        unset($br[$key]);
+                    }
+                }
+            }
+$data['br']=$br;
+
+
+/* not found in this tables */
+                if (empty($data['ill']) && empty($data['holiday']) && empty($data['trip']) && empty($data['other']) && empty($data['everyday']) && empty($data['reserve_fio']) && empty($data['main'] ) && empty($data['maincou'] )  && empty($br)) {
+
+
+                                                                /* ch and pasp, where worker is working now */
+                    foreach ($data['result'] as $e) {
+                        $e_ch=$e['ch'];
+                        $e_id_card=$e['record_id'];
+                    }
+
+                    /* he is no everyday worker */
+                    if ($e_ch != 0) {
+
+                        /* pasp without cou - worker is on duty */
+                        $data['duty'] = R::getAll("SELECT id,fio_duty FROM main WHERE ch = ? AND id_card = ? AND dateduty = ? ", array($e_ch, $e_id_card, $date_search));
+
+                        /* maincou - worker as inspector inip or otvetstv po garnisony */
+                        $data['fio_text_cou'] = R::getAll("SELECT m.id, m.fio_text, pos.name as posduty FROM maincou as m INNER JOIN posdutycou as pos ON pos.id=m.id_pos_duty "
+                                . " WHERE (id_pos_duty = ? OR id_pos_duty = ?) AND fio_text IS NOT NULL AND  ch = ? AND id_card = ? AND dateduty = ? ", array(13, 14, $e_ch, $e_id_card, $date_search));
+
+
+                        if (empty($data['duty']) && empty($data['fio_text_cou'])) {
+                            $data['empty_result'] = 'Информация по дежурной смене отсутствует.';
+                        }
+                    }
+                    /* he is everyday worker */ else {
+                        $data['list_ch'] = 'Данный работник входит с список смен своего подразделения. Другой информации не найдено.';
+                    }
+                }
+                /* everyday worker on duty */ elseif (!empty($data['everyday']) && (empty($br))) {
+
+                    /* ch and pasp, where worker is working now */
+                    foreach ($data['everyday'] as $e) {
+                        $e_ch=$e['ch'];
+                        $e_id_card=$e['id_card'];
+                    }
+
+                     /* pasp without cou */
+                    $data['duty'] = R::getAll("SELECT id,fio_duty FROM main WHERE ch = ? AND id_card = ? AND dateduty = ? ", array($e_ch, $e_id_card, $date_search));
+
+                    if (empty($data['duty'])) {
+                        $data['empty_result'] = 'Информация по дежурной смене отсутствует.';
+                    }
+                }
+                /* from other pasp  worker on duty */ elseif (!empty($data['reserve_fio']) && (empty($br))) {
+
+                      /* ch and pasp, where worker is working now */
+                    foreach ($data['reserve_fio'] as $e) {
+                        $e_ch=$e['ch'];
+                        $e_id_card=$e['id_card'];
+                    }
+
+                     /* pasp without cou */
+                    $data['duty'] = R::getAll("SELECT id,fio_duty FROM main WHERE ch = ? AND id_card = ? AND dateduty = ? ", array($e_ch, $e_id_card, $date_search));
+
+                    if (empty($data['duty'])) {
+                        $data['empty_result'] = 'Информация по дежурной смене отсутствует.';
+                    }
+
+                }
+            }
+
+            /* not found */
+            if (empty($data['result'])) {
+                echo '<center><b>Поиск не дал результатов</b></center>';
+            } else {
+                $view = $app->render('search_by_fio/detail/result.php', $data);
                 $response = ['success' => TRUE, 'view' => $view];
             }
         }
@@ -1216,6 +1457,8 @@ $app->group('/builder',$is_auth, function () use ($app) {
     $app->get('/basic/inf_ch/:type', function ($type) use ($app) {//umchs/cp информация по сменам - форма
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
         $data['title_name']='Запросы/Инф.по сменам';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1254,6 +1497,8 @@ $data['active']= 'ch';
     $app->get('/basic/inf_ill/:type', function ($type) use ($app) {//umchs/cp информация по ill- форма
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
          $data['title_name']='Запросы/Больничные';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1291,6 +1536,8 @@ $data['active']= 'ill';
     $app->get('/basic/inf_holiday/:type', function ($type) use ($app) {//umchs/cp информация по ill- форма
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
          $data['title_name']='Запросы/Отпуска';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1326,6 +1573,8 @@ $data['active']= 'holiday';
     //командировки
     $app->get('/basic/inf_trip/:type', function ($type) use ($app) {//umchs/cp информация по ill- форма
         array($app, 'is_auth');
+
+         $data['convex_item']['query']=1;// item 'search' is active
 
          $data['title_name']='Запросы/Командировки';
         $app->render('layouts/header.php',$data);
@@ -1363,6 +1612,8 @@ $data['active']= 'trip';
     $app->get('/basic/inf_other/:type', function ($type) use ($app) {//umchs/cp информация по ill- форма
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
          $data['title_name']='Запросы/Др.причины';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1397,6 +1648,8 @@ $data['active']= 'other';
      //инф по технике СЗ
     $app->get('/basic/inf_car/:type', function ($type) use ($app) {//umchs/cp информация по технике - форма
         array($app, 'is_auth');
+
+         $data['convex_item']['query']=1;// item 'search' is active
 
          $data['title_name']='Запросы/Инф.по СЗ';
         $app->render('layouts/header.php',$data);
@@ -1433,6 +1686,8 @@ $data['active']= 'car';
      //запросник по технике
     $app->get('/basic/inf_car_big/:type', function ($type) use ($app) {//umchs/cp информация по технике - форма
         array($app, 'is_auth');
+
+         $data['convex_item']['query']=1;// item 'search' is active
 
          $data['title_name']='Запросы/Техника';
         $app->render('layouts/header.php',$data);
@@ -1474,6 +1729,8 @@ $data['active']= 'car';
     $app->get('/basic/inf_car_big_count/:type', function ($type) use ($app) {//umchs/cp информация по технике - форма
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
          $data['title_name']='Запросы/Техника';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1514,6 +1771,8 @@ $data['active']= 'car';
     $app->get('/basic/inf_ch_cou/:type', function ($type) use ($app) {//ЦОУ, ШЛЧС инф по сменам - форма
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
         $data['title_name'] = 'Запросы/Инф.по сменам ЦОУ, ШЛЧС';
         $app->render('layouts/header.php', $data);
         $app->render('layouts/menu.php');
@@ -1549,6 +1808,9 @@ $data['active']= 'car';
 
         if (!isset($_POST['export_to_excel'])) {
              array($app, 'is_auth');
+
+              $data['convex_item']['query']=1;// item 'search' is active
+
            $data['title_name']='Запросы/Инф.по сменам';
         $app->render('layouts/header.php',$data);
             $app->render('layouts/menu.php');
@@ -2513,6 +2775,9 @@ $data['active']= 'car';
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
 
+
+             $data['convex_item']['query']=1;// item 'search' is active
+
            $data['title_name']='Запросы/Больничные';
         $app->render('layouts/header.php',$data);
             $app->render('layouts/menu.php');
@@ -3033,6 +3298,8 @@ $data['active']= 'car';
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
 
+             $data['convex_item']['query']=1;// item 'search' is active
+
            $data['title_name']='Запросы/Отпуска';
         $app->render('layouts/header.php',$data);
             $app->render('layouts/menu.php');
@@ -3513,6 +3780,8 @@ $k = 0; //кол-во отпусков
     $app->post('/basic/inf_trip/:type', function ($type) use ($app) {//umchs/cp информация по сменам - форма
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
+
+             $data['convex_item']['query']=1;// item 'search' is active
 
            $data['title_name']='Запросы/Командировки';
         $app->render('layouts/header.php',$data);
@@ -4025,6 +4294,8 @@ $k = 0; //кол-во отпусков
                 if (!isset($_POST['export_to_excel'])) {
         array($app, 'is_auth');
 
+         $data['convex_item']['query']=1;// item 'search' is active
+
         $data['title_name']='Запросы/Др.причины';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -4511,6 +4782,8 @@ $data['main'] =$main;
 
         if (!isset($_POST['export_to_excel'])) {
              array($app, 'is_auth');
+
+              $data['convex_item']['query']=1;// item 'search' is active
 
              $data['title_name']='Запросы/Инф.по СЗ';
         $app->render('layouts/header.php',$data);
@@ -5271,6 +5544,8 @@ $c_spec_obl=0;
 
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
+
+             $data['convex_item']['query']=1;// item 'search' is active
 
             $data['title_name']='Запросы/Техника';
         $app->render('layouts/header.php',$data);
@@ -6183,6 +6458,8 @@ return $main;
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
 
+             $data['convex_item']['query']=1;// item 'search' is active
+
             $data['title_name'] = 'Запросы/Техника (количество)';
             $app->render('layouts/header.php', $data);
             $app->render('layouts/menu.php');
@@ -6330,7 +6607,17 @@ return $main;
             . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
         //   . " and d.id not in (8,9)";
         //марка техники
-                      $sql_mark = " SELECT   t.mark as mark, `re`.`id` AS `id_pasp` "
+                      $sql_mark = " SELECT   t.mark as mark, `re`.`id` AS `id_pasp`,"
+                          . "CASE WHEN(c.id_type=1) THEN CONCAT(' (Бр)')
+WHEN(c.id_type=2) THEN CONCAT(' (Рез)')
+ WHEN(c.is_repair=1) THEN CONCAT(' (Рем)')
+ WHEN(c.id_to<>3) THEN  CONCAT(' (ТО)')
+ELSE CONCAT('') END AS is_br, "
+                          . "CASE WHEN(c.id_type=1) THEN 1
+WHEN(c.id_type=2) THEN 2
+ WHEN(c.is_repair=1) THEN 3
+ WHEN(c.id_to<>3) THEN  4
+ELSE 5 END AS is_color "
                     . " FROM str.car AS c LEFT JOIN ss.technics AS t ON t.id=c.id_teh"
                     . " LEFT JOIN ss.records AS re ON re.id=t.id_record "
                     . " LEFT JOIN ss.locorg AS locor ON locor.id=re.id_loc_org"
@@ -6452,7 +6739,25 @@ return $main;
         //массив из марок техники по каждой ПАСЧ
         $res_mark_array=array();
         foreach ($res_mark as $value) {
-            $res_mark_array[$value['id_pasp']][]=$value['mark'];
+            if($value['is_color'] == 1)
+                $color='<span style="color: green;font-weight: 600;">';
+            elseif($value['is_color'] == 2)
+                $color='<span style="color: #ca9704;font-weight: 600;">';
+            elseif($value['is_color'] == 3)
+                $color='<span style="color: red;font-weight: 600;">';
+             elseif($value['is_color'] == 4)
+                $color='<span style="color: blue;font-weight: 600;">';
+             else
+                 $color='<span style="color: black;font-weight: 600;">';
+
+             if (isset($_POST['export_to_excel'])) {//export to excel
+                 $res_mark_array[$value['id_pasp']][]=$value['mark'].' '.$value['is_br'];
+             }
+            else{
+                $res_mark_array[$value['id_pasp']][]=$color.$value['mark'].' '.$value['is_br'].'</span>';
+            }
+
+
         }
         $data['res_mark_array'] = $res_mark_array;
 
@@ -6486,8 +6791,17 @@ return $main;
 
 
             //марка техники из др.подразделения
-               $sql_teh_mark_from_other_pasp = " SELECT  res.id_card as id_pasp, t.mark as mark "
-
+               $sql_teh_mark_from_other_pasp = " SELECT  res.id_card as id_pasp, t.mark as mark, "
+                          . "CASE WHEN(c.id_type=1) THEN CONCAT(' (Бр)')
+WHEN(c.id_type=2) THEN CONCAT(' (Рез)')
+ WHEN(c.is_repair=1) THEN CONCAT(' (Рем)')
+ WHEN(c.id_to<>3) THEN  CONCAT(' (ТО)')
+ELSE CONCAT('') END AS is_br, "
+                          . "CASE WHEN(c.id_type=1) THEN 1
+WHEN(c.id_type=2) THEN 2
+ WHEN(c.is_repair=1) THEN 3
+ WHEN(c.id_to<>3) THEN  4
+ELSE 5 END AS is_color "
                     . "   FROM  str.reservecar AS res "
                     . " left join str.car as c ON c.id_teh=res.id_teh  and c.dateduty= ' " . $date_start . " '"
                     . " left join ss.technics as t on t.id=res.id_teh"
@@ -6584,7 +6898,13 @@ return $main;
 
         $teh_mark_from_other_card_array = array(); //в массив ключ - это ПАСЧ
         foreach ($teh_mark_from_other_card as $value) {
-            $teh_mark_from_other_card_array[$value['id_pasp']][] = $value['mark'];
+              if (isset($_POST['export_to_excel'])) {//export to excel
+                  $teh_mark_from_other_card_array[$value['id_pasp']][] = $value['mark'].' '.$value['is_br'].' из др.подр.';
+              }
+              else{
+                  $teh_mark_from_other_card_array[$value['id_pasp']][] = $value['mark'].' '.$value['is_br'];
+              }
+
         }
 
         $data['teh_mark_from_other_card_array'] = $teh_mark_from_other_card_array;
@@ -6946,6 +7266,8 @@ $app->group('/user',$is_auth, function () use ($app) {
     $app->get('/', function () use ($app) {// список пользователей
         array($app, 'is_auth');
 
+        $data['convex_item']['query']=1;
+
         $list_user = R::getAll('SELECT * FROM listuser where uid !=? ', array(1)
         );
         $data['list_user'] = $list_user;
@@ -6965,8 +7287,10 @@ $app->group('/user',$is_auth, function () use ($app) {
         $data = basic_query();
         $data['sub'] = $sub;
 
+        $data['convex_item']['query']=1;
+
         $data['type_query'] = 0; //post
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadUser.php', $data);
         $app->render('user/tabmenu.php', $data);
@@ -7027,8 +7351,9 @@ $app->group('/user',$is_auth, function () use ($app) {
 
         $data['type_query'] = 1; //put
 
+        $data['convex_item']['query']=1;
 
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadUser.php', $data);
         $app->render('user/tabmenu.php', $data);
@@ -7113,7 +7438,10 @@ $app->group('/user',$is_auth, function () use ($app) {
     $app->get('/delete/:id', function ($id) use ($app) {// сообщение об удалении пользователя
         array($app, 'is_auth'); //авторизован ли пользователь
         $data['id'] = $id;
-        $app->render('layouts/header.php');
+
+        $data['convex_item']['query']=1;
+
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadUser.php');
         $app->render('user/tabmenu.php');
@@ -7205,11 +7533,14 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 //форма добавления работника-смена, пасч
     $app->get('/add', function () use ($app) {
         array($app, 'is_auth');
+
+         $data['convex_item']['listfio']=1;// item 'search' is active
+         //
 //список ПАСЧ
         $data['pasp'] = getNamePasp();
 //смена+record.id
         $data['cardch'] = getCardCh();
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
         $app->render('listfio/addForm.php', $data);
@@ -7219,6 +7550,8 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 //форма добавления работника - фио раюотников
     $app->post('/add', function () use ($app) {
         array($app, 'is_auth');
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
 
         $id_record = $app->request()->post('id_record'); //pasp
         $id_cardch = $app->request()->post('id_cardch'); //cardch
@@ -7248,7 +7581,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         $data['rank'] = getListRank();
         $data['position'] = getListPosition();
 
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
         $app->render('listfio/formListFio.php', $data);
@@ -7258,6 +7591,8 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 //добавление работника
     $app->post('/', function () use ($app) {
         array($app, 'is_auth');
+
+        //
 //список ПАСЧ
         $id_cardch = $app->request()->post('id_cardch'); //cardch
         $count_empl = $app->request()->post('count_empl');
@@ -7316,6 +7651,9 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 //форма ред работника
     $app->get('/edit/:id', function ($id) use ($app) {
         array($app, 'is_auth');
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
+        //
 //инф по работнику
         $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
                         . ' left join str.rank AS ra ON l.id_rank=ra.id left join str.position AS pos ON l.id_position=pos.id where l.id = ? ', array($id)
@@ -7328,7 +7666,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         $data['cardch'] = getCardCh();
         $data['rank'] = getListRank();
         $data['position'] = getListPosition();
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
         $app->render('listfio/editForm.php', $data);
@@ -7338,6 +7676,8 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 //редактирование работника
     $app->put('/:id', function ($id) use ($app, $log) {
         array($app, 'is_auth');
+
+        //
 //список ПАСЧ
         $id_cardch = $app->request()->post('id_cardch'); //cardch
         $fio = $app->request()->post('fio');
@@ -7399,6 +7739,9 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 
     //предупреждение об удалении работника
     $app->get('/delete/:id', function ($id) use ($app) {
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
+
         array($app, 'is_auth'); //авторизован ли пользователь
         $data['id_empl'] = $id;
         $today=date("Y-m-d");
@@ -7447,7 +7790,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
  $data['warning']=$warning;
         /*--------- END Проверить числится ли человек где-ниб ----------*/
 
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
         $app->render('listfio/msg/delete.php', $data); //delete ?
@@ -7459,6 +7802,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
     //удаление работника- каскадное
     $app->delete('/delete/:id', function ($id) use ($app, $log) {//msg delete ill by id
         array($app, 'is_auth'); //авторизован ли пользователь
+
         $listfio = R::load('listfio', $id);
          $log_array = json_decode($listfio);
 
@@ -7471,6 +7815,11 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
     //форма закрытия больничного
      $app->get('/close_ill/:id', function ($id) use ($app) {
         array($app, 'is_auth'); //авторизован ли пользователь
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['convex_item']['close_ill_sub']=1;
+
+
         $data['id_ill'] = $id;//ill.id
                 //информация о больном
 $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%d-%m-%Y") AS date1,date_format(i.date2,"%d-%m-%Y") AS date2, i.id  from ill as i '
@@ -7558,7 +7907,10 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         array($app, 'is_auth'); //авторизован ли пользователь
         $data['id_hol'] = $id;//hol.id
 
-        $app->render('layouts/header.php');
+        $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['convex_item']['close_hol_sub']=1;
+
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
         $app->render('listfio/close_hol/danger.php', $data); //предупрежд сообщение
@@ -7570,6 +7922,8 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
         $app->get('(/:vid_absent)', function ($vid_absent = NULL) use ($app) {// список смен
         array($app, 'is_auth');
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
 
         $data['locorg_umchs']=locorg_umchs;//для ЦоУ. Видит другое сообщение, если доступ на ред смен закрыт.
 
@@ -7608,10 +7962,16 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
         if ($_SESSION['ulevel'] == 1 && $_SESSION['is_admin'] == 1) {//РЦУ
             if (isset($vid_absent) && $vid_absent == 'ill') {//больничные
+
+                $data['convex_item']['close_ill_sub']=1;
+
                 if (!empty($ill))
                     $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $ill) . ')');
             }
             elseif (isset($vid_absent) && $vid_absent == 'holiday') {//отозвать из отпуска
+
+                $data['convex_item']['close_hol_sub']=1;
+
                 if (!empty($hol))
                     $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $hol) . ')');
             }
@@ -7625,18 +7985,28 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
 
                 if (isset($vid_absent) && $vid_absent == 'ill') {//больничные
+
+                    $data['convex_item']['close_ill_sub']=1;
+
                     if (!empty($ill))
                         $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $ill) . ')and id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
                 }
                 elseif (isset($vid_absent) && $vid_absent == 'holiday') {//отозвать из отпуска
+
+                    $data['convex_item']['close_hol_sub']=1;
+
                     if (!empty($hol))
                         $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $hol) . ')and id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
-                } else //просто список всей области
+                } else{ //просто список всей области
                     $listfio = R::getAll('SELECT * from list_of_change WHERE id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
+                    $data['convex_item']['all_listfio_sub']=1;
+                }
             }
             elseif ($_SESSION['note'] == UGZ) {// UGZ-г.Минск видит всех рабоников УГЗ
-                if (!empty($ill) || !empty($hol))
+                if (!empty($ill) || !empty($hol)){
                     $listfio = R::getAll('SELECT * from list_of_change WHERE  id_organ = ?', array(UGZ));
+                     $data['convex_item']['all_listfio_sub']=1;
+                }
             }
         } elseif ($_SESSION['ulevel'] == 3) {//grochs
             $listfio = R::getAll('SELECT * from list_of_change where id_loc_org = ?  ', array($_SESSION['ulocorg'])
@@ -7653,7 +8023,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         );
 
 
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
 
@@ -7689,6 +8059,9 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
                  array($app, 'is_auth'); //авторизован ли пользователь
 
+                 $data['convex_item']['listfio']=1;// item 'search' is active
+                 $data['convex_item']['open_listfio_sub']=1;
+
 if(in_array($_SESSION['ulocorg'], locorg_umchs))  {//Если авторизован ЦОУ области - может открыть доступ только себе
     $data['user']=R::getAll('select id, name, is_deny from user where regions_id = ? and note is null  '
         . ' and can_edit = ? AND id = ?', array($_SESSION['uregions'],1,$_SESSION['uid']));
@@ -7705,7 +8078,7 @@ $data['user']=R::getAll('select id, name, is_deny from user where regions_id = ?
 
 
 
-        $app->render('layouts/header.php');
+        $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
         $app->render('bread/breadListFio.php');
 $app->render('listfio/open/table.php',$data);
@@ -8234,10 +8607,12 @@ function getListFioByPosMainCou($id, $change, $sign, $date, $id_pos_duty) {
         $sql = 'SELECT id_fio FROM maincou WHERE id not in (select id from maincou WHERE id_card  =  ? AND ch = ? AND id_pos_duty = ? )  ';
         //    $sql = $sql . '  WHERE id_card  <> ? AND ch <> ? ';
     }
+    $sql=$sql.'AND id_fio <>"" ';
     $param[] = $id;
     $param[] = $change;
     $param[]=$id_pos_duty;
     if ($date != 0) {
+
         $sql = $sql . ' AND dateduty = ?';
         $param[] = $today;
     }
@@ -8384,7 +8759,12 @@ function getFioById($array, $id, $change) {
 //                        . '		left join ss.locorg as locor on locor.id=re.id_loc_org left join ss.locals as lo on lo.id=locor.id_local '
 //                        . ' left join ss.organs as o on o.id=locor.id_organ left join str.position as po on l.id_position=po.id  WHERE l.id IN (' . implode(",", $array) . ')', [':cardch' => $cardch]);
         //выбор ФИО по их id($array)
-        $fio= R::getAll('SELECT * FROM get_fio_by_id WHERE id IN (' . implode(",", $array) . ')');
+       // $fio= R::getAll('SELECT * FROM get_fio_by_id WHERE id IN (' . implode(",", $array) . ')');
+        		if(is_array($array))
+ $fio= R::getAll('SELECT * FROM get_fio_by_id WHERE id IN (' . implode(",", $array) . ')');
+else{
+	 $fio= R::getAll('SELECT * FROM get_fio_by_id WHERE id IN (' .$array . ')');
+}
 
         //если работник этой же смены - ему не выводить принадлежность
         foreach ($fio as $key=> $value) {
@@ -11285,7 +11665,14 @@ if($date1 != NULL){
         $data['is_btn_confirm'] = is_btn_confirm($change);
 
         /*         * * определить dateduty ** */
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
+         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+               //get main
+        $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
+         }
+         else{
+              $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
+         }
+
         if (isset($main) && !empty($main)) {
             foreach ($main as $value) {
                 $dateduty = $value['dateduty'];
@@ -11293,6 +11680,9 @@ if($date1 != NULL){
         } else {
             $dateduty = $today;
         }
+
+
+        //$dateduty='2018-12-01';
         $data['dateduty'] = $dateduty;
         /*         * * Список техники, которую можно отправить в командировку ** */
         $data['list_car_for_trip'] = getListCarForTrip($id, $today);
@@ -12718,8 +13108,9 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
         $data['main'] = $main;
 
         /* cou */
-
-        foreach ($id_pasp_cou as $value) {
+$main_cou=array();
+if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
+            foreach ($id_pasp_cou as $value) {
             if ($date == 0) {
                 $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ?  limit 1', array($value['id_pasp']));
             } else {
@@ -12746,8 +13137,39 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
                                 . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND c.ch = ? ', array($value['id_pasp'],$ch));
                 $main_cou[$value['id_pasp']] ['vacant_ch'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
                                 . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND c.ch = ? AND l.is_vacant = ? ', array($value['id_pasp'],$ch,1));
-                $main_cou[$value['id_pasp']] ['face'] = 0;
-                $main_cou[$value['id_pasp']] ['calc'] = 0;
+
+
+                  /*  face =all on fields */
+                    $main_for_face = R::getAll('select * from maincou where id_card = ? and ch = ?', array($value['id_pasp'], $ch));
+                    $count_all = array(); //all select on position - id of fio
+                    //print_r($main);
+                    foreach ($main_for_face as $face) {
+
+                        if (!empty($face['id_fio'])) {
+                            $count_all[] = $face['id_fio'];
+                        }
+                    }
+                    $count_all_unique = array_unique($count_all);
+                    $count_all = count($count_all_unique);
+
+
+                    $main_cou[$value['id_pasp']] ['face'] =  $count_all;
+
+
+                     $is_car=R::getCell('select id from carcou where id_card = ? and ch = ?',array($value['id_pasp'],$ch));
+
+                     if(isset($is_car) && !empty($is_car)){
+                         $count_fio_on_car=0;
+                     }
+                     else{
+                          $count_fio_on_car=getCountCalc($value['id_pasp'], $ch, $dateduty);
+                     }
+
+
+
+                $main_cou[$value['id_pasp']] ['calc'] = $count_fio_on_car;
+
+
                 $main_cou[$value['id_pasp']] ['duty'] = 0;
                 $main_cou[$value['id_pasp']] ['gas'] = 0;
                 $main_cou[$value['id_pasp']] ['duty_date1'] = $dateduty;
@@ -12814,6 +13236,8 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
 
             }
         }
+}
+
  $data['main_cou'] = $main_cou;
         /* END cou */
 
@@ -12887,9 +13311,12 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
 
         //форма с выбором даты
          $app->get('/', function () use ($app) {
+
+              $data['convex_item']['report']=1;// item 'search' is active
+              $data['convex_item']['big_report_teh_sub']=1;
             //bread
             $data['bread_active'] = 'Техника (общий)';
-            $app->render('layouts/header.php');
+            $app->render('layouts/header.php',$data);
             $app->render('layouts/menu.php');
             $app->render('report/big_report_teh/bread.php', $data);
             $app->render('report/big_report_teh/form.php', $data);
@@ -13794,9 +14221,12 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
 
         //форма с выбором даты
          $app->get('/', function () use ($app) {
+
+             $data['convex_item']['report']=1;// item 'search' is active
+             $data['convex_item']['big_report_teh2_sub']=1;
             //bread
             $data['bread_active'] = 'Техника (руководство)';
-            $app->render('layouts/header.php');
+            $app->render('layouts/header.php',$data);
             $app->render('layouts/menu.php');
             $app->render('report/big_report_teh/bread.php', $data);
             $app->render('report/big_report_teh/form2.php', $data);
@@ -14284,6 +14714,10 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
      /*     * *************************  Техника в командировке ************************************ */
          //форма с выбором даты
          $app->get('/teh_in_trip', function () use ($app) {
+
+              $data['convex_item']['report']=1;// item 'search' is active
+              $data['convex_item']['teh_in_trip_sub']=1;
+
             //bread
             $data['bread_active'] = 'Техника в командировке';
 
@@ -14500,6 +14934,9 @@ $k = 0; //кол-во по РБ
              /*     * *************************  Техника деж смены с работниками на ней (от ГРОДНО) ************************************ */
          /*----------------- форма ------------------*/
     $app->get('/teh_br', function () use ($app) {
+
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['teh_br_sub']=1;
 
         if ($_SESSION['ulevel'] != 1 && $_SESSION['note'] != NULL) {
 
@@ -14805,6 +15242,10 @@ $styleArray = array(
       /* --------------------------- Неисправности техники ----------------------- */
     //форма с выбором даты
     $app->get('/teh_repaire', function () use ($app) {
+
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['teh_repaire_sub']=1;
+
         //bread
         $data['bread_active'] = 'Неисправности техники';
 
@@ -15013,6 +15454,9 @@ $styleArray = array(
          /*----------------- форма ------------------*/
     $app->get('/min_br', function () use ($app) {
 
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['min_br_sub']=1;
+
         if ($_SESSION['ulevel'] != 1 && $_SESSION['note'] != NULL) {
 
             if ($_SESSION['note'] == ROSN) {
@@ -15058,7 +15502,9 @@ $styleArray = array(
         $date_for_excel = $date_d->format('d-m-Y');
 
 
-      //native_all_calc - общий бр из КУСиС для ПАСЧ, учитывая только родные машины. Если заступила чужая машина-ее б.р. не учитваем
+         if(isset($_POST['export_to_excel'])){
+
+              //native_all_calc - общий бр из КУСиС для ПАСЧ, учитывая только родные машины. Если заступила чужая машина-ее б.р. не учитваем
         $sql = 'select native_all_calc, dateduty, divizion_name, locorg, region_id, locorg_id,record_id,region_name,organ_id,'
 
  .' sum(calculation) as calculation, sum(br) as br , case when( native_all_calc>SUM(br)) then 1 else 0 end as is_vivod'
@@ -15104,7 +15550,7 @@ $styleArray = array(
 
 $sql=$sql.' group by record_id ';
         $teh = R::getAll($sql, $param);
-
+//print_r($teh);exit();
         //оставить только те ПАСЧ, где calculation>br
         foreach ($teh as $key=>$value) {
             if( $value['br']>= $value['native_all_calc'])
@@ -15118,11 +15564,39 @@ $sql=$sql.' group by record_id ';
         }
 
 
+         }
+
+
+        /* umchs */
+        elseif(isset($_POST['export_to_excel_umchs'])){
+
+                 $sql="select  dateduty, divizion_name, locorg, region_id, locorg_id,record_id,region_name,organ_id,mark, calculation, br
+from br  where dateduty = ? and calculation>br and id_type = 1 ";
+                  $param[] = $date;
+
+                  if (isset($_POST['region']) && !empty($_POST['region'])) {//по области
+            //выбор всех ГРОЧС области
+            //выбор всех ПАСЧ этого ГРОЧС
+            $sql=$sql.' AND region_id = ?';
+            $param[]=$_POST['region'];
+        }
+
+                    $teh_umchs = R::getAll($sql, $param);
+                    //print_r($teh_umchs);exit();
+        }
+
+
+
         /* ------- Export to Excel --------- */
+        if (isset($_POST['export_to_excel'])) {
+            $file = 'min_br.xlsx';
+        } elseif (isset($_POST['export_to_excel_umchs'])) {
+            $file = 'min_br_umchs.xlsx';
+        }
 
         $objPHPExcel = new PHPExcel();
         $objReader = PHPExcel_IOFactory::createReader("Excel2007");
-        $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/min_br.xlsx');
+        $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/'.$file);
 //activate worksheet number 1
         $objPHPExcel->setActiveSheetIndex(0);
         $sheet = $objPHPExcel->getActiveSheet();
@@ -15194,9 +15668,10 @@ $sql=$sql.' group by record_id ';
 
         $cp = array(8, 9, 12); //РОСН, УГЗ, Авиация
 
-        $sheet->setCellValue('A1', 'Сведения о несоответствии минимального боевого расчета на ' . $date_for_excel);
+        if (isset($_POST['export_to_excel'])) {
+           $sheet->setCellValue('A1', 'Сведения о несоответствии минимального боевого расчета на ' . $date_for_excel);
 
-        for ($j = 1; $j <= 7; $j++) {//7 областей
+             for ($j = 1; $j <= 7; $j++) {//7 областей
             if (isset($mas_teh[$j]) && !empty($mas_teh[$j])) {
                 $k = 0; //№ п/п в пределах области
 
@@ -15249,6 +15724,79 @@ $sql=$sql.' group by record_id ';
 
         $sheet->getStyleByColumnAndRow(0, 4, 3, $r)->applyFromArray($style_all); //рамка
 
+        }
+        elseif (isset($_POST['export_to_excel_umchs'])) {
+
+
+            if (isset($_POST['region']) && !empty($_POST['region'])) {
+                //$no = R::getCell('select name from ss.locorg where id = ?', array($grochs));
+                $no=R::getCell("select name from ss.regions where id = ?", array($_POST['region']));
+                $name_oblast= 'область: '.$no;
+
+            } else {
+                $name_oblast = 'по республике';
+            }
+
+            $sheet->setCellValue('A1', 'Сведения о несоответствии минимального боевого расчета на ' . $date_for_excel.' для УМЧС'.chr(10).
+                $name_oblast);
+
+            if (isset($teh_umchs) && !empty($teh_umchs)) {
+                $k = 0; //№ п/п в пределах области
+
+                foreach ($teh_umchs as $row) {
+
+
+                    $k++;
+
+                    if ($k == 1) {
+                        $sheet->setCellValue('A' . $r, $row['region_name']); //oblast
+                        $sheet->mergeCells('A' . $r . ':F' . $r);
+                        $sheet->getStyleByColumnAndRow(0, $r, 6, $r)->applyFromArray($style_name_oblast); //наименование области
+                        $r++;
+
+                        $cur_region = $row['region_id'];
+                    }
+                    else {
+                        if(isset($cur_region) && $cur_region != $row['region_id'] ) {
+
+                        $sheet->setCellValue('A' . $r, $row['region_name']); //oblast
+                        $sheet->mergeCells('A' . $r . ':F' . $r);
+                        $sheet->getStyleByColumnAndRow(0, $r, 6, $r)->applyFromArray($style_name_oblast); //наименование области
+                        $r++;
+
+                        $cur_region = $row['region_id'];
+
+                        }
+
+                    }
+
+
+                    $sheet->setCellValue('A' . $r, $k); //№ п/п
+
+                    if (in_array($row['organ_id'], $cp)) {////РОСН, УГЗ, Авиация
+                        $sheet->getStyleByColumnAndRow(0, $r, 6, $r)->applyFromArray($style_rosn);
+                    }
+
+                    $sheet->setCellValue('B' . $r, $row['region_name']);
+                     $sheet->setCellValue('C' . $r,  $row['locorg']);
+                       $sheet->setCellValue('D' . $r, $row['divizion_name'] );
+                   // $sheet->setCellValue('C' . $r, $row['calculation']);
+                    $sheet->setCellValue('E' . $r, $row['mark']);
+                    $sheet->setCellValue('F' . $r, $row['calculation']);
+                     $sheet->setCellValue('G' . $r, $row['br']);
+                    $r++;
+                }
+                $itogo+=$k; //itogo po RB
+            }
+
+
+        $sheet->mergeCells('A' . $r . ':G' . $r);
+        $sheet->setCellValue('A' . $r, 'ВСЕГО: ' . $itogo);  //itogo
+        $sheet->getStyleByColumnAndRow(0, $r, 6, $r)->applyFromArray($style_itogo); //итого по РБ
+
+        $sheet->getStyleByColumnAndRow(0, 4, 6, $r)->applyFromArray($style_all); //рамка
+
+        }
 
 
         /* Сохранить в файл */
@@ -15266,6 +15814,9 @@ $sql=$sql.' group by record_id ';
                  /*     * *************************  Подробный отчет ТЕХНИКА, АСВ, П,ПО (от МОГИЛЕВ) ************************************ */
          /*----------------- форма ------------------*/
     $app->get('/detail_teh', function () use ($app) {
+
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['detail_teh_sub']=1;
 
         if ($_SESSION['ulevel'] != 1 && $_SESSION['note'] != NULL) {
 
@@ -16371,7 +16922,8 @@ $sql=$sql.' group by record_id ';
     //по области общее кол-во техники
         $app->get('/detail_teh/region', function () use ($app) {
 
-
+ $data['convex_item']['report']=1;// item 'search' is active
+ $data['convex_item']['detail_teh_region_sub']=1;
 
             $data['region'] = R::getAll('SELECT * FROM ss.regions'); //список область
              $data['region'][]=array('id'=>8,'name'=>'РОСН');
@@ -16999,6 +17551,8 @@ $sql=$sql.' group by record_id ';
 /* count positions */
     $app->get('/count_position', function () use ($app) {
 
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['count_position_sub']=1;
 
             $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
         $data['region'][] = array('id' => 8, 'name' => 'РОСН');
@@ -17162,6 +17716,10 @@ $sql=$sql.' group by record_id ';
 
         /* show on screen */
         if (!isset($_POST['export_to_excel'])) {
+
+             $data['convex_item']['report']=1;// item 'search' is active
+             $data['convex_item']['count_position_sub']=1;
+
             /* form */
             $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
             $data['region'][] = array('id' => 8, 'name' => 'РОСН');
@@ -17195,6 +17753,1020 @@ $sql=$sql.' group by record_id ';
             exportToExcelCountPosition($res,$head,$head_pos);
         }
     });
+
+
+
+    /* sz spec donos */
+    $app->get('/sz_spec_donos', function () use ($app) {
+        //bread
+        $data['bread_active'] = 'Выбор даты';
+
+        $data['convex_item']['report'] = 1; // item 'search' is active
+        $data['convex_item']['sz_spec_donos'] = 1;
+
+
+        $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
+        $data['region'][] = array('id' => 8, 'name' => 'РОСН');
+        $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
+        $data['region'][] = array('id' => 12, 'name' => 'Авиация');
+
+
+        $data['locorg'] = R::getAll('SELECT * FROM ss.caption '); // вместе с  ЦП
+        $data['diviz'] = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+
+
+        /* ----------------- END форма ------------------ */
+
+        $app->render('layouts/header.php');
+        $app->render('layouts/menu.php', $data);
+        $app->render('report/sz_spec_donos/bread.php', $data);
+        $app->render('report/sz_spec_donos/form.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+
+    $app->post('/sz_spec_donos', function () use ($app) {
+
+        $data['convex_item']['report'] = 1; // item 'search' is active
+        $data['convex_item']['sz_spec_donos'] = 1;
+
+        $region = $app->request()->post('region'); //oblast
+        $grochs = $app->request()->post('locorg'); //grochs
+        $divizion = $app->request()->post('diviz'); //pasp
+
+        //print_r($pos_search);
+
+        $cp = array(8, 9, 12);
+        $where = 0;
+//        echo $region.'<br>';
+//         echo $grochs.'<br>';
+//          echo $divizion.'<br>';
+//exit();
+        $head = array();
+        $head_pos= array();
+
+        /* request inf */
+        if (isset($divizion) && !empty($divizion)) {
+            $head_diviz = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org WHERE rec.id = ' . $divizion . ' order by rec.divizion_num ASC');
+
+            foreach ($head_diviz as $v) {
+                $head[] = $v['name'];
+            }
+        }
+        if (isset($grochs) && !empty($grochs)) {//by grochs
+            $head_locorg = R::getAll('SELECT * FROM ss.caption WHERE locorg_id = ' . $grochs);
+            foreach ($head_locorg as $v) {
+                $head[] = $v['locor'];
+            }
+        }
+
+        if (isset($region) && !empty($region)) {
+
+            if (in_array($region, $cp)) {//rosn,ugz,avia
+
+                switch ($region) {
+                    case 8:
+                        $head[] = 'РОСН';
+
+                        break;
+                    case 9:
+                        $head[] = 'УГЗ';
+                        break;
+
+                    default:
+                        $head[] = 'Авиация';
+                        break;
+                }
+            } else {// region
+
+                $head_region = R::getAll('SELECT name,id FROM ss.regions WHERE id = ' . $region);
+
+                foreach ($head_region as $v) {
+                    if($v['id'] != 3){
+                    $head[] = $v['name'].' обл.';
+                    }
+                    else{
+                        $head[] = $v['name'];
+                    }
+                }
+            }
+        }
+$data['head']=$head;
+        /* END request inf */
+
+
+
+ /* form */
+
+        $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
+        $data['region'][] = array('id' => 8, 'name' => 'РОСН');
+        $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
+        $data['region'][] = array('id' => 12, 'name' => 'Авиация');
+
+
+        $data['locorg'] = R::getAll('SELECT * FROM ss.caption '); // вместе с  ЦП
+        $data['diviz'] = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+
+        /* END form */
+
+
+        /* id pasp for view */
+        if (!empty($divizion)) {
+
+            /* po pasp */
+            $id_pasp = R::getAll('select distinct id_pasp from spr_info_report where id_pasp = ?', array($divizion));
+
+              // cou
+                $id_pasp_cou = R::getAll('select distinct id_pasp from spr_info_cou where id_pasp = ?', array($divizion));
+        } elseif (!empty($grochs)) {
+
+            /* po grochs */
+
+                //выбор id ПАСЧей этого ГРОЧС
+                $id_pasp = R::getAll('select distinct id_pasp from spr_info_report where id_grochs = ?', array($grochs));
+
+                // cou
+                $id_pasp_cou = R::getAll('select distinct id_pasp from spr_info_cou where id_grochs = ?', array($grochs));
+
+        }
+        elseif (!empty($region) && in_array($region, $cp)) {
+            $id_pasp = R::getAll('select distinct id_pasp from spr_info_report where  org_id = ? ', array($region));
+            // cou
+                $id_pasp_cou = R::getAll('select distinct id_pasp from spr_info_cou where org_id = ?', array($region));
+        }
+        else{
+            /* you need select podr */
+            $data['bread_active'] = 'Результат';
+            $data['title_name'] = 'СЗ в спецдонос';
+            $app->render('layouts/header.php', $data);
+            $app->render('layouts/menu.php');
+            $app->render('report/sz_spec_donos/bread.php', $data);
+            $app->render('report/sz_spec_donos/form.php', $data);
+            $app->render('report/sz_spec_donos/error.php', $data);
+            $app->render('layouts/footer.php');
+            exit();
+        }
+
+        $data['id_pasp']=$id_pasp;
+$data['id_pasp_cou']=$id_pasp_cou;
+
+
+        /*         * *********дата, на которую надо выбирать данные ******** */
+        $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
+        $date_d = new DateTime($date_start);
+        $date = $date_d->Format('Y-m-d');
+
+        $today = date("Y-m-d");
+        $yesterday = date("Y-m-d", time() - (60 * 60 * 24));
+        $day_before_yesterday = date("Y-m-d", time() - (60 * 60 * 24) - (60 * 60 * 24));
+
+        if ($date != $today && $date != $yesterday && $date != $day_before_yesterday) {
+            $date = 0;
+        }
+
+        /*         * ********* END дата, на которую надо выбирать данные ******** */
+
+
+
+
+
+
+           //пробежать по всем ПАСЧ - выбрать инф по деж смене , определить дату и смены, на которую надо позже выбрать отсутствующих
+
+        foreach ($id_pasp as $value) {
+
+            if($date==0){
+                 $inf1 = R::getAll('select * from spr_info_report where id_pasp = ?  limit 1', array($value['id_pasp']));
+            }
+            else{
+                  $inf1 = R::getAll('select * from spr_info_report where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'],$date));
+
+                  if(empty($inf1)){
+                      $inf1 = R::getAll('select * from spr_info_report where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'],$yesterday));
+                  }
+            }
+
+
+            $main[$value['id_pasp']] = array();
+
+            //оформить инф по деж смене в массив : [id_pasp] => array([shtat_ch]=>25,...)
+            foreach ($inf1 as $row) {
+
+                $dateduty = $row['dateduty'];
+                $ch = $row['ch'];
+
+//                 $main[$value['id_pasp']]['dateduty'] = $dateduty;
+//                 $main[$value['id_pasp']]['ch'] = $ch;
+                $main[$value['id_pasp']] ['ch'] =  $ch;
+                $main[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main[$value['id_pasp']] ['shtat_ch'] = $row['countls'];
+                $main[$value['id_pasp']] ['vacant_ch'] = $row['vacant'];
+                $main[$value['id_pasp']] ['face'] = $row['face'];
+                $main[$value['id_pasp']] ['calc'] = $row['calc'];
+                $main[$value['id_pasp']] ['duty'] = $row['duty'];
+                $main[$value['id_pasp']] ['gas'] = $row['gas'];
+                $main[$value['id_pasp']] ['duty_date1'] = $dateduty;
+                $main[$value['id_pasp']] ['duty_date2'] = $dateduty;
+                //отсутствующие
+                $main[$value['id_pasp']] ['trip'] = getCountTrip($value['id_pasp'], $ch, $dateduty);
+                $main[$value['id_pasp']] ['holiday'] = getCountHoliday($value['id_pasp'], $ch, $dateduty);
+                $main[$value['id_pasp']] ['ill'] = getCountIll($value['id_pasp'], $ch, $dateduty);
+                $main[$value['id_pasp']] ['other'] = getCountOther($value['id_pasp'], $ch, $dateduty);
+
+                //л/с подразделения
+                //по штату   по подразделению c ежедневниками
+                $main[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
+                //вакансия по подразделению
+                $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+
+
+                /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
+                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
+                                . ' t.place,t.is_cosmr, t.prikaz,l.fio, po.name as position FROM trip AS t '
+                                . 'inner join listfio AS l ON t.id_fio=l.id inner join str.position as po on po.id=l.id_position inner join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN t.date1 and t.date2) or(:today  >= t.date1 and t.date2 is NULL)) ', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+                $main[$value['id_pasp']]['trip_inf'] = $trip;
+
+                /*                 * *******  ФИО, описание работников в  отпуске - текст  ******** */
+                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d-%m-%Y") AS date1,date_format(h.date2,"%d-%m-%Y") AS date2,'
+                                . ' h.prikaz, l.fio, po.name as position FROM holiday AS h '
+                                . 'inner join listfio AS l ON h.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id  inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN h.date1 and h.date2) or(:today  >= h.date1 and h.date2 is NULL))', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+                $main[$value['id_pasp']]['holiday_inf'] = $holiday;
+
+                /*                 * *******  ФИО, описание работников на больничном - текст  ******** */
+                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d-%m-%Y") AS date1,date_format(i.date2,"%d-%m-%Y") AS date2,'
+                                . ' i.diagnosis,l.fio, ma.name as maim, po.name as position FROM ill AS i inner join listfio AS l '
+                                . 'ON i.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join maim AS ma ON i.maim=ma.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . 'AND (( :today BETWEEN i.date1 and i.date2) or(:today  >= i.date1 and i.date2 is NULL)) ', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+
+                $main[$value['id_pasp']]['ill_inf'] = $ill;
+
+                /*                 * *******  ФИО, описание работников в наряде - текст  ******** */
+                $main[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main[$value['id_pasp']]['duty_inf'] = $row['fio_duty'];
+
+                /*                 * *******  ФИО, описание работников др.причины - текст  ******** */
+                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d-%m-%Y") AS date1, date_format(o.date2,"%d-%m-%Y") AS date2,'
+                                . ' o.reason, o.note, l.fio, po.name as position FROM other AS o inner join listfio AS l '
+                                . 'ON o.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN o.date1 and o.date2) or(:today  >= o.date1 and o.date2 is NULL))', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+
+                $main[$value['id_pasp']]['other_inf'] = $other;
+
+                /*                 * *******  Ваканты - текст  ******** */
+                 $vacant_inf = R::getAll('SELECT   l.fio, po.name as position FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) and l.is_vacant = :is_vacant', [':id' => $value['id_pasp'], ':ch' => $ch,':is_vacant'=>1 ]);
+
+                 $main[$value['id_pasp']]['vacant_inf'] = $vacant_inf;
+                //bread
+                $data['bread_active'] = $row['organ'];
+            }
+        }
+        // echo $data['bread_active'];
+        //$data['b']=1;
+        // print_r($id_pasp);
+        //print_r($main);
+        // print_r($text);
+        $data['main'] = $main;
+      // $date='2018-12-16';
+        /* cou */
+$main_cou=array();
+if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
+
+            foreach ($id_pasp_cou as $value) {
+            if ($date == 0) {
+                $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ?  limit 1', array($value['id_pasp']));
+            } else {
+                $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'], $date));
+
+                if (empty($inf1)) {
+                    $inf1 = R::getAll('select * from spr_info_cou where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'], $yesterday));
+                }
+            }
+
+
+            $main_cou[$value['id_pasp']] = array();
+
+              foreach ($inf1 as $row) {
+
+                $dateduty = $row['dateduty'];
+                $ch = $row['ch'];
+
+//                 $main[$value['id_pasp']]['dateduty'] = $dateduty;
+//                 $main[$value['id_pasp']]['ch'] = $ch;
+                $main_cou[$value['id_pasp']] ['ch'] =  $ch;
+                $main_cou[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main_cou[$value['id_pasp']] ['shtat_ch'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND c.ch = ? ', array($value['id_pasp'],$ch));
+                $main_cou[$value['id_pasp']] ['vacant_ch'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND c.ch = ? AND l.is_vacant = ? ', array($value['id_pasp'],$ch,1));
+
+                /*  face =all on fields */
+                    $main_for_face = R::getAll('select * from maincou where id_card = ? and ch = ?', array($value['id_pasp'], $ch));
+                    $count_all = array(); //all select on position - id of fio
+                    //print_r($main);
+                    foreach ($main_for_face as $face) {
+
+                        if (!empty($face['id_fio'])) {
+                            $count_all[] = $face['id_fio'];
+                        }
+                    }
+                    $count_all_unique = array_unique($count_all);
+                    $count_all = count($count_all_unique);
+
+
+                    $main_cou[$value['id_pasp']] ['face'] =  $count_all;
+
+
+                     $is_car=R::getCell('select id from carcou where id_card = ? and ch = ?',array($value['id_pasp'],$ch));
+
+                     if(isset($is_car) && !empty($is_car)){
+                         $count_fio_on_car=0;
+                     }
+                     else{
+                          $count_fio_on_car=getCountCalc($value['id_pasp'], $ch, $dateduty);
+                     }
+
+
+
+                $main_cou[$value['id_pasp']] ['calc'] = $count_fio_on_car;
+                $main_cou[$value['id_pasp']] ['duty'] = 0;
+                $main_cou[$value['id_pasp']] ['gas'] = 0;
+                $main_cou[$value['id_pasp']] ['duty_date1'] = $dateduty;
+                $main_cou[$value['id_pasp']] ['duty_date2'] = $dateduty;
+                //отсутствующие
+                $main_cou[$value['id_pasp']] ['trip'] = getCountTrip($value['id_pasp'], $ch, $dateduty);
+                $main_cou[$value['id_pasp']] ['holiday'] = getCountHoliday($value['id_pasp'], $ch, $dateduty);
+                $main_cou[$value['id_pasp']] ['ill'] = getCountIll($value['id_pasp'], $ch, $dateduty);
+                $main_cou[$value['id_pasp']] ['other'] = getCountOther($value['id_pasp'], $ch, $dateduty);
+
+                //л/с подразделения
+                //по штату   по подразделению c ежедневниками
+                $main_cou[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
+                //вакансия по подразделению
+                $main_cou[$value['id_pasp']] ['vacant'] = R::getCell('select count(l.id) as vacant from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where l.is_vacant = ? AND c.id_card = ? ', array(1,$value['id_pasp']));
+
+
+                /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
+                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
+                                . ' t.place,t.is_cosmr, t.prikaz,l.fio, po.name as position FROM trip AS t '
+                                . 'inner join listfio AS l ON t.id_fio=l.id inner join str.position as po on po.id=l.id_position inner join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN t.date1 and t.date2) or(:today  >= t.date1 and t.date2 is NULL)) ', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+                $main_cou[$value['id_pasp']]['trip_inf'] = $trip;
+
+                /*                 * *******  ФИО, описание работников в  отпуске - текст  ******** */
+                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d-%m-%Y") AS date1,date_format(h.date2,"%d-%m-%Y") AS date2,'
+                                . ' h.prikaz, l.fio, po.name as position FROM holiday AS h '
+                                . 'inner join listfio AS l ON h.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id  inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN h.date1 and h.date2) or(:today  >= h.date1 and h.date2 is NULL))', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+                $main_cou[$value['id_pasp']]['holiday_inf'] = $holiday;
+
+                /*                 * *******  ФИО, описание работников на больничном - текст  ******** */
+                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d-%m-%Y") AS date1,date_format(i.date2,"%d-%m-%Y") AS date2,'
+                                . ' i.diagnosis,l.fio, ma.name as maim, po.name as position FROM ill AS i inner join listfio AS l '
+                                . 'ON i.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join maim AS ma ON i.maim=ma.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . 'AND (( :today BETWEEN i.date1 and i.date2) or(:today  >= i.date1 and i.date2 is NULL)) ', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+
+                $main_cou[$value['id_pasp']]['ill_inf'] = $ill;
+
+                /*                 * *******  ФИО, описание работников в наряде - текст  ******** */
+                $main_cou[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+               // $main_cou[$value['id_pasp']]['duty_inf'] = $row['fio_duty'];
+
+                /*                 * *******  ФИО, описание работников др.причины - текст  ******** */
+                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d-%m-%Y") AS date1, date_format(o.date2,"%d-%m-%Y") AS date2,'
+                                . ' o.reason, o.note, l.fio, po.name as position FROM other AS o inner join listfio AS l '
+                                . 'ON o.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) '
+                                . ' AND (( :today BETWEEN o.date1 and o.date2) or(:today  >= o.date1 and o.date2 is NULL))', [':id' => $value['id_pasp'], ':ch' => $ch, ':today' => $dateduty]);
+
+                $main_cou[$value['id_pasp']]['other_inf'] = $other;
+
+                /*                 * *******  Ваканты - текст  ******** */
+                 $vacant_inf = R::getAll('SELECT   l.fio, po.name as position FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
+                                . ' WHERE (c.id_card = :id AND c.ch = :ch) and l.is_vacant = :is_vacant', [':id' => $value['id_pasp'], ':ch' => $ch,':is_vacant'=>1 ]);
+
+                 $main_cou[$value['id_pasp']]['vacant_inf'] = $vacant_inf;
+
+            }
+        }
+}
+
+ $data['main_cou'] = $main_cou;
+        /* END cou */
+
+
+
+        if (!isset($_POST['export_to_word'])) {
+//            print_r($head);
+//            print_r($id_pasp);
+//            echo '<br>';
+//            print_r($id_pasp_cou);
+//            echo $date;
+            //bread
+            $data['bread_active'] = 'Результат';
+            $data['title_name'] = 'СЗ в спецдонос';
+            $app->render('layouts/header.php', $data);
+            $app->render('layouts/menu.php');
+           $app->render('report/sz_spec_donos/bread.php', $data);
+           $app->render('report/sz_spec_donos/form.php', $data);
+            $app->render('report/sz_spec_donos/show_inf.php', $data);
+            $app->render('layouts/footer.php');
+        }
+        else{
+             /* export to word */
+            $phpWord = new  \PhpOffice\PhpWord\PhpWord();
+            $phpWord->setDefaultFontName('Times New Roman');
+           // $phpWord->setDefaultFontSize(14) ;
+                $properties = $phpWord->getDocInfo();
+
+//$properties->setCreator('Name');
+//$properties->setCompany('Company');
+//$properties->setTitle('Title');
+//$properties->setDescription('Description');
+//$properties->setCategory('My category');
+//$properties->setLastModifiedBy('My name');
+//$properties->setCreated(mktime(0, 0, 0, 3, 12, 2015));
+//$properties->setModified(mktime(0, 0, 0, 3, 14, 2015));
+//$properties->setSubject('My subject');
+//$properties->setKeywords('my, key, word');
+
+$sectionStyle = array(
+
+ 'orientation' => 'portrait'
+// 'marginTop' => \PhpOffice\PhpWord\Shared\Converter::pixelToTwip(10),
+// 'marginLeft' => 600,
+//     'marginRight' => 600,
+//     'colsNum' => 1,
+//     'pageNumberingStart' => 1,
+//     'borderBottomSize'=>100
+    // 'borderBottomColor'=>'C0C0C0'
+
+ );
+$section = $phpWord->addSection($sectionStyle);
+
+/* table */
+
+        if (!empty($main) || !empty($main_cou)) {
+                $section->addText("Справочная информация",array( 'italic' => TRUE,'size' => 12));
+                $styleTable = array('borderSize' => 6, 'borderColor' => '999999');
+
+                $cellRowSpan = array('vMerge' => 'restart', 'valign' => 'center');
+                // $styleCellBTLR = array('vMerge' => 'restart', 'valign' => 'center', 'textDirection' => \PhpOffice\PhpWord\Style\Cell::TEXT_DIR_BTLR);
+                $cellRowContinue = array('vMerge' => 'continue');
+                $cellColSpan2 = array('gridSpan' => 2, 'valign' => 'center');
+                $cellColSpan10 = array('gridSpan' => 10, 'valign' => 'center');
+                $cellColSpan12 = array('gridSpan' => 12, 'valign' => 'center', 'align' => 'center',);
+                $cellColSpan3 = array('gridSpan' => 3, 'valign' => 'center');
+
+                $cellHCentered = array('align' => 'center', 'size' => 11, 'spaceAfter' => \PhpOffice\PhpWord\Shared\Converter::pointToTwip(6));
+                $cellVCentered = array('valign' => 'center');
+                $cellHCenteredCellBTLR = array('align' => 'center', 'textDirection' => \PhpOffice\PhpWord\Style\Cell::TEXT_DIR_BTLR);
+                $cellVCenteredCellBTLR = array('valign' => 'center', 'textDirection' => \PhpOffice\PhpWord\Style\Cell::TEXT_DIR_BTLR, 'exactHeight' => 3000);
+
+                $phpWord->addTableStyle('Colspan Rowspan', $styleTable);
+
+                $table = $section->addTable('Colspan Rowspan');
+
+
+                $table->addRow();
+                $table->addCell(3000, $cellRowSpan)->addText('Наименование подразделения', null, $cellHCentered);
+                $table->addCell(2000, $cellColSpan12)->addText('Строевая записка по личному составу', null, $cellHCentered);
+
+
+                $table->addRow();
+                $table->addCell(null, $cellRowContinue); // 1 пустая в колонке 1
+                $table->addCell(2000, $cellColSpan2)->addText('Подразделения', null, $cellHCentered);
+                $table->addCell(2000, $cellColSpan10)->addText('Дежурной смены', null, $cellHCentered);
+
+
+
+                $table->addRow(1500);
+                $table->addCell(null, $cellRowContinue); // 1 пустая в колонке 1
+                $table->addCell(800, $cellVCenteredCellBTLR)->addText('По штату', null, $cellHCentered);
+                // $table->addCell(null, $cellRowContinue); // 1 пустая в колонке 3
+                $table->addCell(800, $cellVCenteredCellBTLR)->addText('Вакансия', null, $cellHCentered);
+                $table->addCell(2500, $cellVCenteredCellBTLR)->addText('По штату в дежурной смене', null, $cellHCentered);
+                $table->addCell(2500, $cellVCenteredCellBTLR)->addText('Вакансия в<w:br/>дежурной<w:br/>смене', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('Налицо', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('В боевом<w:br/>расчете', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('Ком-ка', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('Отпуск', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('Больные', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('Наряд', null, $cellHCentered);
+                $table->addCell(2500, $cellVCenteredCellBTLR)->addText('Другие<w:br/>причины', null, $cellHCentered);
+                $table->addCell(2000, $cellVCenteredCellBTLR)->addText('ГДЗС, чел', null, $cellHCentered);
+
+  if (isset($main) && !empty($main)) {
+                    foreach ($main as $key => $value) {
+                        $table->addRow();
+                        $table->addCell(3000, $cellVCentered)->addText(((isset($value['name'])) ? $value['name'] : 'строевая не заполнена' ), null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText($value['shtat'], null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText($value['vacant'], null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText($value['shtat_ch'], null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText($value['vacant_ch'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['face'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['calc'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['trip'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['holiday'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['ill'], null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText($value['duty'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['other'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['gas'], null, $cellHCentered);
+                    }
+                }
+
+                  if (isset($main_cou) && !empty($main_cou)) {
+                    foreach ($main_cou as $key => $value) {
+                        $table->addRow();
+                        $table->addCell(3000, $cellVCentered)->addText(((isset($value['name'])) ? $value['name'] : 'строевая не заполнена' ), null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText($value['shtat'], null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText($value['vacant'], null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText($value['shtat_ch'], null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText($value['vacant_ch'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['face'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['calc'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['trip'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['holiday'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['ill'], null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText($value['duty'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['other'], null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText($value['gas'], null, $cellHCentered);
+                    }
+                }
+            }
+
+
+            /* end table */
+
+//$text = "PHPWord is a library written in pure PHP that provides a set of classes to write to and read from different document file formats.";
+//$fontStyle = array('name'=>'Arial', 'size'=>36, 'color'=>'075776', 'bold'=>TRUE, 'italic'=>TRUE);
+//$parStyle = array('align'=>'right','spaceBefore'=>10);
+
+//$section->addText(htmlspecialchars($text), $fontStyle,$parStyle);
+
+//$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord,'Word2007');
+//$objWriter->save('doc.docx');
+
+//$text = "foo\nbar\nfoobar";
+////$textlines = explode("\n", $text);
+//
+//$textlines =array('aaa','ddd','fgh');
+//
+//$textrun = $section->addTextRun();
+//$textrun->addText(array_shift($textlines));
+//foreach($textlines as $line) {
+//    $textrun->addTextBreak();
+//    // maybe twice if you want to seperate the text
+//    // $textrun->addTextBreak(2);
+//    $textrun->addText($line);
+//}
+
+            $fontStyle = array('bold' => TRUE, 'italic' => TRUE, 'underline' => 'single','size'=>12);
+            $fontStyle_1 = array( 'italic' => TRUE,'size'=>12);
+
+            $textrun = $section->addTextRun();
+            if (isset($main) && !empty($main)) {
+
+
+                foreach ($main as $key => $value) {
+
+                    if (!empty($main[$key]['vacant_inf']) || !empty($main[$key]['trip_inf']) || !empty($main[$key]['holiday_inf']) || !empty($main[$key]['ill_inf']) || !empty($main[$key]['duty_inf']) || !empty($main[$key]['other_inf'])) {
+                        $textrun->addText($value['name'] . ':', $fontStyle);
+                        $textrun->addTextBreak(); //new line
+                    }
+
+
+                                      //vacant
+                    if (!empty($main[$key]['vacant_inf'])) {
+                        //  print_r($d2_duty)
+                        foreach ($main[$key]['vacant_inf'] as $vacant_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($vacant_inf['position']) . ') вакансия';
+
+
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+                                        //trip
+                    if (!empty($main[$key]['trip_inf'])) {
+                        foreach ($main[$key]['trip_inf'] as $trip_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($trip_inf['position']) . ' ' . $trip_inf['fio'] . ' ) - командировка c ' .
+                                $trip_inf['date1'] . ( (($trip_inf['date2']) != NULL) ? (' по ' . $trip_inf['date2']) : '') . ', ' . $trip_inf['place'] . ' ' . ', ' . $trip_inf['prikaz'] . ' ' . (($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : '');
+
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+                            //holiday
+                    if (!empty($main[$key]['holiday_inf'])) {
+                        foreach ($main[$key]['holiday_inf'] as $holiday_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($holiday_inf['position']) . ' ' . $holiday_inf['fio'] . ' ) - отпуск c ' .
+                                $holiday_inf['date1'] . ( (($holiday_inf['date2']) != NULL) ? (' по ' . $holiday_inf['date2']) : '') .
+                                ', ' . $holiday_inf['prikaz'];
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+
+                            //ill
+                    if (!empty($main[$key]['ill_inf'])) {
+                        foreach ($main[$key]['ill_inf'] as $ill_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($ill_inf['position']) . ' ' . $ill_inf['fio'] . ' ) - больничный c ' . $ill_inf['date1'] .
+                                ( (($ill_inf['date2']) != NULL) ? (' по ' . $ill_inf['date2']) : '') .
+                                ', ' . $ill_inf['maim'] . ' '. ((!empty( $ill_inf['diagnosis'])) ? (', ' .  $ill_inf['diagnosis']) : '') ;
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+
+                            //naryd
+                    if (!empty($main[$key]['duty_inf'])) {
+                        $date1_duty = new DateTime($value['duty_date1']);
+                        $d1_duty = $date1_duty->Format('d-m-Y');
+                        $date2_duty = new DateTime($value['duty_date2']);
+                        $d2_duty = $date2_duty->Format('d-m-Y');
+
+                        $t = '(' . mb_strtolower($main[$key]['duty_inf']) . ' ) - наряд. с ' . $d1_duty
+                           . ' по ' . $d2_duty;
+                        $textrun->addText($t, $fontStyle_1);
+                        $textrun->addTextBreak(); //new line
+
+                         $textrun->addTextBreak(); //new line
+                    }
+
+
+                                   //other reasons
+                    if (!empty($main[$key]['other_inf'])) {
+                        foreach ($main[$key]['other_inf'] as $other_inf) {
+
+                          $t = '1 чел. (' . mb_strtolower($other_inf['position']) . ' ' . $other_inf['fio'] . ' ) - другие причины c ' . $other_inf['date1'] .
+                                ( (($other_inf['date2']) != NULL) ? (' по ' . $other_inf['date2']) : '') .
+                                ', ' . $other_inf['reason'] . ' '. ((($other_inf['note']) != NULL) ? (', ' . $other_inf['note']) : '') ;
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+                }
+            }
+
+            /*  cou */
+             if (isset($main_cou) && !empty($main_cou)) {
+
+
+                foreach ($main_cou as $key => $value) {
+
+                    if (!empty($main_cou[$key]['vacant_inf']) || !empty($main_cou[$key]['trip_inf']) || !empty($main_cou[$key]['holiday_inf']) || !empty($main_cou[$key]['ill_inf']) || !empty($main_cou[$key]['duty_inf']) || !empty($main_cou[$key]['other_inf'])) {
+                        $textrun->addText($value['name'] . ':', $fontStyle);
+                        $textrun->addTextBreak(); //new line
+                    }
+
+
+                                      //vacant
+                    if (!empty($main_cou[$key]['vacant_inf'])) {
+                        //  print_r($d2_duty)
+                        foreach ($main_cou[$key]['vacant_inf'] as $vacant_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($vacant_inf['position']) . ') вакансия';
+
+
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+                                        //trip
+                    if (!empty($main_cou[$key]['trip_inf'])) {
+                        foreach ($main_cou[$key]['trip_inf'] as $trip_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($trip_inf['position']) . ' ' . $trip_inf['fio'] . ' ) - командировка c ' .
+                                $trip_inf['date1'] . ( (($trip_inf['date2']) != NULL) ? (' по ' . $trip_inf['date2']) : '') . ', ' . $trip_inf['place'] . ' ' . ', ' . $trip_inf['prikaz'] . ' ' . (($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : '');
+
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+                            //holiday
+                    if (!empty($main_cou[$key]['holiday_inf'])) {
+                        foreach ($main_cou[$key]['holiday_inf'] as $holiday_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($holiday_inf['position']) . ' ' . $holiday_inf['fio'] . ' ) - отпуск c ' .
+                                $holiday_inf['date1'] . ( (($holiday_inf['date2']) != NULL) ? (' по ' . $holiday_inf['date2']) : '') .
+                                ', ' . $holiday_inf['prikaz'];
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+
+                            //ill
+                    if (!empty($main_cou[$key]['ill_inf'])) {
+                        foreach ($main_cou[$key]['ill_inf'] as $ill_inf) {
+
+                            $t = '1 чел. (' . mb_strtolower($ill_inf['position']) . ' ' . $ill_inf['fio'] . ' ) - больничный c ' . $ill_inf['date1'] .
+                                ( (($ill_inf['date2']) != NULL) ? (' по ' . $ill_inf['date2']) : '') .
+                                ', ' . $ill_inf['maim'] . ' '. ((!empty( $ill_inf['diagnosis'])) ? (', ' .  $ill_inf['diagnosis']) : '') ;
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+
+
+                            //naryd
+                    if (!empty($main_cou[$key]['duty_inf'])) {
+                        $date1_duty = new DateTime($value['duty_date1']);
+                        $d1_duty = $date1_duty->Format('d-m-Y');
+                        $date2_duty = new DateTime($value['duty_date2']);
+                        $d2_duty = $date2_duty->Format('d-m-Y');
+
+                        $t = '(' . mb_strtolower($main_cou[$key]['duty_inf']) . ' ) - наряд. с ' . $d1_duty
+                           . ' по ' . $d2_duty;
+                        $textrun->addText($t, $fontStyle_1);
+                        $textrun->addTextBreak(); //new line
+
+                         $textrun->addTextBreak(); //new line
+                    }
+
+
+                                   //other reasons
+                    if (!empty($main_cou[$key]['other_inf'])) {
+                        foreach ($main_cou[$key]['other_inf'] as $other_inf) {
+
+                          $t = '1 чел. (' . mb_strtolower($other_inf['position']) . ' ' . $other_inf['fio'] . ' ) - другие причины c ' . $other_inf['date1'] .
+                                ( (($other_inf['date2']) != NULL) ? (' по ' . $other_inf['date2']) : '') .
+                                ', ' . $other_inf['reason'] . ' '. ((($other_inf['note']) != NULL) ? (', ' . $other_inf['note']) : '') ;
+                            $textrun->addText($t, $fontStyle_1);
+                            $textrun->addTextBreak(); //new line
+
+                        }
+                         $textrun->addTextBreak(); //new line
+                    }
+                }
+            }
+
+            header("Content-Description: File Transfer");
+header('Content-Disposition: attachment; filename="first.docx"');
+header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+header('Content-Transfer-Encoding: binary');
+header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+header('Expires: 0');
+
+$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+$objWriter->save("php://output");
+
+        }
+
+
+
+    });
+
+
+    /* count rank */
+        $app->get('/count_rank', function () use ($app) {
+
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['count_rank_sub']=1;
+
+            $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
+        $data['region'][] = array('id' => 8, 'name' => 'РОСН');
+        $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
+        $data['region'][] = array('id' => 12, 'name' => 'Авиация');
+
+//        $data['region'][] = array('id' => 160, 'name' => 'РОСН г.Минск');
+//        $data['region'][] = array('id' => 163, 'name' => 'РОСН г.Пинск');
+
+//        $data['region'][] = array('id' => 169, 'name' => 'УГЗ г.Минск');
+//        $data['region'][] = array('id' => 171, 'name' => 'УГЗ г.Гомель');
+//        $data['region'][] = array('id' => 170, 'name' => 'УГЗ г.Борисов');
+
+
+         $data['locorg'] = R::getAll('SELECT * FROM ss.caption '); // вместе с  ЦП
+        $data['diviz'] = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+
+
+        $data['rank']=R::getAll("select * from rank");
+
+        //bread
+        $data['bread_active'] = 'Отчет по званиям';
+        $data['title_name'] = 'Отчет по званиям';
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php');
+        $app->render('report/teh_in_trip/bread.php', $data);
+        $app->render('report/count_rank/form.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+      $app->post('/count_rank', function () use ($app) {
+
+        $region = $app->request()->post('region'); //oblast
+        $grochs = $app->request()->post('locorg'); //grochs
+        $divizion = $app->request()->post('diviz'); //pasp
+
+        $rank_search = (isset($_POST['rank_search']) && !empty($_POST['rank_search'])) ? $_POST['rank_search'] : 0;
+        //print_r($pos_search);
+
+        $cp = array(8, 9, 12);
+        $where = 0;
+//        echo $region.'<br>';
+//         echo $grochs.'<br>';
+//          echo $divizion.'<br>';
+//exit();
+        $head = array();
+        $head_ra= array();
+
+        /* request inf */
+        if (isset($divizion) && !empty($divizion)) {
+            $head_diviz = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org WHERE rec.id = ' . $divizion . ' order by rec.divizion_num ASC');
+
+            foreach ($head_diviz as $v) {
+                $head[] = $v['name'];
+            }
+        }
+        if (isset($grochs) && !empty($grochs)) {//by grochs
+            $head_locorg = R::getAll('SELECT * FROM ss.caption WHERE locorg_id = ' . $grochs);
+            foreach ($head_locorg as $v) {
+                $head[] = $v['locor'];
+            }
+        }
+
+        if (isset($region) && !empty($region)) {
+
+            if (in_array($region, $cp)) {//rosn,ugz,avia
+
+                switch ($region) {
+                    case 8:
+                        $head[] = 'РОСН';
+
+                        break;
+                    case 9:
+                        $head[] = 'УГЗ';
+                        break;
+
+                    default:
+                        $head[] = 'Авиация';
+                        break;
+                }
+            } else {// region
+
+                $head_region = R::getAll('SELECT name,id FROM ss.regions WHERE id = ' . $region);
+
+                foreach ($head_region as $v) {
+                    if($v['id'] != 3){
+                    $head[] = $v['name'].' обл.';
+                    }
+                    else{
+                        $head[] = $v['name'];
+                    }
+                }
+            }
+        }
+
+        if ($rank_search != 0) {
+            $head_rank = R::getAll('SELECT name FROM rank WHERE id IN ( ' . implode(',', $rank_search).')');
+            foreach ($head_rank as $v) {
+                $head_ra[] = $v['name'];
+            }
+        }
+        /* END request inf */
+
+
+        $sql = "SELECT COUNT(l.`id`) AS cnt, po.`name` AS name_rank , po.`id`, po.img "
+            . " FROM  `rank` AS po LEFT JOIN listfio AS l ON po.`id`=l.`id_rank` "
+            . " LEFT JOIN cardch AS c ON l.`id_cardch`=c.`id` "
+            . " LEFT JOIN  ss.`records` AS rec  ON rec.`id`=c.`id_card`"
+            . " LEFT JOIN ss.`locorg` AS locor ON locor.`id`=rec.`id_loc_org`"
+            . " LEFT JOIN ss.`locals` AS loc ON loc.`id`=locor.`id_local` ";
+
+        if (isset($region) && !empty($region)) {
+            $where = 1;
+            $sql = $sql . ' WHERE ';
+            if (isset($divizion) && !empty($divizion)) {//by pasp
+                $sql = $sql . ' rec.`id` =  ' . $divizion;
+
+            } elseif (isset($grochs) && !empty($grochs)) {//by grochs
+                $sql = $sql . '  locor.`id` =  ' . $grochs;
+
+            } else {//by oblast
+                if (in_array($region, $cp)) {//rosn,ugz,avia
+                    $sql = $sql . ' locor.`id_organ` =  ' . $region;
+
+                } else {// region
+                    $sql = $sql . ' loc.`id_region` =  ' . $region;
+                    $sql = $sql . ' AND locor.`id_organ` NOT IN(8,9,12) '; //without rosn,ugz,avia
+
+                }
+            }
+        } else {
+            $head[] = 'по республике';
+        }
+
+        if ($rank_search != 0) {
+            if ($where == 0) {
+                $where = 1;
+                $sql = $sql . ' WHERE ';
+            } else {
+                $sql = $sql . ' AND ';
+            }
+
+            $sql = $sql . ' po.id  IN(' . implode(',', $rank_search) . ')';
+        }
+
+        $sql = $sql . "  group by po.`id`  ORDER BY `po`.`name`";
+//echo $sql;
+//exit();
+        $res = R::getAll($sql);
+        $data['res'] = $res;
+
+        $data['head']=$head;
+        $data['head_ra']=$head_ra;
+
+        /* show on screen */
+        if (!isset($_POST['export_to_excel'])) {
+
+             $data['convex_item']['report']=1;// item 'search' is active
+             $data['convex_item']['count_rank_sub']=1;
+
+            /* form */
+            $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
+            $data['region'][] = array('id' => 8, 'name' => 'РОСН');
+            $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
+            $data['region'][] = array('id' => 12, 'name' => 'Авиация');
+
+            $data['locorg'] = R::getAll('SELECT * FROM ss.caption '); // вместе с  ЦП
+            $data['diviz'] = R::getAll('SELECT case when (locor.id_organ=6) then d.name when (rec.divizion_num=0) then d.name else
+            concat(d.name," №" ,rec.divizion_num)  end as name, id_loc_org as idlocorg,
+            rec.id as recid FROM ss.records AS rec inner join ss.divizions AS d
+            on rec.id_divizion=d.id inner join ss.locorg as locor on locor.id=rec.id_loc_org order by rec.divizion_num ASC'); //все подразделения
+            $data['select'] = 0; //available all regions
+            $data['select'] = 0; //доступны все область
+            $data['select_grochs'] = 0; //доступны все ГРОЧС
+            $data['select_pasp'] = 0; //доступны все части
+
+            $data['rank'] = R::getAll("select * from rank");
+
+            //bread
+            $data['bread_active'] = 'Отчет по званиям';
+            $data['title_name'] = 'Отчет по званиямм';
+            $app->render('layouts/header.php', $data);
+            $app->render('layouts/menu.php');
+            $app->render('report/teh_in_trip/bread.php', $data);
+            $app->render('report/count_rank/form.php', $data);
+            $app->render('report/count_rank/result.php', $data);
+            $app->render('layouts/footer.php');
+        }
+        /* show on screen */ else {
+            /* export_to_excel */
+            exportToExcelCountRank($res,$head,$head_ra);
+        }
+    });
+
 });
 
 
@@ -17309,6 +18881,24 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
             /* all employees COU with vacant with everyday */
          $data['count_shtat'] =  getCountOnListAllForCou($id, $change);
+
+
+                 //get main
+         $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
+        if (isset($main) && !empty($main)) {//есть запись
+            ///выбор последней даты
+            foreach ($main as $value) {
+                //format 10-01-2018 to 2018-01-10
+                /*  $date = new DateTime($value['dateduty']);
+                  $last_data = $date->Format('Y-m-d'); */
+                $last_data = $value['dateduty'];
+            }
+        }
+         else
+                 $last_data = $today;
+
+         $data['count_fio_on_car'] = getCountCalc($id, $change, $last_data);
+
 
 
         //кнопка "Подтвердить данные"
@@ -17987,6 +19577,9 @@ $others=array();
 
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
+
+            $data['convex_item']['query']=1;// item 'search' is active
+
             $data['title_name'] = 'Запросы/Инф.по сменам ЦОУ, ШЛЧС';
             $app->render('layouts/header.php', $data);
             $app->render('layouts/menu.php');
@@ -18475,5 +20068,68 @@ $sheet->setCellValue('C' . $r, $itogo);
 
 /*---------- END export to Excel count position ------------*/
 
+
+      /*---------- export to Excel count rank ------------*/
+    function exportToExcelCountRank($result,$head,$head_ra) {
+
+    $objPHPExcel = new PHPExcel();
+    $objReader = PHPExcel_IOFactory::createReader("Excel2007");
+    $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/count_rank.xlsx');
+//activate worksheet number 1
+    $objPHPExcel->setActiveSheetIndex(0);
+    $sheet = $objPHPExcel->getActiveSheet();
+//start row
+    $r = 9;
+    $i = 0;
+
+    /* +++++++++++++++++++++ style ++++++++++ */
+
+                $style_all = array(
+// full with color
+                'borders' => array(
+                  'allborders' => array(
+                      'style'=>  PHPExcel_Style_Border::BORDER_THIN
+                    )
+                )
+
+            );
+
+    /* +++++++++++++ end style +++++++++++++ */
+
+    //$sheet->setCellValue('A' . 2, $head);
+
+
+    $itogo = 0;
+    $k=0;
+
+    $sheet->setCellValue('A2', implode(', ', $head));
+    $sheet->setCellValue('A3', 'Звания: '.implode(', ', $head_ra));
+
+    foreach ($result as  $value) {
+$k++;
+        $sheet->setCellValue('A' . $r, $k);
+
+        $itogo+=$value['cnt'];
+
+        $sheet->setCellValue('B' . $r, $value['name_rank']);
+         $sheet->setCellValue('C' . $r, $value['cnt']);
+
+        $r++;
+    }
+
+$sheet->setCellValue('A' . $r, 'ИТОГО');
+$sheet->setCellValue('C' . $r, $itogo);
+
+   $sheet->getStyleByColumnAndRow(0, 9, 2, $r)->applyFromArray($style_all);
+
+    // save in file */
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="count_position.xlsx"');
+    header('Cache-Control: max-age=0');
+    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+    $objWriter->save('php://output');
+}
+
+/*---------- END export to Excel count rank ------------*/
 
 $app->run();

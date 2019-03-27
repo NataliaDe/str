@@ -1,5 +1,5 @@
 
-<script type="text/javascript"  src="/str/snow.js"></script>
+<!--<script type="text/javascript"  src="/str/snow.js"></script>-->
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="general_table">
         <!-- Содержимое вкладки  general_table -->
@@ -7,11 +7,11 @@
             <br>
             <center> <u><b>НОВОСТИ</b></u></center>
 <br><br>
-            <center>  <span style="color: #2a75ea; font-weight: 800;font-size: 21px; text-shadow: 0 5px 5px rgba(0,0,0, .30);">   ОУСиС и ОВПО РЦУРЧС поздравляет всех пользователей ПС "Строевая записка" с наступающим Новым годом!
+<!--            <center>  <span style="color: #2a75ea; font-weight: 800;font-size: 21px; text-shadow: 0 5px 5px rgba(0,0,0, .30);">   ОУСиС и ОВПО РЦУРЧС поздравляет всех пользователей ПС "Строевая записка" с наступающим Новым годом!
                     Благодарим за терпение и сотрудничество.</span><br>
                 <img src="/str/app/images/new_year.jpg" width="41%">
             </center>
-<br><br><br><br>
+<br><br><br><br>-->
 
             <span style="color: #a94442; font-size: 15px; float: left;"> <i><b> Дата публикации 19.12.2018</b></i></span><br><br>
 

@@ -7,9 +7,9 @@
  <span style="color: red;">  Информация доступна за последние <b>3 дня</b></span>. Данные актуальны, если на указанную дату все строевые заполнены.
 <br><br><br>
 <form  role="form"  method="POST" action="<?= $_SERVER['REQUEST_URI'] ?>">
-    
+
      <div class="row">
-         
+
          <div class="col-lg-2">
             <!--                         Инициализация виджета "Bootstrap datetimepicker" -->
             <div class="form-group">
@@ -33,7 +33,7 @@
                 </div>
             </div>
         </div>
-         
+
         <div class="col-lg-2">
             <div class="form-group">
                 <label for="region">Область</label>
@@ -50,7 +50,7 @@
                             }
 
                         } else {
-                         
+
                         }
                         ?>
 
@@ -65,7 +65,7 @@
                 </select>
             </div>
         </div>
-         
+
          <div class="col-lg-3">
             <div class="form-group">
                 <label for="locorg">Подразделение</label>
@@ -81,12 +81,12 @@
                              if($_SESSION['note'] == NULL || $_SESSION['note'] == AVIA){
                                                     foreach ($locorg as $lo) {
                         printf("<p><option value='%s' class='%s'  ><label>%s</label></option></p>", $lo['locorg_id'], $lo['region'], $lo['locor']);
-                    } 
+                    }
                              }
                              else{// CP
                                      foreach ($locorg as $lo) {
                         printf("<p><option value='%s' class='%s'  ><label>%s</label></option></p>", $lo['locorg_id'], $lo['org_id'], $lo['locname']);
-                    } 
+                    }
                              }
 
                     ?>
@@ -95,7 +95,7 @@
                 </select>
             </div>
         </div>
-         
+
          <?php
                //     print_r($locorg);
          if($_SESSION['note'] == NULL){
@@ -114,7 +114,7 @@
                                 }
                             }
                             ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                             <?php
                         } else {
                             ?>
@@ -137,8 +137,8 @@
          <?php
          }
          ?>
-         
-          
+
+
      </div>
     <br><br>
     <center>
@@ -146,9 +146,16 @@
 
             <div class="form-group">
                 <button type="submit" class="btn btn-info" name="export_to_excel">Экспорт в Excel</button>
-            </div>  
+            </div>
         </div>
-        
+
+           <div class="row">
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-danger" name="export_to_excel_umchs">Мин. боевой расчет (УМЧС). Экспорт в Excel</button>
+            </div>
+        </div>
+
     </center>
 
 </form>

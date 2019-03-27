@@ -40,25 +40,25 @@ $(function () {
         /*доступна только сег.дата+3day
 	'maxDate':  moment(new Date()).add(2, 'days').startOf('day') */
     });
-   
+
    /* дата в запроснике - диапазон дат */
        $('#date_start').datetimepicker({
         language: 'ru',
         pickTime: false,
          autoclose: true,
           format: 'DD-MM-YYYY',
-        'minDate': moment(new Date()).add(-2, 'days').startOf('day'), 
+        'minDate': moment(new Date()).add(-2, 'days').startOf('day'),
 	'maxDate':  new Date()
-                //moment(new Date()).add(2, 'days').startOf('day') 
+                //moment(new Date()).add(2, 'days').startOf('day')
     });
     $('#date_end').datetimepicker({
         language: 'ru',
         pickTime: false,
          autoclose: true,
           format: 'DD-MM-YYYY',
-          'minDate': moment(new Date()).add(-2, 'days').startOf('day'), 
+          'minDate': moment(new Date()).add(-2, 'days').startOf('day'),
           'maxDate':  new Date()
-                  //moment(new Date()).add(2, 'days').startOf('day') 
+                  //moment(new Date()).add(2, 'days').startOf('day')
     });
     //При изменении даты в 8 datetimepicker, она устанавливается как минимальная для 9 datetimepicker
     $('#date_start').on("dp.change", function (e) {
@@ -68,8 +68,8 @@ $(function () {
     $('#date_end').on("dp.change", function (e) {
         $('#date_start').data("DateTimePicker").setMaxDate(e.date);
     });
-   
-   
+
+
    /* техника в командировке - форма добавления*/
      $('#date1').datetimepicker({
         language: 'ru',
@@ -112,8 +112,8 @@ $(function () {
     $('#trip_car_date2').on("dp.change", function (e) {
         $('#trip_car_date1').data("DateTimePicker").setMaxDate(e.date);
     });
-   
-   
+
+
    /* диапазон дат для отсутствующих */
     $('#date11').datetimepicker({
         language: 'ru',
@@ -135,7 +135,7 @@ $(function () {
     $('#date21').on("dp.change", function (e) {
         $('#date11').data("DateTimePicker").setMaxDate(e.date);
     });
-    
+
      $('#date12').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -156,7 +156,7 @@ $(function () {
     $('#date22').on("dp.change", function (e) {
         $('#date12').data("DateTimePicker").setMaxDate(e.date);
     });
-    
+
      $('#date13').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -177,7 +177,7 @@ $(function () {
     $('#date23').on("dp.change", function (e) {
         $('#date13').data("DateTimePicker").setMaxDate(e.date);
     });
-    
+
      $('#date14').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -220,8 +220,8 @@ $(function () {
     $('#date25').on("dp.change", function (e) {
         $('#date15').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
      $('#date16').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -242,8 +242,8 @@ $(function () {
     $('#date26').on("dp.change", function (e) {
         $('#date16').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
      $('#date17').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -264,8 +264,8 @@ $(function () {
     $('#date27').on("dp.change", function (e) {
         $('#date17').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
      $('#date18').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -286,8 +286,8 @@ $(function () {
     $('#date28').on("dp.change", function (e) {
         $('#date18').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
      $('#date19').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -308,8 +308,8 @@ $(function () {
     $('#date29').on("dp.change", function (e) {
         $('#date19').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
      $('#date110').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -330,9 +330,9 @@ $(function () {
     $('#date210').on("dp.change", function (e) {
         $('#date110').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-        
+
+
+
      $('#date111').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -353,9 +353,9 @@ $(function () {
     $('#date211').on("dp.change", function (e) {
         $('#date111').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-        
+
+
+
      $('#date112').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -376,8 +376,8 @@ $(function () {
     $('#date212').on("dp.change", function (e) {
         $('#date112').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-            
+
+
      $('#date113').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -398,8 +398,8 @@ $(function () {
     $('#date213').on("dp.change", function (e) {
         $('#date113').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-            
+
+
      $('#date114').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -420,8 +420,8 @@ $(function () {
     $('#date214').on("dp.change", function (e) {
         $('#date114').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-            
+
+
      $('#date115').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -442,9 +442,9 @@ $(function () {
     $('#date215').on("dp.change", function (e) {
         $('#date115').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-            
+
+
+
      $('#date116').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -465,8 +465,8 @@ $(function () {
     $('#date216').on("dp.change", function (e) {
         $('#date116').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-            
+
+
      $('#date117').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -487,8 +487,8 @@ $(function () {
     $('#date217').on("dp.change", function (e) {
         $('#date117').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
     	     $('#date118').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -509,8 +509,8 @@ $(function () {
     $('#date218').on("dp.change", function (e) {
         $('#date118').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
     	     $('#date119').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -531,8 +531,8 @@ $(function () {
     $('#date219').on("dp.change", function (e) {
         $('#date119').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
     	     $('#date120').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -553,7 +553,7 @@ $(function () {
     $('#date220').on("dp.change", function (e) {
         $('#date120').data("DateTimePicker").setMaxDate(e.date);
     });
-    
+
          $('#date121').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -574,8 +574,8 @@ $(function () {
     $('#date221').on("dp.change", function (e) {
         $('#date121').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date122').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -596,7 +596,7 @@ $(function () {
     $('#date222').on("dp.change", function (e) {
         $('#date122').data("DateTimePicker").setMaxDate(e.date);
     });
-    
+
              $('#date123').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -617,7 +617,7 @@ $(function () {
     $('#date223').on("dp.change", function (e) {
         $('#date123').data("DateTimePicker").setMaxDate(e.date);
     });
-    
+
              $('#date124').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -638,8 +638,8 @@ $(function () {
     $('#date224').on("dp.change", function (e) {
         $('#date124').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
              $('#date125').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -660,8 +660,8 @@ $(function () {
     $('#date225').on("dp.change", function (e) {
         $('#date125').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
              $('#date126').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -682,8 +682,8 @@ $(function () {
     $('#date226').on("dp.change", function (e) {
         $('#date126').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
              $('#date127').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -704,8 +704,8 @@ $(function () {
     $('#date227').on("dp.change", function (e) {
         $('#date127').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
              $('#date128').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -726,8 +726,8 @@ $(function () {
     $('#date228').on("dp.change", function (e) {
         $('#date128').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
              $('#date129').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -748,8 +748,8 @@ $(function () {
     $('#date229').on("dp.change", function (e) {
         $('#date129').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
              $('#date130').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -770,8 +770,8 @@ $(function () {
     $('#date230').on("dp.change", function (e) {
         $('#date130').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date131').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -792,8 +792,8 @@ $(function () {
     $('#date231').on("dp.change", function (e) {
         $('#date131').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date132').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -814,9 +814,9 @@ $(function () {
     $('#date232').on("dp.change", function (e) {
         $('#date132').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date133').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -837,8 +837,8 @@ $(function () {
     $('#date233').on("dp.change", function (e) {
         $('#date133').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date134').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -859,8 +859,8 @@ $(function () {
     $('#date234').on("dp.change", function (e) {
         $('#date134').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date135').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -881,9 +881,9 @@ $(function () {
     $('#date235').on("dp.change", function (e) {
         $('#date135').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date136').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -904,8 +904,8 @@ $(function () {
     $('#date236').on("dp.change", function (e) {
         $('#date136').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date137').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -926,9 +926,9 @@ $(function () {
     $('#date237').on("dp.change", function (e) {
         $('#date137').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date138').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -949,9 +949,9 @@ $(function () {
     $('#date238').on("dp.change", function (e) {
         $('#date138').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date139').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -972,8 +972,8 @@ $(function () {
     $('#date239').on("dp.change", function (e) {
         $('#date139').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date140').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -994,9 +994,9 @@ $(function () {
     $('#date240').on("dp.change", function (e) {
         $('#date140').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date141').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1017,10 +1017,10 @@ $(function () {
     $('#date241').on("dp.change", function (e) {
         $('#date141').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
-    
+
+
+
+
          $('#date142').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1041,10 +1041,10 @@ $(function () {
     $('#date242').on("dp.change", function (e) {
         $('#date142').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
-    
+
+
+
+
          $('#date143').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1065,9 +1065,9 @@ $(function () {
     $('#date243').on("dp.change", function (e) {
         $('#date143').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date144').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1088,8 +1088,8 @@ $(function () {
     $('#date244').on("dp.change", function (e) {
         $('#date144').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date145').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1110,9 +1110,9 @@ $(function () {
     $('#date245').on("dp.change", function (e) {
         $('#date145').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date146').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1133,9 +1133,9 @@ $(function () {
     $('#date246').on("dp.change", function (e) {
         $('#date146').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date147').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1156,9 +1156,9 @@ $(function () {
     $('#date247').on("dp.change", function (e) {
         $('#date147').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date148').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1179,9 +1179,9 @@ $(function () {
     $('#date248').on("dp.change", function (e) {
         $('#date148').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date149').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1202,8 +1202,8 @@ $(function () {
     $('#date249').on("dp.change", function (e) {
         $('#date149').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date150').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1224,8 +1224,8 @@ $(function () {
     $('#date250').on("dp.change", function (e) {
         $('#date150').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date151').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1246,9 +1246,9 @@ $(function () {
     $('#date251').on("dp.change", function (e) {
         $('#date151').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date152').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1269,9 +1269,9 @@ $(function () {
     $('#date252').on("dp.change", function (e) {
         $('#date152').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
-    
+
+
+
          $('#date153').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1315,8 +1315,8 @@ $(function () {
     $('#date254').on("dp.change", function (e) {
         $('#date154').data("DateTimePicker").setMaxDate(e.date);
     });
-    
-    
+
+
          $('#date155').datetimepicker({
         language: 'ru',
         pickTime: false,
@@ -1336,6 +1336,14 @@ $(function () {
     //При изменении даты в 9 datetimepicker, она устанавливается как максимальная для 8 datetimepicker
     $('#date255').on("dp.change", function (e) {
         $('#date155').data("DateTimePicker").setMaxDate(e.date);
+    });
+
+
+    $('#date_for_search_by_fio').datetimepicker({
+        language: 'ru',
+        pickTime: false,
+        autoclose: true,
+        format: 'DD-MM-YYYY'
     });
 
 });

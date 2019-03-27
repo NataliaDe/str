@@ -43,7 +43,7 @@ if(isset($main)&& !empty($main)){
             foreach ($main as $key => $value) {
                 ?>
                 <tr>
-                    <td><?= $value['name'] ?>, смена <?= $value['ch'] ?></td>
+                    <td><?php echo (isset($value['name'])) ? $value['name'] : 'строевая не заполнена' ?>, смена <?= $value['ch'] ?></td>
                     <td><?= $value['shtat'] ?></td>
                     <td><?= $value['vacant'] ?></td>
                     <td><?= $value['shtat_ch'] ?></td>
@@ -71,7 +71,7 @@ if(isset($main_cou)&& !empty($main_cou)){
   foreach ($main_cou as $key => $value) {
                 ?>
                 <tr>
-                    <td><?= $value['name'] ?>, смена <?= $value['ch'] ?></td>
+                    <td><?php echo (isset($value['name'])) ? $value['name'] : 'строевая не заполнена' ?>, смена <?= $value['ch'] ?></td>
                     <td><?= $value['shtat'] ?></td>
                     <td><?= $value['vacant'] ?></td>
                     <td><?= $value['shtat_ch'] ?></td>
@@ -104,11 +104,16 @@ if(isset($main_cou)&& !empty($main_cou)){
     <?php
 
             foreach ($main as $key => $value) {
-        ?>
-     <br>
+
+                   if (!empty($main[$key]['vacant_inf']) || !empty($main[$key]['trip_inf']) || !empty($main[$key]['holiday_inf'])
+                  || !empty($main[$key]['ill_inf']) ||  !empty($main[$key]['duty_inf']) || !empty($main[$key]['other_inf'])) {
+                   ?>
+                        <br>
             <u><b><?= $value['name'] ?></b></u>
             <br>
-        <?php
+    <?php
+               }
+
         //вывод работников в командировке
         if (!empty($main[$key]['trip_inf'])) {
             foreach ($main[$key]['trip_inf'] as $trip_inf) {
@@ -193,6 +198,107 @@ if(isset($main_cou)&& !empty($main_cou)){
 </div>
 <?php
 }
+
+
+
+ /* cou */
+  if(isset($main_cou)&& !empty($main_cou)){
+
+         foreach ($main_cou as $key => $value) {
+              if (!empty($main_cou[$key]['vacant_inf']) || !empty($main_cou[$key]['trip_inf']) || !empty($main_cou[$key]['holiday_inf'])
+                  || !empty($main_cou[$key]['ill_inf']) ||  !empty($main_cou[$key]['duty_inf']) || !empty($main_cou[$key]['other_inf'])) {
+                  ?>
+                 <br>
+            <u><b><?= $value['name'] ?></b></u>
+            <br>
+            <?php
+              }
+
+                  //vacant
+                    if (!empty($main_cou[$key]['vacant_inf'])) {
+                        //  print_r($d2_duty)
+                        foreach ($main_cou[$key]['vacant_inf'] as $vacant_inf) {
+
+                            ?>
+<!--            <i>1 чел. (<? mb_strtolower($vacant_inf['position'])  . ' ' ?>) - <b><? $vacant_inf['fio'] ?></b> </i>-->
+             <i>1 чел. (<?= mb_strtolower($vacant_inf['position'])  . ' ' ?>)  <b>вакансия</b> </i>
+                            <br>
+                            <?php
+                        }
+                    }
+
+
+                    //вывод работников в командировке
+        if (!empty($main_cou[$key]['trip_inf'])) {
+            foreach ($main_cou[$key]['trip_inf'] as $trip_inf) {
+                //$date2=(($trip_inf['date2']) != NULL) ? $trip_inf['date2']:'-';
+                ?>
+            <i>1 чел. (<?= mb_strtolower($trip_inf['position']) . ' ' ?><?= $trip_inf['fio'] ?>) - <b>командировка</b> c  <?= $trip_inf['date1'] ?> по
+                        <?php echo (($trip_inf['date2']) != NULL) ? $trip_inf['date2'] : '-'; ?> <?= ', '.$trip_inf['place'] . ' ' ?>
+                        <?= ', '.$trip_inf['prikaz'] . ' ' ?>
+                        <?= ($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : ''; ?>.
+                    </i>
+            <br>
+                <?php
+            }
+        }
+
+        //отпуск
+               if (!empty($main_cou[$key]['holiday_inf'])) {
+            foreach ($main_cou[$key]['holiday_inf'] as $holiday_inf) {
+                ?>
+            <i>1 чел. (<?= mb_strtolower($holiday_inf['position']) . ' ' ?><?= $holiday_inf['fio'] ?>) - <b>отпуск</b> c  <?= $holiday_inf['date1'] ?> по
+                        <?php echo (($holiday_inf['date2']) != NULL) ? $holiday_inf['date2'] : '-'; ?> <?= ', '.$holiday_inf['prikaz']  ?>.
+
+                    </i>
+            <br>
+                <?php
+            }
+        }
+
+        //больные
+           if (!empty($main_cou[$key]['ill_inf'])) {
+            foreach ($main_cou[$key]['ill_inf'] as $ill_inf) {
+                ?>
+            <i>1 чел. (<?= mb_strtolower($ill_inf['position']) . ' ' ?><?= $ill_inf['fio'] ?>) - <b>больничный</b> c  <?= $ill_inf['date1'] ?> по
+                        <?php echo (($ill_inf['date2']) != NULL) ? $ill_inf['date2'] : '-'; ?> <?= ', '.$ill_inf['maim'] . ' ' ?>.
+                        <?= ', '. $ill_inf['diagnosis'] . ' ' ?>
+
+                    </i>
+            <br>
+                <?php
+            }
+        }
+
+        //вывод работников в наряде
+        if (!empty($main_cou[$key]['duty_inf'])) {
+               $date1_duty = new DateTime($value['duty_date1']);
+                                    $d1_duty = $date1_duty->Format('d-m-Y');
+                                    $date2_duty = new DateTime($value['duty_date2']);
+                                    $d2_duty = $date2_duty->Format('d-m-Y');
+            echo '<i>'.mb_strtolower($main_cou[$key]['duty_inf']).' - '.'<b>наряд.</b> с '.$d1_duty.' по '. $d2_duty.'</i>';
+            echo '<br>';
+        }
+
+               //др причины
+               if (!empty($main_cou[$key]['other_inf'])) {
+            foreach ($main_cou[$key]['other_inf'] as $other_inf) {
+                ?>
+            <i>1 чел. (<?= mb_strtolower($other_inf['position']) . ' ' ?><?= $other_inf['fio'] ?>) - <b>другие причины</b> c  <?= $other_inf['date1'] ?> по
+                        <?php echo (($other_inf['date2']) != NULL) ? $other_inf['date2'] : '-'; ?> <?= ', '.$other_inf['reason']  ?>
+                          <?php echo (($other_inf['note']) != NULL) ? ', '.$other_inf['note'] : ''; ?>.
+
+                    </i>
+            <br>
+                <?php
+            }
+        }
+
+
+
+    }
+ }
+
  else {
     ?>
 <div class="container">

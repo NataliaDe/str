@@ -55,7 +55,16 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
             <ul class="nav navbar-nav navbar-right">
 
 <!--                search by fio-->
- <li ><a href="/str/search_by_fio" class="item-menu"><span><i class="fa fa-search" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="Поиск" target="_blank"></i></span></a></li>
+ <li class="<?php echo (isset($convex_item['search_by_fio'])) ? 'convex' : ''?>"><a href="/str/search_by_fio" class="item-menu">
+
+            <span class="fa-stack " aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Поиск работника по ФИО" target="_blank">
+  <i class="fa fa-user fa-stack-1x"></i>
+  <i class="fa fa-search fa-stack-2x text-success"></i>
+</span>
+
+<!--         <span><i class="fa fa-search" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="Поиск" target="_blank"></i></span>-->
+
+     </a></li>
 
 
 
@@ -118,50 +127,61 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                 <?php
                 //   if ($_SESSION['ulevel'] == 1 || $_SESSION['ulevel'] == 2) {
                 ?>
-                <li class="dropdown">
+                <li class="dropdown <?php echo (isset($convex_item['report'])) ? 'convex' : ''?>">
                     <a href="#" class="dropdown-toggle navbar-right-customer" data-toggle="dropdown" >Отчеты (общ) <b class="caret"></b></a>
                     <ul class="dropdown-menu">
                         <?php
                         // if ($_SESSION['ulevel'] == 1) {
                         ?>
 
-                          <li class="dropdown-submenu">
+                          <li class="dropdown-submenu <?php echo (isset($convex_item['big_report_teh2_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/big_report_teh2" class="caret-spr_inf" target="_blank">Техника (руководство)</a>
                         </li>
 
-                        <li class="dropdown-submenu">
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['big_report_teh_sub'])) ? 'active-li-dropdown-submenu' : ''?>" >
                             <a tabindex="-1" href="/str/v1/report/big_report_teh" class="caret-spr_inf" target="_blank">Техника (общий)</a>
                         </li>
                         <?php
                         // }
                         ?>
 
-                        <li class="dropdown-submenu">
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['teh_in_trip_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/teh_in_trip" class="caret-spr_inf" target="_blank">Техника в командировке</a>
                         </li>
 
-                        <li class="dropdown-submenu">
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['teh_br_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/teh_br" class="caret-spr_inf" target="_blank">Техника (б.р.)</a>
                         </li>
 
-                        <li class="dropdown-submenu">
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['teh_repaire_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/teh_repaire" class="caret-spr_inf" target="_blank">Неисправности техники</a>
                         </li>
 
-                            <li class="dropdown-submenu">
+                            <li class="dropdown-submenu <?php echo (isset($convex_item['min_br_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/min_br" class="caret-spr_inf" target="_blank">Мин.боевой расчет</a>
                         </li>
 
-                                                    <li class="dropdown-submenu">
+                         
+
+                                                    <li class="dropdown-submenu <?php echo (isset($convex_item['detail_teh_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/detail_teh" class="caret-spr_inf" target="_blank">Техника+Склад(Могилев, ГРОЧС)</a>
                         </li>
 
-                                                                            <li class="dropdown-submenu">
+                                                                            <li class="dropdown-submenu <?php echo (isset($convex_item['detail_teh_region_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/detail_teh/region" class="caret-spr_inf" target="_blank">Техника+Склад(Могилев, область)</a>
                         </li>
 
-                        <li class="dropdown-submenu">
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['count_position_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/count_position" class="caret-spr_inf" target="_blank">Отчет по должностям</a>
+                        </li>
+
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['sz_spec_donos'])) ? 'active-li-dropdown-submenu' : ''?>">
+                            <a tabindex="-1" href="/str/v1/report/sz_spec_donos" class="caret-spr_inf" target="_blank">СЗ в спецдонос</a>
+                        </li>
+
+
+                        <li class="dropdown-submenu <?php echo (isset($convex_item['count_rank_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
+                            <a tabindex="-1" href="/str/v1/report/count_rank" class="caret-spr_inf" target="_blank">Отчет по званиям</a>
                         </li>
 
                     </ul>
@@ -173,22 +193,22 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
 
 
                 <!-- отображать на каждой странице-->
-                <li><a href="/str" target="_blank">Запросы</a></li>
+                <li class="<?php echo (isset($convex_item['query'])) ? 'convex' : ''?>"><a href="/str" target="_blank">Запросы</a></li>
 
                 <!-------------------------  Больничныеи отпуска ------------------------>
                 <?php
 
                 if ($_SESSION['ulevel'] == 1 && $_SESSION['is_admin'] == 1) {//РЦУ admin
                     ?>
-                    <li class="dropdown">
+                    <li class="dropdown <?php echo (isset($convex_item['listfio'])) ? 'convex' : ''?>">
                         <a href="#" class="dropdown-toggle navbar-right-customer" data-toggle="dropdown" >Больничные и отпуска <b class="caret"></b></a>
                         <ul class="dropdown-menu">
 
-                            <li class="dropdown-submenu">
+                            <li class="dropdown-submenu <?php echo (isset($convex_item['close_ill_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                 <a tabindex="-1" href="/str/listfio/ill" class="caret-spr_inf" target="_blank">Закрыть больничный</a>
                             </li>
 
-                            <li class="dropdown-submenu">
+                            <li class="dropdown-submenu <?php echo (isset($convex_item['close_hol_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                 <a tabindex="-1" href="/str/listfio/holiday" class="caret-spr_inf" target="_blank">Отозвать из отпуска</a>
                             </li>
 
@@ -204,24 +224,24 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                     //уровень области , НО не РОСН и не УГЗ, т.к. они видят весь список
                     if (($_SESSION['ulevel'] == 2 && ($_SESSION['note'] != 8 && $_SESSION['note'] != 9 ))) {
                         ?>
-                        <li class="dropdown">
+                        <li class="dropdown <?php echo (isset($convex_item['listfio'])) ? 'convex' : ''?>">
                             <a href="#" class="dropdown-toggle navbar-right-customer" data-toggle="dropdown" >Больничные и отпуска <b class="caret"></b></a>
                             <ul class="dropdown-menu">
 
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['close_ill_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio/ill" class="caret-spr_inf" target="_blank">Закрыть больничный</a>
                                 </li>
 
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['close_hol_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio/holiday" class="caret-spr_inf" target="_blank">Отозвать из отпуска</a>
                                 </li>
 
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['all_listfio_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio" class="caret-spr_inf" target="_blank">Весь список</a>
                                 </li>
 
 <!--                                раскомементировать 01.10-->
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['open_listfio_sub'])) ? 'active-li-dropdown-submenu' : ''?>" >
                                     <a tabindex="-1" href="/str/listfio/open/table" class="caret-spr_inf" target="_blank">Открыть доступ на ред.</a>
                                 </li>
 
@@ -231,19 +251,19 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                     }
                     elseif(in_array($_SESSION['ulocorg'], $locorg_umchs) && $_SESSION['is_admin']==1){//ЦОУ области - может открыть/закрыть доступ на ред списка смен, отозвать из отпуска/бол
                         ?>
-                                <li class="dropdown">
+                                <li class="dropdown <?php echo (isset($convex_item['listfio'])) ? 'convex' : ''?>">
                             <a href="#" class="dropdown-toggle navbar-right-customer" data-toggle="dropdown" >Список смен (штат) <b class="caret"></b></a>
                             <ul class="dropdown-menu">
 
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['close_ill_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio/ill" class="caret-spr_inf" target="_blank">Закрыть больничный</a>
                                 </li>
 
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['close_hol_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio/holiday" class="caret-spr_inf" target="_blank">Отозвать из отпуска</a>
                                 </li>
 
-                                <li class="dropdown-submenu">
+                                <li class="dropdown-submenu <?php echo (isset($convex_item['all_listfio_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio" class="caret-spr_inf" target="_blank">Весь список</a>
                                 </li>
 
@@ -259,7 +279,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                     else {
                         ?>
 
-                        <li><a href="/str/listfio"> Список смен(штат)</a></li>
+                        <li class="<?php echo (isset($convex_item['listfio'])) ? 'convex' : ''?>"><a href="/str/listfio"> Список смен(штат)</a></li>
 
         <?php
     }

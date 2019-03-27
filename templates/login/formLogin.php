@@ -14,4 +14,4 @@
 
 </div> <!-- /container -->
 
-<script type="text/javascript"  src="/str/snow.js"></script>
+<!--<script type="text/javascript"  src="/str/snow.js"></script>-->

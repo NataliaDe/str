@@ -15,7 +15,19 @@
 
                 <label for="date11">    Дата:</label>
                 <div class="input-group date" id="date_start">
-                    <input type="text" class="form-control"  name="date_start" />
+                                      <?php
+
+                    if(isset($_POST['date_start'])){
+                        ?>
+                    <input type="text" class="form-control"  name="date_start" value="<?= $_POST['date_start']?>" />
+                    <?php
+                    }
+                    else{
+                        ?>
+                      <input type="text" class="form-control"  name="date_start" />
+                     <?php
+                    }
+                    ?>
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>

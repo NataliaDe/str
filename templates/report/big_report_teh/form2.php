@@ -8,7 +8,7 @@
 
  <br><br>
 <form  role="form" id="formFillCar" method="POST" action="/str/v1/report/big_report_teh2/">
-    
+
      <div class="row">
         <div class="col-lg-2">
             <!--                         Инициализация виджета "Bootstrap datetimepicker" -->
@@ -23,7 +23,7 @@
                 </div>
             </div>
         </div>
-          
+
      </div>
     <br><br>
     <center>
@@ -31,12 +31,12 @@
 
             <div class="form-group">
                 <button type="submit" class="btn btn-info" name="export_to_excel">Экспорт в Excel</button>
-            </div>  
+            </div>
         </div>
-        
-        <div class="row">
+
+<!--        <div class="row">
              <center> <a onclick="javascript:history.back();">  <button class="btn btn-warning" type="button" data-dismiss="modal">Назад</button></a></center>
-        </div>
+        </div>-->
     </center>
 
 </form>

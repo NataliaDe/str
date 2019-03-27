@@ -67,7 +67,7 @@ $date_start = $today->Format('d-m-Y');
                             <td></td>
                             <td></td>
                             <td><?= $grochs_all ?></td>
-                        </tr>   
+                        </tr>
                         <?php
                         $grochs_all = 0; //обнулить
                     }
@@ -80,7 +80,7 @@ $date_start = $today->Format('d-m-Y');
                             <td></td>
                             <td><?= $region_all ?></td>
 
-                        </tr>   
+                        </tr>
             <?php
             $region_all = 0; //обнулить
         }
@@ -93,7 +93,7 @@ $date_start = $today->Format('d-m-Y');
 
 
     <?php
-   
+
         $co_from_other_pasp = (isset ($teh_from_other_card_array[$value['id_pasp']]['co'])) ? $teh_from_other_card_array[$value['id_pasp']]['co'] : 0; //кол-во техники, которая пришла  из др подразд
 
     if (( isset($value['co']) && $value['co'] != 0 ) || $co_from_other_pasp != 0) {
@@ -104,25 +104,27 @@ $date_start = $today->Format('d-m-Y');
                         <td><?= $value['organ'] ?>,  <?= $value['divizion'] ?></td>
                         <td><?php
             if (isset($res_mark_array[$value['id_pasp']])) {//марка родной техники
+               // print_r($res_mark_array[$value['id_pasp']] );
                 foreach ($res_mark_array[$value['id_pasp']] as $mark) {
+
                     echo $mark . '<br>';
                 }
             }
             if (isset($teh_mark_from_other_card_array[$value['id_pasp']])) {//марки техники из др пасч
                 foreach ($teh_mark_from_other_card_array[$value['id_pasp']] as $mark) {
-                    echo '<b><i>' . $mark . '</i></b><br>';
+                    echo '<b><i>' . $mark .' из др.подр.'. '</i></b><br>';
                 }
             }
         ?></td>
                         <td><?= $value['co'] + $co_from_other_pasp ?></td>
-                    </tr>     
+                    </tr>
                             <?php
                             $grochs_all+=$value['co'] + $co_from_other_pasp;
                             $region_all+=$value['co'] + $co_from_other_pasp;
                             $rb_all+=$value['co'] + $co_from_other_pasp;
                         }
 //            elseif(!isset ($value['co']) &&  $co_from_other_pasp != 0 ){
-//                              
+//
                         ?>
     <!--                <tr>
                     <td><? $i ?></td>
@@ -152,7 +154,7 @@ if ($type == 1) {//кроме РОСН/UGZ
                         <td></td>
                         <td></td>
                         <td><?= $grochs_all ?></td>
-                    </tr>   
+                    </tr>
         <?php
         $grochs_all = 0; //обнулить
     }
@@ -166,7 +168,7 @@ if ($type == 1) {//кроме РОСН/UGZ
                         <td></td>
                         <td></td>
                         <td><?= $region_all ?></td>
-                    </tr> 
+                    </tr>
         <?php
         $region_all = 0; //обнулить
     }
@@ -179,7 +181,7 @@ if ($type == 1) {//кроме РОСН/UGZ
                 <td></td>
                 <td><?= $rb_all ?></td>
 
-            </tr> 
+            </tr>
 
             <!---------------------------------------- END ИТОГО--------------------------------------------------------------->
         </tbody>

@@ -3,6 +3,7 @@
 <div  class="col-lg-12 col-md-11 col-sm-11 col-xs-11" >
     <form class="form-inline" role="form" id="formEditTrip" method="POST" action="/str/v1/card/<?= $record_id ?>/ch/<?= $change ?>/car/trip">
   <?php
+
            if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($is_btn_confirm==1 && ($dateduty != date("Y-m-d"))) || ($_SESSION['can_edit'] == 0)) {
                 ?>
                 <fieldset disabled>
@@ -45,17 +46,17 @@
                                             if ($l['id'] == $value['id_teh']) {
                                    $mark= $l['mark'] ;
                                       $numbsign=' ('.$l['numbsign'].')';
-                                            } 
+                                            }
                                         }
                                         if(empty($mark))
                                             $mark='';
                                         ?>
                                     <div class="form-group">
                                          <textarea cols="15" rows="4" class="form-control" disabled="disabled"><?= $mark ?> <?= $numbsign ?></textarea>
-                                   
+
 
                                 </div>
-                                 
+
                                 </div>
                             </td>
                             <td>
@@ -147,10 +148,10 @@
 
                             </td>
 
-                        </tr> 
-                <input type="hidden" name="id_tripcar<?= $i ?>" value="<?= $value['id'] ?>">            
+                        </tr>
+                <input type="hidden" name="id_tripcar<?= $i ?>" value="<?= $value['id'] ?>">
     <?php
-    
+
 }
 ?>
                 <input type="hidden" name="count" value="<?= $i ?>">

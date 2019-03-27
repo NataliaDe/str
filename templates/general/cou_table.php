@@ -1,5 +1,5 @@
 <?php
-//print_r($error);
+//print_r($general);
 
 $time_now=date("H:i:s");
 
@@ -74,7 +74,10 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                 </tfoot>
                 <tbody>
                     <?php
-                    foreach ($general as $row) {
+                    foreach ($general as $v) {
+                         foreach ($v as $row) {
+
+
                         if ($row['is_fill'] == 1) {
                             if ($row['open_update'] == 0) {//доступ закрыт
                                 ?>
@@ -113,7 +116,8 @@ if (isset($duty_ch) && !empty($duty_ch)) {
 
                                         //можно открыть доступ только той смене, которая сегодня заступила до 11:00:00 (время храним в БД)
                                        // if ($row['dateduty'] == date("Y-m-d") && ($time_now<$time_allow_open)) {
-                                             if ($row['dateduty'] == date("Y-m-d") ) {
+                                       //echo $row['is_duty'];
+                                        if ($row['dateduty'] == date("Y-m-d") && $row['is_duty']==1) {
                                             ?>
                                             <a href="/str/v2/card/open_update/<?= $row['id_record'] ?>" target="_blank"><button type="button" class="btn btn-xs btn-danger"  data-toggle="tooltip" data-placement="bottom" title="Доступ закрыт" ><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span></button></a>
                                             <?php
@@ -122,7 +126,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
 
                                         <?php
                                     } else {//доступ открыт-можно закрыть
-                                        if ($row['dateduty'] == date("Y-m-d")) {
+                                        if ($row['dateduty'] == date("Y-m-d") ) {
 
                                                 ?>
                                                 <a href="/str/v2/card/close_update/<?= $row['id_record']?>" target="_blank"><button type="button" class="btn btn-xs btn-success"  data-toggle="tooltip" data-placement="bottom" title="Доступ открыт"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button></a>
@@ -155,6 +159,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
 
                         </tr>
                             <?php
+                        }
                         }
                         ?>
                 </tbody>

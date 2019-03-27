@@ -69,7 +69,7 @@ if(isset($result) && !empty($result)){
                             }
                             ?>
 
-                                <td><a href="#" data-toggle="tooltip" data-placement="left" title="Подробная информация" target="_blank"><?= $row['fio'] ?></a></td>
+                                <td><a href="/str/search_by_fio/detail/<?= $row['id_fio'] ?>" data-toggle="tooltip" data-placement="left" title="Подробная информация" target="_blank"><?= $row['fio'] ?></a></td>
                             <td><?= $row['rank'] ?></td>
                             <td><?= $row['position'] ?></td>
                             <td><?= $row['divizion'] ?></td>

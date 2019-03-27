@@ -397,7 +397,7 @@ if (isset($main) && !empty($main)) {
                         <label class="control-label  col-lg-12" for="eng_tks">Инженер ТКС
 
                             <?php
-                                            
+
                             /* -----------------  Заступали прошлый раз ----------------- */
                             if (isset($dateduty) && ($dateduty != $today)) {
                                 //кто заступал начальником смены прошлый раз
@@ -450,7 +450,9 @@ if (isset($main) && !empty($main)) {
 
             <div class="col-lg-2">
                 <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">штат ЦОУ</label>
+                    <label class="control-label col-lg-12" for="face">штат ЦОУ
+                    <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству всего л/с ЦОУ вместе с ежедневниками и с вакантами (все смены), введенными в списке смен"></span>
+                    </label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_shtat ?>" disabled="" >
                 </div>
             </div>
@@ -584,8 +586,17 @@ if (isset($main) && !empty($main)) {
 
             <div class="col-lg-2">
                 <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">всего</label>
+                    <label class="control-label col-lg-12" for="face">всего
+                    <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству работников, заступивших на должности (расставлены по полям). Кроме инспектора ОНиП и ответств.по гарнизону"></span>
+                    </label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_all ?>" disabled="" id="on_holiday">
+                </div>
+            </div>
+
+            <div class="col-lg-1">
+                <div class="form-group">
+                    <label class="control-label col-lg-12" for="face">б/р</label>
+                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_fio_on_car ?>" disabled="" >
                 </div>
             </div>
 
@@ -614,7 +625,7 @@ if (isset($main) && !empty($main)) {
 
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз: <?php
+                                                title="Заступали прошлый раз <?= count($past_z_od_fio)?> чел: <?php
                                                 foreach ($past_z_od_fio as $value) {
                                                     echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
@@ -746,7 +757,7 @@ if (isset($main) && !empty($main)) {
 
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз: <?php
+                                                title="Заступали прошлый раз  <?= count($past_st_pom_od_fio)?> чел: <?php
                                                 foreach ($past_st_pom_od_fio as $value) {
                                                     echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
@@ -802,7 +813,7 @@ if (isset($main) && !empty($main)) {
 
                                 &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                            title="Заступали прошлый раз: <?php
+                                            title="Заступали прошлый раз <?= count($past_disp_fio)?> чел: <?php
                                             foreach ($past_disp_fio as $value) {
                                                 echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                             }
@@ -880,7 +891,7 @@ if (isset($main) && !empty($main)) {
 
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз: <?php
+                                                title="Заступали прошлый раз <?= count($past_pom_od_fio)?> чел: <?php
                                                 foreach ($past_pom_od_fio as $value) {
                                                     echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
@@ -939,7 +950,7 @@ if (isset($main) && !empty($main)) {
 
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз: <?php
+                                                title="Заступали прошлый раз <?= count($past_driver_fio)?> чел: <?php
                                                 foreach ($past_driver_fio as $value) {
                                                     echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
@@ -980,7 +991,9 @@ if (isset($main) && !empty($main)) {
 
             <div class="col-lg-2">
                 <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">вакант</label>
+                    <label class="control-label col-lg-12" for="face">вакант
+                    <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству вакантов в текущей смене, берется из списка смен "></span>
+                    </label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_vacant_from_list ?>" disabled="" >
                 </div>
             </div>
@@ -1059,7 +1072,7 @@ if (isset($main) && !empty($main)) {
 
                                 &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                            title="Заступали прошлый раз: <?php
+                                            title="Заступали прошлый раз <?= count($past_others_fio)?> чел: <?php
                                             foreach ($past_others_fio as $value) {
                                                 echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                             }
@@ -1184,11 +1197,16 @@ if (isset($main) && !empty($main)) {
                                                         //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
                                                         if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
 
+                                                            $cnt_every=0;
+                                                               foreach ($past_everyday_fio as $value) {
+                                                                           $cnt_every++;
+                                                                        }
+
                                                             ?>
 
                                                             &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                                        title="Заступали прошлый раз: <?php
+                                                                        title="Заступали прошлый раз <?= $cnt_every?> чел: <?php
                                                                         foreach ($past_everyday_fio as $value) {
                                                                             echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                                         }
@@ -1240,11 +1258,16 @@ if (isset($main) && !empty($main)) {
                                                         //вывод тех, кто заступал из др пасч прошлый раз
                                                         if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
 
+                                                            $cnt_other=0;
+                                                             foreach ($past_reserve_fio as $value) {
+                                                                          $cnt_other++;
+                                                                        }
+
                                                             ?>
 
                                                             &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                                        title="Заступали прошлый раз: <?php
+                                                                        title="Заступали прошлый раз <?= $cnt_other?> чел: <?php
                                                                         foreach ($past_reserve_fio as $value) {
                                                                             echo $value['fio'] . ' ' . $value['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                                         }
@@ -1285,16 +1308,10 @@ if (isset($main) && !empty($main)) {
                                             </div>
                                         </div>
 
+
+
+
                                     </div>
-
-
-
-
-
-
-
-
-
 
 
 

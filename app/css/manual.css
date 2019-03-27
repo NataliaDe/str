@@ -84,13 +84,18 @@ body{
       padding-right: 0px !important;
   }
 
-  /****************************** topmenu ***********************************************/
+  /* ***************************** topmenu ********************************************** */
   .navbar-inverse .navbar-nav>li>a{
      color: #1e391a;
 }
 
 .navbar-inverse .navbar-nav>.open>a {
     background-color: #a9ca90 !important;
+}
+
+/* active item of menu is match */
+.convex{
+   box-shadow: 0 0 50px #3c763d, inset 0px 0px 20px #3c763d;
 }
 
 /*********************************************  navbar-toggle ************************************/
@@ -1567,4 +1572,8 @@ ol.tree
 
 #tbl_count_position_wrapper{
     width: 50% !important;
+}
+
+.active-li-dropdown-submenu{
+        background-color: #bbd1aa;
 }

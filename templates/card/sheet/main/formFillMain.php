@@ -288,13 +288,19 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                     if (isset($dateduty) && ($dateduty != $today)) {
                         //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
                         if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
+                                                                            $cnt=0;
+                                                 foreach ($past_everyday_fio as $value) {
+                                                     $cnt++;
+                                                }
                             ?>
 
 
                                       <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз: <?php
+                                                title="Заступали прошлый раз <?=$cnt ?> чел: <?php
+
                                                  foreach ($past_everyday_fio as $value) {
+
                                                    echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
                                                 ?> ">
@@ -351,7 +357,13 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                            if (isset($dateduty) && ($dateduty != $today)) {
                         //вывод тех, кто заступал из др пасч прошлый раз
                         if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
-                            ?>
+
+                            $cnt_other=0;
+                                                                            foreach ($past_reserve_fio as $value) {
+            $cnt_other++;
+        }
+
+        ?>
 
 <!--                            <div class="row">
                                 <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="id_fio"><u>Заступали из других подразделений (смен)</u></label>
@@ -369,7 +381,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                                       <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз: <?php
+                                                title="Заступали прошлый раз <?=$cnt_other ?> чел: <?php
                                                  foreach ($past_reserve_fio as $value) {
                                                    echo $value['fio'] . ' ' . $value['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
@@ -711,7 +723,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                     <div class="row">
 
-                        <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodisp">Ф.И.О работников в наряде</label>
+                        <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodisp">Ф.И.О работников в наряде (указывать должность)</label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                             <div class="form-group">
                                 <?php

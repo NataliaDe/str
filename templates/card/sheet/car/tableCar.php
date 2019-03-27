@@ -1,4 +1,4 @@
-<p style="text-align:  -webkit-right;"><a href="/str/v1/card/<?= $record_id ?>/ch/<?= $change ?>/car/1" data-toggle="tooltip" data-placement="left" title="Отсортировать по состоянию 'боевая' " style="text-transform: uppercase"> <button type="button" class="btn btn-default" style="background-color:#ccc"><i class="fa fa-level-up" aria-hidden="true"></i></button></a></p>     
+<p style="text-align:  -webkit-right;"><a href="/str/v1/card/<?= $record_id ?>/ch/<?= $change ?>/car/1" data-toggle="tooltip" data-placement="left" title="Отсортировать по состоянию 'боевая' " style="text-transform: uppercase"> <button type="button" class="btn btn-default" style="background-color:#ccc"><i class="fa fa-level-up" aria-hidden="true"></i></button></a></p>
 <?php
 // print_r($car);
 if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($car_in_reserve)) || (isset($own_car_in_trip) && !empty($own_car_in_trip))) {
@@ -14,7 +14,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
             // print_r($type_teh);
             ?>
             <b>Заполните поля формы:</b>
-          
+
             <br><br><br>
             <?php
 //echo $countill;
@@ -32,11 +32,11 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                 foreach ($car as $row) {
                     $i++;
                     /* -------- цвет техники определяется в зависим от ее типа: боевая, резерв, ремонт,ТО -------- */
-                    if ($row['id_type'] == 1) {//боевая 
+                    if ($row['id_type'] == 1) {//боевая
                         $color = '#77ca3830';
                     } elseif ($row['id_type'] == 2) {//reserve
                         $color = '#ffff0030';
-                    } elseif ($row['id_to'] == 1 || $row['id_to'] == 2) {//to-1,2 
+                    } elseif ($row['id_to'] == 1 || $row['id_to'] == 2) {//to-1,2
                         $color = '#3fb1f12b';
                     } elseif ($row['is_repair'] == 1) {//repair
                         $color = '#f700001f';
@@ -85,11 +85,11 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                 <select class="form-control" name="type<?= $i ?>" id="type<?= $i ?>"   >
 
                                     <?php
-                                    if ($row['id_type'] == 1) {//боевая 
+                                    if ($row['id_type'] == 1) {//боевая
                                         $active_type = 1;
                                     } elseif ($row['id_type'] == 2) {//reserve
                                         $active_type = 2;
-                                    } elseif ($row['id_to'] == 1) {//to-1 
+                                    } elseif ($row['id_to'] == 1) {//to-1
                                         $active_type = 3;
                                     } elseif ($row['id_to'] == 2) {//to-2
                                         $active_type = 4;
@@ -119,7 +119,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                                             <div class="form-group">
                                                                 <label for="techclass">Вид техники</label>
                                                                 <input type="text" class="form-control" id="tehclass<?= $i ?>"  name="tehclass<?= $i ?>" value="<?= $row['teh_cls'] ?>" disabled="disabled">
-                            
+
                                                             </div>
                                                         </div>-->
 
@@ -193,13 +193,13 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                                             <div class="form-group">
                                                                 <label for="type">Состояние техники</label>
                                                                 <select class="form-control" name="type<?= $i ?>" id="type<?= $i ?>"   >
-                            
+
                             <?php
-                            if ($row['id_type'] == 1) {//боевая 
+                            if ($row['id_type'] == 1) {//боевая
                                 $active_type = 1;
                             } elseif ($row['id_type'] == 2) {//reserve
                                 $active_type = 2;
-                            } elseif ($row['id_to'] == 1) {//to-1 
+                            } elseif ($row['id_to'] == 1) {//to-1
                                 $active_type = 3;
                             } elseif ($row['id_to'] == 2) {//to-2
                                 $active_type = 4;
@@ -345,15 +345,24 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                             if (isset($last_fio_on_car) && !empty($last_fio_on_car)) {
                                                 $x_array=array();
                                                 foreach ($last_fio_on_car as $x) {
-                                                   $x_array[]=$x['tehstr_id']; 
+                                                   $x_array[]=$x['tehstr_id'];
                                                 }
                                                 if(in_array($row['tehstr_id'], $x_array)){//отображаем колокольчик, если прошлый раз кто-то заступал на эту машину
-                                                ?>
+
+                                                    /* count of men */
+$cnt=0;
+                        foreach ($last_fio_on_car as $value) {
+                            if ($row['tehstr_id'] == $value['tehstr_id']) {
+$cnt++;
+                            }
+                        }
+
+            ?>
 
 
-                                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right" 
+                                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                            title="Заступали прошлый раз: <?php
+                                                            title="Заступали прошлый раз <?= $cnt ?> чел: <?php
                                                             foreach ($last_fio_on_car as $value) {
                                                                 if ($row['tehstr_id'] == $value['tehstr_id']) {
                                                                     echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
@@ -365,20 +374,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
 
 
 
-                                                <div class="col-lg-4">
-                                                    <div class="form-group">
-                                                        <label  for="fio<?= $i ?>[]"><u>Заступали: </u> </label>
-                                                        <?php
-//                                            foreach ($last_fio_on_car as $value) {
-//                                                if ($row['tehstr_id'] == $value['tehstr_id']) {
-//                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . ')<br>';
-//                                                }
-//                                            }
-                                                        ?>
 
-
-                                                    </div>
-                                                </div>
                                                 <?php
                                                 }
                                             }
@@ -460,7 +456,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                             <br>
                             <div class="form-group">
                                 <div class="checkbox checkbox-danger">
-                                    <input id="checkbox15" type="checkbox" checked="checked" disabled readonly="">             
+                                    <input id="checkbox15" type="checkbox" checked="checked" disabled readonly="">
                                     <label for="checkbox15">
                                         <b>  В КОМАНДИРОВКЕ</b>
                                     </label>
@@ -476,7 +472,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                     <?php
                 }
             }
-            ?> 
+            ?>
 
             <!-----------------------------------------------------------------      техника из др ПАСЧ, доступная для заполнения ------------------------------------------------------------------------>
             <?php
@@ -487,20 +483,20 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
             if (isset($car) && !empty($car)) {
                 foreach ($car as $row) {
                     $i++;
-                    
+
                            /* -------- цвет техники определяется в зависим от ее типа: боевая, резерв, ремонт,ТО -------- */
-                    if ($row['id_type'] == 1) {//боевая 
+                    if ($row['id_type'] == 1) {//боевая
                         $color = '#77ca3830';
                     } elseif ($row['id_type'] == 2) {//reserve
                         $color = '#ffff0030';
-                    } elseif ($row['id_to'] == 1 || $row['id_to'] == 2) {//to-1,2 
+                    } elseif ($row['id_to'] == 1 || $row['id_to'] == 2) {//to-1,2
                         $color = '#3fb1f12b';
                     } elseif ($row['is_repair'] == 1) {//repair
                         $color = '#f700001f';
                     } else {
                         $color = '#e9eee6';
                     }
-                    
+
                     ?>
 <!--      вариант 1              <div class="row car_in_reserve">
 
@@ -763,11 +759,11 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                 <select class="form-control" name="type<?= $i ?>" id="type<?= $i ?>"   >
 
                                     <?php
-                                    if ($row['id_type'] == 1) {//боевая 
+                                    if ($row['id_type'] == 1) {//боевая
                                         $active_type = 1;
                                     } elseif ($row['id_type'] == 2) {//reserve
                                         $active_type = 2;
-                                    } elseif ($row['id_to'] == 1) {//to-1 
+                                    } elseif ($row['id_to'] == 1) {//to-1
                                         $active_type = 3;
                                     } elseif ($row['id_to'] == 2) {//to-2
                                         $active_type = 4;
@@ -962,15 +958,20 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                             if (isset($last_fio_on_car) && !empty($last_fio_on_car)) {
                                                  $x_array=array();
                                                 foreach ($last_fio_on_car as $x) {
-                                                   $x_array[]=$x['tehstr_id']; 
+                                                   $x_array[]=$x['tehstr_id'];
                                                 }
                                                 if(in_array($row['tehstr_id'], $x_array)){//отображаем колокольчик, если прошлый раз кто-то заступал на эту машину
-                                                ?>
 
+ $cnt_o=0;
+                                        foreach ($last_fio_on_car as $value) {
+                                                                if ($row['tehstr_id'] == $value['tehstr_id']) {
+                                                                   $cnt_o++;
+                                                                }
+                                                            }
+?>
+                                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right" 
-
-                                                            title="Заступали прошлый раз: <?php
+                                                            title="Заступали прошлый раз: <?= $cnt_o ?> чел: <?php
                                                             foreach ($last_fio_on_car as $value) {
                                                                 if ($row['tehstr_id'] == $value['tehstr_id']) {
                                                                     echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
@@ -1041,7 +1042,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
             // echo count($last_fio_on_car);
             ?>
             <!----------------------------------------------------------------------------- Конец техника из др ПАСЧ------------------------------------------------------------------------------->
-            
+
             <input type="hidden" class="form-control"   id="countcar" name="countcar" value="<?= $i ?>">
 
             <?php

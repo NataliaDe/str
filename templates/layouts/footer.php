@@ -1,12 +1,12 @@
 
 <?php
-if(!isset($no_footer)){
+//if(!isset($no_footer)){
     ?>
-<footer>
+<!--<footer>
     <p class="pull-right noprint"><a href="#">Наверх</a></p>
-</footer>
+</footer>-->
 <?php
-}
+//}
 ?>
 
 
@@ -39,7 +39,7 @@ if(!isset($no_footer)){
 <!-- Chosen jquery js -->
 <script src="/str/app/chosen_v1.8.2/chosen.jquery.js" type="text/javascript"></script>
 <script src="/str/app/chosen_v1.8.2/docsupport/prism.js" type="text/javascript" charset="utf-8"></script>
-<script src="/str/app/chosen_v1.8.2/docsupport/init.js" type="text/javascript" charset="utf-8"></script> 
+<script src="/str/app/chosen_v1.8.2/docsupport/init.js" type="text/javascript" charset="utf-8"></script>
 
 
 <script type="text/javascript"  src="/str/app/js/jquery.dataTables.js"></script>
@@ -58,7 +58,7 @@ if(!isset($no_footer)){
 
 
 <!-- select2 jquery js - поиск в выпад списке -->
-<script src="/str/app/js/select2/select2.min.js" type="text/javascript" charset="utf-8"></script> 
+<script src="/str/app/js/select2/select2.min.js" type="text/javascript" charset="utf-8"></script>
 
 <script type="text/javascript"  src="/str/app/js/jquery.chained.min.js"></script>
 <script  type="text/javascript" src="/str/app/js/manual_datetimepicker.js"></script>
