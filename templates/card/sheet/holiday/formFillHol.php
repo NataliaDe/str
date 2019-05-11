@@ -24,12 +24,12 @@
                                 <td>
                             <div class="form-group">
                                 <select class="form-control" name="id_fio<?= $i ?>" >
-                                       
+
                                         <?php
                                         foreach ($listfio as $l) {
-                                     
+
                                             printf("<p><option value='%s'><label>%s</label></option></p>", $l['id'], $l['fio']);
-                                       
+
                                     }
                                         ?>
 
@@ -67,7 +67,7 @@
 
                         <td>
                             <div class="form-group">
-                                <textarea cols="25" rows="7" class="form-control" placeholder="№ приказа, дата"  id="prikaz<?= $i ?>" name="prikaz<?= $i ?>">Приказ нач. РОЧС от <?= date("d.m.Y") ?> № </textarea>
+                                <textarea cols="25" rows="7" class="form-control" placeholder="№ приказа, дата"  id="prikaz<?= $i ?>" name="prikaz<?= $i ?>">приказ начальника <?= $organ_type_for_prikaz ?> РОЧС от <?= date("d.m.Y") ?> № </textarea>
 
                             </div>
                         </td>
@@ -85,7 +85,7 @@
         </table>
 <!--    </div>-->
     <input type="hidden" class="form-control"   id="counthol" name="counthol" value="<?= $counthol ?>">
-    
+
           <center>
         <div class="row">
             <div class="form-group">
@@ -93,5 +93,5 @@
             </div>
         </div>
     </center>
-    
+
 </form>

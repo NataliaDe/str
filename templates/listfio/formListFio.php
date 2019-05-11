@@ -1,7 +1,7 @@
 <div class="container">
     <div class="col-lg-12">
         <br>      <br>
-        
+
         <?php
 //        echo $on_shtat.'<br>';
 //        echo $on_list.'<br>';
@@ -26,7 +26,7 @@
         ?>
 
 
-        
+
         <form  role="form" id="formListFioAdd" method="POST" action="/str/listfio">
             <u> <b><?= $pasp ?> смена <?= $ch ?></b></u>
             <br><br><br>
@@ -45,7 +45,14 @@
                             <input type="text" class="form-control" id="fiouser" name="fio<?= $i ?>"  >
                         </div>
                     </div>
-                    
+
+                    <div class="col-lg-3">
+                            <div class="form-group">
+                                <label for="tel"><?= $i + 1 ?>. тел.</label>
+                                <input type="text" class="form-control" id="tel_id" name="tel<?= $i ?>" placeholder="введите номер телефона" >
+                            </div>
+                        </div>
+
                      <div class="col-lg-3">
                                     <div class="form-group">
                                 <div class="checkbox checkbox-danger">
@@ -56,9 +63,9 @@
                                 </div>
                             </div>
                            </div>
-                    
-                    
-                                      
+
+
+
                      <div class="col-lg-3">
                                     <div class="form-group">
                                 <div class="checkbox checkbox-info">
@@ -69,7 +76,7 @@
                                 </div>
                             </div>
                            </div>
-                
+
                  <div class="col-lg-3">
                         <div class="form-group">
                               <label for="id_rank"><?= $i + 1 ?>.Звание</label>
@@ -77,15 +84,15 @@
 
                                 <?php
                                     foreach ($rank as $r) {
-                                       
+
                                             printf("<p><option value='%s'  ><label>%s</label></option></p>", $r['id'], $r['name']);
-                                      
+
                                 }
                                 ?>
 
                             </select>
-                          
-                          
+
+
                         </div>
                     </div>
                         <div class="col-lg-3">
@@ -95,18 +102,19 @@
 
                                 <?php
                                     foreach ($position as $p) {
-                                       
+
                                             printf("<p><option value='%s'  ><label>%s</label></option></p>", $p['id'], $p['name']);
-                                      
+
                                 }
                                 ?>
 
                             </select>
-                          
-                          
+
+
                         </div>
                     </div>
                 </div>
+                <hr>
                     <?php
                 }
                 ?>

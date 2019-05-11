@@ -723,7 +723,10 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                     <div class="row">
 
-                        <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodisp">Ф.И.О работников в наряде (указывать должность)</label>
+                        <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodisp">Ф.И.О работников в наряде
+
+                        <span class="glyphicon glyphicon-star" style="color: red;" data-toggle="tooltip" data-placement="left" title="указывать должность"></span>
+                        </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                             <div class="form-group">
                                 <?php

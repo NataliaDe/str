@@ -21,13 +21,49 @@ $date_start = $today->Format('d-m-Y');
 //print_r($teh_from_other_card_array);
 // print_r($res);
 ?>
-<center><b>
+<style>
+    .tbl-no-border{
+        border: 1px solid #e9eee6 !important;
+    }
+</style>
+<center>
+
+    <b>
         РЕЗУЛЬТАТ запроса за <?= (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : $date_start ?><br>
         наименование техники: <?= (!empty($query_name_teh)) ? $query_name_teh : 'все' ?>
         , вид техники: <?= (!empty($query_vid_teh)) ? $query_vid_teh : 'все' ?>, состояние техники: <?= (!empty($query_name_state_teh)) ? $query_name_state_teh : 'все' ?></b>
 </center>
 <!--<div class="table-responsive" id="tbl-query-result">-->
+
+<!--
+<table>
+    <tr >
+        <td style="background-color: green;" class="tbl-no-border">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td class="tbl-no-border"> - боевая</td>
+        <td style="background-color: #cc9704;" class="tbl-no-border">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td class="tbl-no-border"> - резерв</td>
+        <td style="background-color: blue;" class="tbl-no-border">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td class="tbl-no-border"> - ТО</td>
+        <td style="background-color: red;" class="tbl-no-border">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td class="tbl-no-border"> - ремонт</td>
+    </tr>
+    <tr>
+        <td style="background-color: #cc9704;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td> - резерв</td>
+
+    </tr>
+    <tr>
+        <td style="background-color: blue;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td> - ТО</td>
+    </tr>
+        <tr>
+        <td style="background-color: red;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td> - ремонт</td>
+    </tr>
+</table>-->
+
 <center>
+
     <table class="table table-condensed   table-bordered tbl_show_inf" style="width: 64% !important;" >
         <!--               строка 1 -->
         <thead>
@@ -186,6 +222,7 @@ if ($type == 1) {//кроме РОСН/UGZ
             <!---------------------------------------- END ИТОГО--------------------------------------------------------------->
         </tbody>
     </table>
+
 </center>
 
 

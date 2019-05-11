@@ -34,7 +34,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
             </button>
 
 
-            <img src="/str/app/images/man.png" onclick="hideLeftmenu();" class="navbar-brand" id="imglogo1" data-toggle="tooltip" data-placement="left"><a href="/str/general/1" id="logo1">Строевая записка ver 2.6 <span id="test-mode">опытная эксплуатация</span></a>
+            <img src="/str/app/images/man.png" onclick="hideLeftmenu();" class="navbar-brand" id="imglogo1" data-toggle="tooltip" data-placement="left"><a href="/str/general/1" id="logo1">Строевая записка ver 3.0 <!-- <span id="test-mode">опытная эксплуатация</span>--></a>
 
             <?php
             /* spectator can see all republic, can_edit NO. eye - sign of auth spectator */
@@ -118,7 +118,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
 
                 if ((isset($sign)) && ($sign == 5)) {// отчеты отображаем только на стр main
                     ?>
-                    <li><a href="/str/v1/report/spr_info/grochs/<?= $id_grochs ?>/<?= $pasp_active ?>" >Строевая</a></li>
+<!--                    <li><a href="/str/v1/report/spr_info/grochs/<?= $id_grochs ?>/<?= $pasp_active ?>" >Строевая</a></li>-->
                     <?php
                 }
                 ?>
@@ -161,7 +161,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                             <a tabindex="-1" href="/str/v1/report/min_br" class="caret-spr_inf" target="_blank">Мин.боевой расчет</a>
                         </li>
 
-                         
+
 
                                                     <li class="dropdown-submenu <?php echo (isset($convex_item['detail_teh_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                             <a tabindex="-1" href="/str/v1/report/detail_teh" class="caret-spr_inf" target="_blank">Техника+Склад(Могилев, ГРОЧС)</a>
@@ -176,7 +176,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                         </li>
 
                         <li class="dropdown-submenu <?php echo (isset($convex_item['sz_spec_donos'])) ? 'active-li-dropdown-submenu' : ''?>">
-                            <a tabindex="-1" href="/str/v1/report/sz_spec_donos" class="caret-spr_inf" target="_blank">СЗ в спецдонос</a>
+                            <a tabindex="-1" href="/str/v1/report/sz_spec_donos" class="caret-spr_inf" target="_blank">СЗ в спецдонесение</a>
                         </li>
 
 

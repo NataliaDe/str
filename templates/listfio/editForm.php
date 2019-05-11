@@ -9,6 +9,7 @@ foreach ($empl as $val) {
     $id_position=$val['position'];
     $is_vacant=$val['is_vacant'];
     $is_nobody=$val['is_nobody'];
+    $phone = $val['phone'];
 }
 
 //echo $id_position;
@@ -30,7 +31,14 @@ foreach ($empl as $val) {
                         <input type="text" class="form-control" id="fiouser" name="fio" value="<?= $fio ?>"  >
                     </div>
                 </div>
-                
+
+                <div class="col-lg-3">
+                    <div class="form-group">
+                        <label for="tel">тел.</label>
+                        <input type="text" class="form-control" id="tel_id" name="tel" value="<?= $phone ?>" >
+                    </div>
+                </div>
+
                  <div class="col-lg-3">
                                     <div class="form-group">
                                 <div class="checkbox checkbox-danger">
@@ -46,14 +54,14 @@ foreach ($empl as $val) {
                                       <?php
                                     }
                                     ?>
-                                  
+
                                     <label for="checkbox1">
                                        Вакант (Ф.И.О. не указывать)
                                     </label>
                                 </div>
                             </div>
                            </div>
-                
+
                           <div class="col-lg-3">
                                     <div class="form-group">
                                 <div class="checkbox checkbox-info">
@@ -69,14 +77,14 @@ foreach ($empl as $val) {
                                       <?php
                                     }
                                     ?>
-                                  
+
                                     <label for="checkbox_is_nobody">
                                        Нет работников (ежедневник). Для малочисленных подразделений. В статистику не учитывается. Нужен для заступления смены, где нет работников.
                                     </label>
                                 </div>
                             </div>
                            </div>
-                
+
                     <div class="col-lg-3">
                         <div class="form-group">
                               <label for="id_rank">Звание</label>
@@ -89,16 +97,16 @@ foreach ($empl as $val) {
                                                 printf("<p><option value='%s' selected ><label>%s</label></option></p>", $r['id'], $r['name']);
                                            else
                                                        printf("<p><option value='%s'  ><label>%s</label></option></p>", $r['id'], $r['name']);
-                                       } 
+                                       }
                                        else {
-                                             printf("<p><option value='%s'  ><label>%s</label></option></p>", $r['id'], $r['name']); 
+                                             printf("<p><option value='%s'  ><label>%s</label></option></p>", $r['id'], $r['name']);
                                        }
                                 }
                                 ?>
 
                             </select>
-                          
-                          
+
+
                         </div>
                     </div>
                         <div class="col-lg-3">
@@ -113,23 +121,23 @@ foreach ($empl as $val) {
                                              printf("<p><option value='%s' selected ><label>%s</label></option></p>", $p['id'], $p['name']);
                                            else
                                                       printf("<p><option value='%s'  ><label>%s</label></option></p>", $p['id'], $p['name']);
-                                       } 
+                                       }
                                          else{
-                                             printf("<p><option value='%s'  ><label>%s</label></option></p>", $p['id'], $p['name']);  
-                                         }   
-                                      
+                                             printf("<p><option value='%s'  ><label>%s</label></option></p>", $p['id'], $p['name']);
+                                         }
+
                                 }
                                 ?>
 
                             </select>
-                          
-                          
+
+
                         </div>
                     </div>
             </div>
             <div class="row">
 
-                <div class="col-lg-2">
+                <div class="col-lg-3">
                     <div class="form-group">
 
                         <label for="note">Подразделение</label>
@@ -149,11 +157,11 @@ foreach ($empl as $val) {
                         </select>
                     </div>
                 </div>
-                <div class="col-lg-2">
+                <div class="col-lg-3">
                     <div class="form-group">
 
                         <label for="locorg">Смена</label>
-                        <select class="form-control" name="id_cardch" id="cardch" >
+                        <select class="form-control " name="id_cardch" id="cardch" >
 
 
                             <option value="">Выбрать</option>
@@ -179,9 +187,9 @@ foreach ($empl as $val) {
                 </div>
 
             </div>
-            
-            
-            
+
+
+
             <input type="hidden" name="_METHOD" value="PUT"/>
             <br>
             <div class="row">

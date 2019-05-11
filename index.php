@@ -1993,7 +1993,12 @@ $data['active']= 'car';
                 $main[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
                                 . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
                 //вакансия по подразделению
-                $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+                //$main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+$main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE c.id_card = :id AND  l.is_vacant = :is_vacant', [':id' => $value['id_pasp'],':is_vacant'=>1 ]);
+
+
 
 
                 /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
@@ -2315,8 +2320,10 @@ $data['active']= 'car';
                     $main[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
                                     . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
                     //вакансия по подразделению
-                    $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
-
+                   // $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+$main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE c.id_card = :id AND  l.is_vacant = :is_vacant', [':id' => $value['id_pasp'],':is_vacant'=>1 ]);
 
                     /*                     * *******  ФИО, описание работников в  командировке - текст  ******** */
                     $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
@@ -7604,6 +7611,10 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
             $id_position = $app->request()->post('id_position' . $i);
               $is_vacant= $app->request()->post('is_vacant' . $i);
                  $is_nobody= $app->request()->post('is_nobody' . $i);
+
+                 $phone= $app->request()->post('tel' . $i);
+
+
             //vacant select
             if($is_vacant==1){
                    $listfio = R::dispense('listfio');
@@ -7641,6 +7652,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
                 $listfio->id_rank = $id_rank;
                 $listfio->id_position = $id_position;
                 $listfio->id_cardch = $id_cardch;
+                $listfio->phone = $phone;
                 R::store($listfio);
             }
            }
@@ -7655,7 +7667,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         $data['convex_item']['listfio']=1;// item 'search' is active
         //
 //инф по работнику
-        $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
+        $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody,l.phone, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
                         . ' left join str.rank AS ra ON l.id_rank=ra.id left join str.position AS pos ON l.id_position=pos.id where l.id = ? ', array($id)
         );
 
@@ -7685,6 +7697,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         $id_position = $app->request()->post('id_position');
    $is_vacant = $app->request()->post('is_vacant');
     $is_nobody= $app->request()->post('is_nobody');
+     $phone= $app->request()->post('tel');
 
            $log_array_old = json_decode(R::load('listfio', $id));//что было до редs
 
@@ -7728,6 +7741,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
                 $listfio->id_rank = $id_rank;
                 $listfio->id_position = $id_position;
                 $listfio->id_cardch = $id_cardch;
+                $listfio->phone = $phone;
                 R::store($listfio);
             }
         }
@@ -9922,26 +9936,51 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $own_car = getOwnCar($id, $change, $today); //машины свои
         $car_from_reserve = getCarInReserve($id, $today, $change); //из др пасч
         $k = 0;
-        if (!empty($own_car)) {
+//        if (!empty($own_car)) {
+//
+//            foreach ($own_car as $value) {
+//                if ($value['dateduty'] == $today)
+//                    $k++;
+//            }
+//            if ($k != 0)
+//                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
+//            else
+//                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+//        }
+//        elseif (!empty($car_from_reserve)) {
+//            foreach ($car_from_reserve as $value) {
+//                if ($value['dateduty'] == $today)
+//                    $k++;
+//            }
+//            if ($k != 0)
+//                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
+//             else
+//                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+//        }
+//        else {
+//            $mas_error['teh'] = 1;
+//        }
+                if (!empty($own_car)) {
 
             foreach ($own_car as $value) {
-                if ($value['dateduty'] == $today)
+                if ($value['dateduty'] != $today)
                     $k++;
             }
             if ($k != 0)
-                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
-            else
                 $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+            else
+                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
         }
         elseif (!empty($car_from_reserve)) {
             foreach ($car_from_reserve as $value) {
-                if ($value['dateduty'] == $today)
+                if ($value['dateduty'] != $today)
                     $k++;
             }
             if ($k != 0)
-                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
-             else
-                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+                   $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+
+            else
+              $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
         }
         else {
             $mas_error['teh'] = 1;
@@ -10567,6 +10606,16 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
          $data['organ_active']=R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
         /*------- END для развертывания меню ------*/
 
+        $place_arr_for_prikaz = R::getAll('select * from vid_pos_trip_of_podr WHERE record_id = :id ', [':id' => $id]);
+
+        foreach ($place_arr_for_prikaz as $p) {
+            $data['organ_type_for_prikaz']=$p['organ_type'];
+//            $place_for_prikaz = $p['locname'];
+//            $place_pasp_numb_for_prikaz = $p['pasp_numb'];
+//            $place_organ_type_for_prikaz = $p['organ_type'];
+//            $place_region_name_for_prikaz = $p['region_name'];
+        }
+
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadCard.php', $data);
@@ -10968,9 +11017,52 @@ if($date1 != NULL){
 
             $prikaz_number = $app->request()->post('prikaz_number' . $i); //№ номер
 
-            $prikaz = $vid_doc_name . ' ' . $vid_pos_name . ' от ' . $prikaz_date . ' № ' . $prikaz_number;
+            $prikaz_date_f = new DateTime($prikaz_date);
+            $pr_d_f = $prikaz_date_f->Format('d.m.Y');
+
+            $arr_vid_pos=array(1,2,3);
+
+            $place_arr = R::getAll('select * from vid_pos_trip_of_podr WHERE record_id = :id ', [':id' => $id]);
 
 
+                        foreach ($place_arr as $p) {
+                $place = $p['locname'];
+                 $place_pasp_numb = $p['pasp_numb'];
+                 $place_organ_type = $p['organ_type'];
+                  $place_region_name = $p['region_name'];
+            }
+
+
+            if(in_array($id_vid_position, $arr_vid_pos) ){
+
+            $subject = $vid_pos_name;
+            $search = ' ';
+            $replace = ' ' . $place . ' ';
+
+            $new_vid_pos = strrev(implode(strrev($replace), explode(strrev($search), strrev($subject), 2))); //output:
+
+            }
+            elseif($id_vid_position == 6){// nah pash
+                  $new_vid_pos = $vid_pos_name.' '.$place_pasp_numb.' '.$place_organ_type;
+            }
+            elseif($id_vid_position == 8){// nah cou
+                  $new_vid_pos = $vid_pos_name. ' '.$place_organ_type;
+            }
+            elseif($id_vid_position == 9){// nah umchs
+
+                 $subject = $vid_pos_name;
+            $search = ' ';
+            $replace = ' ' . $place_region_name . ' ';
+
+            $new_vid_pos = strrev(implode(strrev($replace), explode(strrev($search), strrev($subject), 2))); //output:
+
+            }
+            else{
+                $new_vid_pos = $vid_pos_name;
+            }
+
+            $prikaz = $vid_doc_name . ' ' . $new_vid_pos . ' от ' . $pr_d_f . ' № ' . $prikaz_number;
+          //  echo $prikaz;exit();
 
             /* ---- Основание командировки - соединить поля --- */
 
@@ -11055,9 +11147,51 @@ if($date1 != NULL){
 
             $prikaz_number = $app->request()->post('prikaz_number' . $i); //№ номер
 
-            $prikaz = $vid_doc_name . ' ' . $vid_pos_name . ' от ' . $prikaz_date . ' № ' . $prikaz_number;
+            $prikaz_date_f = new DateTime($prikaz_date);
+            $pr_d_f = $prikaz_date_f->Format('d.m.Y');
+
+             $arr_vid_pos=array(1,2,3);
+
+            $place_arr = R::getAll('select * from vid_pos_trip_of_podr WHERE record_id = :id ', [':id' => $id]);
 
 
+                        foreach ($place_arr as $p) {
+                $place = $p['locname'];
+                 $place_pasp_numb = $p['pasp_numb'];
+                 $place_organ_type = $p['organ_type'];
+                  $place_region_name = $p['region_name'];
+            }
+
+
+            if(in_array($id_vid_position, $arr_vid_pos) ){
+
+            $subject = $vid_pos_name;
+            $search = ' ';
+            $replace = ' ' . $place . ' ';
+
+            $new_vid_pos = strrev(implode(strrev($replace), explode(strrev($search), strrev($subject), 2))); //output:
+
+            }
+            elseif($id_vid_position == 6){// nah pash
+                  $new_vid_pos = $vid_pos_name.' '.$place_pasp_numb.' '.$place_organ_type;
+            }
+            elseif($id_vid_position == 8){// nah cou
+                  $new_vid_pos = $vid_pos_name. ' '.$place_organ_type;
+            }
+            elseif($id_vid_position == 9){// nah umchs
+
+                 $subject = $vid_pos_name;
+            $search = ' ';
+            $replace = ' ' . $place_region_name . ' ';
+
+            $new_vid_pos = strrev(implode(strrev($replace), explode(strrev($search), strrev($subject), 2))); //output:
+
+            }
+            else{
+                $new_vid_pos = $vid_pos_name;
+            }
+
+            $prikaz = $vid_doc_name . ' ' . $new_vid_pos . ' от ' . $pr_d_f . ' № ' . $prikaz_number;
 
             /* ---- Основание командировки - соединить поля --- */
 
@@ -13049,7 +13183,11 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
                 $main[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
                                 . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
                 //вакансия по подразделению
-                $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+              //  $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+$main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE c.id_card = :id AND  l.is_vacant = :is_vacant', [':id' => $value['id_pasp'],':is_vacant'=>1 ]);
+
 
 
                 /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
@@ -17941,7 +18079,7 @@ $data['id_pasp_cou']=$id_pasp_cou;
 
 
            //пробежать по всем ПАСЧ - выбрать инф по деж смене , определить дату и смены, на которую надо позже выбрать отсутствующих
-
+$main=array();
         foreach ($id_pasp as $value) {
 
             if($date==0){
@@ -17967,7 +18105,8 @@ $data['id_pasp_cou']=$id_pasp_cou;
 //                 $main[$value['id_pasp']]['dateduty'] = $dateduty;
 //                 $main[$value['id_pasp']]['ch'] = $ch;
                 $main[$value['id_pasp']] ['ch'] =  $ch;
-                $main[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main[$value['id_pasp']]['name'] = $row['divizion'] .' '.$row['disloc']. ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                 $main[$value['id_pasp']] ['disloc'] = $row['disloc'];
                 $main[$value['id_pasp']] ['shtat_ch'] = $row['countls'];
                 $main[$value['id_pasp']] ['vacant_ch'] = $row['vacant'];
                 $main[$value['id_pasp']] ['face'] = $row['face'];
@@ -17987,11 +18126,15 @@ $data['id_pasp_cou']=$id_pasp_cou;
                 $main[$value['id_pasp']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
                                 . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? ', array($value['id_pasp']));
                 //вакансия по подразделению
-                $main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+                //$main[$value['id_pasp']] ['vacant'] = R::getCell('select  sum(m.vacant) from str.main as m where m.id_card = ? ', array($value['id_pasp']));
+$main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  listfio AS l '
+                                . ' left join cardch AS c ON l.id_cardch=c.id '
+                                . ' WHERE c.id_card = :id AND  l.is_vacant = :is_vacant', [':id' => $value['id_pasp'],':is_vacant'=>1 ]);
+
 
 
                 /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
-                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
+                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d.%m.%Y") AS date1,date_format(t.date2,"%d.%m.%Y") AS date2,'
                                 . ' t.place,t.is_cosmr, t.prikaz,l.fio, po.name as position FROM trip AS t '
                                 . 'inner join listfio AS l ON t.id_fio=l.id inner join str.position as po on po.id=l.id_position inner join cardch AS c ON l.id_cardch=c.id '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -17999,7 +18142,7 @@ $data['id_pasp_cou']=$id_pasp_cou;
                 $main[$value['id_pasp']]['trip_inf'] = $trip;
 
                 /*                 * *******  ФИО, описание работников в  отпуске - текст  ******** */
-                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d-%m-%Y") AS date1,date_format(h.date2,"%d-%m-%Y") AS date2,'
+                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d.%m.%Y") AS date1,date_format(h.date2,"%d.%m.%Y") AS date2,'
                                 . ' h.prikaz, l.fio, po.name as position FROM holiday AS h '
                                 . 'inner join listfio AS l ON h.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id  inner join str.position as po on po.id=l.id_position '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18007,7 +18150,7 @@ $data['id_pasp_cou']=$id_pasp_cou;
                 $main[$value['id_pasp']]['holiday_inf'] = $holiday;
 
                 /*                 * *******  ФИО, описание работников на больничном - текст  ******** */
-                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d-%m-%Y") AS date1,date_format(i.date2,"%d-%m-%Y") AS date2,'
+                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d.%m.%Y") AS date1,date_format(i.date2,"%d.%m.%Y") AS date2,'
                                 . ' i.diagnosis,l.fio, ma.name as maim, po.name as position FROM ill AS i inner join listfio AS l '
                                 . 'ON i.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join maim AS ma ON i.maim=ma.id inner join str.position as po on po.id=l.id_position '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18016,11 +18159,11 @@ $data['id_pasp_cou']=$id_pasp_cou;
                 $main[$value['id_pasp']]['ill_inf'] = $ill;
 
                 /*                 * *******  ФИО, описание работников в наряде - текст  ******** */
-                $main[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main[$value['id_pasp']]['name'] = $row['divizion'] .' '.$row['disloc']. ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
                 $main[$value['id_pasp']]['duty_inf'] = $row['fio_duty'];
 
                 /*                 * *******  ФИО, описание работников др.причины - текст  ******** */
-                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d-%m-%Y") AS date1, date_format(o.date2,"%d-%m-%Y") AS date2,'
+                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d.%m.%Y") AS date1, date_format(o.date2,"%d.%m.%Y") AS date2,'
                                 . ' o.reason, o.note, l.fio, po.name as position FROM other AS o inner join listfio AS l '
                                 . 'ON o.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18126,7 +18269,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
 
 
                 /*                 * *******  ФИО, описание работников в  командировке - текст  ******** */
-                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d-%m-%Y") AS date1,date_format(t.date2,"%d-%m-%Y") AS date2,'
+                $trip = R::getAll('SELECT t.id, t.id_fio,date_format(t.date1,"%d.%m.%Y") AS date1,date_format(t.date2,"%d.%m.%Y") AS date2,'
                                 . ' t.place,t.is_cosmr, t.prikaz,l.fio, po.name as position FROM trip AS t '
                                 . 'inner join listfio AS l ON t.id_fio=l.id inner join str.position as po on po.id=l.id_position inner join cardch AS c ON l.id_cardch=c.id '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18134,7 +18277,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
                 $main_cou[$value['id_pasp']]['trip_inf'] = $trip;
 
                 /*                 * *******  ФИО, описание работников в  отпуске - текст  ******** */
-                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d-%m-%Y") AS date1,date_format(h.date2,"%d-%m-%Y") AS date2,'
+                $holiday = R::getAll('SELECT h.id, h.id_fio,date_format(h.date1,"%d.%m.%Y") AS date1,date_format(h.date2,"%d.%m.%Y") AS date2,'
                                 . ' h.prikaz, l.fio, po.name as position FROM holiday AS h '
                                 . 'inner join listfio AS l ON h.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id  inner join str.position as po on po.id=l.id_position '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18142,7 +18285,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
                 $main_cou[$value['id_pasp']]['holiday_inf'] = $holiday;
 
                 /*                 * *******  ФИО, описание работников на больничном - текст  ******** */
-                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d-%m-%Y") AS date1,date_format(i.date2,"%d-%m-%Y") AS date2,'
+                $ill = R::getAll('SELECT i.id, i.id_fio,date_format(i.date1,"%d.%m.%Y") AS date1,date_format(i.date2,"%d.%m.%Y") AS date2,'
                                 . ' i.diagnosis,l.fio, ma.name as maim, po.name as position FROM ill AS i inner join listfio AS l '
                                 . 'ON i.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join maim AS ma ON i.maim=ma.id inner join str.position as po on po.id=l.id_position '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18151,11 +18294,11 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
                 $main_cou[$value['id_pasp']]['ill_inf'] = $ill;
 
                 /*                 * *******  ФИО, описание работников в наряде - текст  ******** */
-                $main_cou[$value['id_pasp']]['name'] = $row['divizion'] . ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
+                $main_cou[$value['id_pasp']]['name'] = $row['divizion'] .' '.$row['disloc']. ', ' . $row['organ']; //ПАСЧ-1,Жлобинский РОЧС
                // $main_cou[$value['id_pasp']]['duty_inf'] = $row['fio_duty'];
 
                 /*                 * *******  ФИО, описание работников др.причины - текст  ******** */
-                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d-%m-%Y") AS date1, date_format(o.date2,"%d-%m-%Y") AS date2,'
+                $other = R::getAll('SELECT o.id, o.id_fio,date_format(o.date1,"%d.%m.%Y") AS date1, date_format(o.date2,"%d.%m.%Y") AS date2,'
                                 . ' o.reason, o.note, l.fio, po.name as position FROM other AS o inner join listfio AS l '
                                 . 'ON o.id_fio=l.id inner join cardch AS c ON l.id_cardch=c.id inner join str.position as po on po.id=l.id_position '
                                 . ' WHERE (c.id_card = :id AND c.ch = :ch) '
@@ -18283,18 +18426,18 @@ $section = $phpWord->addSection($sectionStyle);
                     foreach ($main as $key => $value) {
                         $table->addRow();
                         $table->addCell(3000, $cellVCentered)->addText(((isset($value['name'])) ? $value['name'] : 'строевая не заполнена' ), null, $cellHCentered);
-                        $table->addCell(800, $cellVCentered)->addText($value['shtat'], null, $cellHCentered);
-                        $table->addCell(800, $cellVCentered)->addText($value['vacant'], null, $cellHCentered);
-                        $table->addCell(2500, $cellVCentered)->addText($value['shtat_ch'], null, $cellHCentered);
-                        $table->addCell(2500, $cellVCentered)->addText($value['vacant_ch'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['face'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['calc'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['trip'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['holiday'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['ill'], null, $cellHCentered);
-                        $table->addCell(2500, $cellVCentered)->addText($value['duty'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['other'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['gas'], null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText((($value['shtat'] == 0) ? '-' : $value['shtat'] ), null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText((($value['vacant'] == 0) ? '-' : $value['vacant'] ), null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText((($value['shtat_ch'] == 0) ? '-' : $value['shtat_ch'] ), null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText((($value['vacant_ch'] == 0) ? '-' : $value['vacant_ch'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['face'] == 0) ? '-' : $value['face'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['calc'] == 0) ? '-' : $value['calc'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['trip'] == 0) ? '-' : $value['trip'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['holiday'] == 0) ? '-' : $value['holiday'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['ill'] == 0) ? '-' : $value['ill'] ), null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText((($value['duty'] == 0) ? '-' : $value['duty'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['other'] == 0) ? '-' : $value['other'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['gas'] == 0) ? '-' : $value['gas'] ), null, $cellHCentered);
                     }
                 }
 
@@ -18302,18 +18445,18 @@ $section = $phpWord->addSection($sectionStyle);
                     foreach ($main_cou as $key => $value) {
                         $table->addRow();
                         $table->addCell(3000, $cellVCentered)->addText(((isset($value['name'])) ? $value['name'] : 'строевая не заполнена' ), null, $cellHCentered);
-                        $table->addCell(800, $cellVCentered)->addText($value['shtat'], null, $cellHCentered);
-                        $table->addCell(800, $cellVCentered)->addText($value['vacant'], null, $cellHCentered);
-                        $table->addCell(2500, $cellVCentered)->addText($value['shtat_ch'], null, $cellHCentered);
-                        $table->addCell(2500, $cellVCentered)->addText($value['vacant_ch'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['face'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['calc'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['trip'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['holiday'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['ill'], null, $cellHCentered);
-                        $table->addCell(2500, $cellVCentered)->addText($value['duty'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['other'], null, $cellHCentered);
-                        $table->addCell(2000, $cellVCentered)->addText($value['gas'], null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText((($value['shtat'] == 0) ? '-' : $value['shtat'] ), null, $cellHCentered);
+                        $table->addCell(800, $cellVCentered)->addText((($value['vacant'] == 0) ? '-' : $value['vacant'] ), null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText((($value['shtat_ch'] == 0) ? '-' : $value['shtat_ch'] ), null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText((($value['vacant_ch'] == 0) ? '-' : $value['vacant_ch'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['face'] == 0) ? '-' : $value['face'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['calc'] == 0) ? '-' : $value['calc'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['trip'] == 0) ? '-' : $value['trip'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['holiday'] == 0) ? '-' : $value['holiday'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['ill'] == 0) ? '-' : $value['ill'] ), null, $cellHCentered);
+                        $table->addCell(2500, $cellVCentered)->addText((($value['duty'] == 0) ? '-' : $value['duty'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['other'] == 0) ? '-' : $value['other'] ), null, $cellHCentered);
+                        $table->addCell(2000, $cellVCentered)->addText((($value['gas'] == 0) ? '-' : $value['gas'] ), null, $cellHCentered);
                     }
                 }
             }
@@ -18364,7 +18507,7 @@ $section = $phpWord->addSection($sectionStyle);
                         //  print_r($d2_duty)
                         foreach ($main[$key]['vacant_inf'] as $vacant_inf) {
 
-                            $t = '1 чел. (' . mb_strtolower($vacant_inf['position']) . ') вакансия';
+                            $t = '1 чел. (' . mb_strtolower($vacant_inf['position']) . ') вакансия'.'.';
 
 
                             $textrun->addText($t, $fontStyle_1);
@@ -18378,7 +18521,7 @@ $section = $phpWord->addSection($sectionStyle);
                         foreach ($main[$key]['trip_inf'] as $trip_inf) {
 
                             $t = '1 чел. (' . mb_strtolower($trip_inf['position']) . ' ' . $trip_inf['fio'] . ' ) - командировка c ' .
-                                $trip_inf['date1'] . ( (($trip_inf['date2']) != NULL) ? (' по ' . $trip_inf['date2']) : '') . ', ' . $trip_inf['place'] . ' ' . ', ' . $trip_inf['prikaz'] . ' ' . (($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : '');
+                                $trip_inf['date1'] . ( (($trip_inf['date2']) != NULL) ? (' по ' . $trip_inf['date2']) : '') . ' ' . $trip_inf['place'] . ' ' .((!empty($trip_inf['prikaz'])) ? ( ' (' . $trip_inf['prikaz'] . ') ') : '') . (($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : '').'.';
 
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
@@ -18392,7 +18535,7 @@ $section = $phpWord->addSection($sectionStyle);
 
                             $t = '1 чел. (' . mb_strtolower($holiday_inf['position']) . ' ' . $holiday_inf['fio'] . ' ) - отпуск c ' .
                                 $holiday_inf['date1'] . ( (($holiday_inf['date2']) != NULL) ? (' по ' . $holiday_inf['date2']) : '') .
-                                ', ' . $holiday_inf['prikaz'];
+                               ' ('.mb_strtolower(mb_substr($holiday_inf['prikaz'], 0, 1)) . mb_substr($holiday_inf['prikaz'], 1).')'.'.' ;
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
                         }
@@ -18406,7 +18549,7 @@ $section = $phpWord->addSection($sectionStyle);
 
                             $t = '1 чел. (' . mb_strtolower($ill_inf['position']) . ' ' . $ill_inf['fio'] . ' ) - больничный c ' . $ill_inf['date1'] .
                                 ( (($ill_inf['date2']) != NULL) ? (' по ' . $ill_inf['date2']) : '') .
-                                ', ' . $ill_inf['maim'] . ' '. ((!empty( $ill_inf['diagnosis'])) ? (', ' .  $ill_inf['diagnosis']) : '') ;
+                                ', ' . $ill_inf['maim'] . ' '. ((!empty( $ill_inf['diagnosis'])) ? (', ' .  $ill_inf['diagnosis']) : '') .'.';
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
                         }
@@ -18422,7 +18565,7 @@ $section = $phpWord->addSection($sectionStyle);
                         $d2_duty = $date2_duty->Format('d-m-Y');
 
                         $t = '(' . mb_strtolower($main[$key]['duty_inf']) . ' ) - наряд. с ' . $d1_duty
-                           . ' по ' . $d2_duty;
+                           . ' по ' . $d2_duty.'.';
                         $textrun->addText($t, $fontStyle_1);
                         $textrun->addTextBreak(); //new line
 
@@ -18436,7 +18579,10 @@ $section = $phpWord->addSection($sectionStyle);
 
                           $t = '1 чел. (' . mb_strtolower($other_inf['position']) . ' ' . $other_inf['fio'] . ' ) - другие причины c ' . $other_inf['date1'] .
                                 ( (($other_inf['date2']) != NULL) ? (' по ' . $other_inf['date2']) : '') .
-                                ', ' . $other_inf['reason'] . ' '. ((($other_inf['note']) != NULL) ? (', ' . $other_inf['note']) : '') ;
+                                ' ' . $other_inf['reason'] .
+//                              ((($other_inf['note']) != NULL) ? (', ' . $other_inf['note']) : '')
+//
+                           ' ' . $other_inf['reason'] . ' '. ( ($other_inf['note'] != NULL) ? ( '('.mb_strtolower(mb_substr($other_inf['note'], 0, 1)) . mb_substr($other_inf['note'], 1).') ' ) : '' ).'.' ;
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
 
@@ -18463,7 +18609,7 @@ $section = $phpWord->addSection($sectionStyle);
                         //  print_r($d2_duty)
                         foreach ($main_cou[$key]['vacant_inf'] as $vacant_inf) {
 
-                            $t = '1 чел. (' . mb_strtolower($vacant_inf['position']) . ') вакансия';
+                            $t = '1 чел. (' . mb_strtolower($vacant_inf['position']) . ') вакансия'.'.';
 
 
                             $textrun->addText($t, $fontStyle_1);
@@ -18477,7 +18623,7 @@ $section = $phpWord->addSection($sectionStyle);
                         foreach ($main_cou[$key]['trip_inf'] as $trip_inf) {
 
                             $t = '1 чел. (' . mb_strtolower($trip_inf['position']) . ' ' . $trip_inf['fio'] . ' ) - командировка c ' .
-                                $trip_inf['date1'] . ( (($trip_inf['date2']) != NULL) ? (' по ' . $trip_inf['date2']) : '') . ', ' . $trip_inf['place'] . ' ' . ', ' . $trip_inf['prikaz'] . ' ' . (($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : '');
+                                $trip_inf['date1'] . ( (($trip_inf['date2']) != NULL) ? (' по ' . $trip_inf['date2']) : '') . ((!empty($trip_inf['prikaz'])) ? ( ', ' . $trip_inf['prikaz'] . ' ') : '')  . $trip_inf['prikaz'] . ' ' . (($trip_inf['is_cosmr'] == 1) ? ', согласовано с ЦОСМР' : '').'.';
 
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
@@ -18491,7 +18637,7 @@ $section = $phpWord->addSection($sectionStyle);
 
                             $t = '1 чел. (' . mb_strtolower($holiday_inf['position']) . ' ' . $holiday_inf['fio'] . ' ) - отпуск c ' .
                                 $holiday_inf['date1'] . ( (($holiday_inf['date2']) != NULL) ? (' по ' . $holiday_inf['date2']) : '') .
-                                ', ' . $holiday_inf['prikaz'];
+                                ', ' . $holiday_inf['prikaz'].'.';
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
                         }
@@ -18505,7 +18651,7 @@ $section = $phpWord->addSection($sectionStyle);
 
                             $t = '1 чел. (' . mb_strtolower($ill_inf['position']) . ' ' . $ill_inf['fio'] . ' ) - больничный c ' . $ill_inf['date1'] .
                                 ( (($ill_inf['date2']) != NULL) ? (' по ' . $ill_inf['date2']) : '') .
-                                ', ' . $ill_inf['maim'] . ' '. ((!empty( $ill_inf['diagnosis'])) ? (', ' .  $ill_inf['diagnosis']) : '') ;
+                                ', ' . $ill_inf['maim'] . ' '. ((!empty( $ill_inf['diagnosis'])) ? (', ' .  $ill_inf['diagnosis']) : '').'.' ;
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
                         }
@@ -18521,7 +18667,7 @@ $section = $phpWord->addSection($sectionStyle);
                         $d2_duty = $date2_duty->Format('d-m-Y');
 
                         $t = '(' . mb_strtolower($main_cou[$key]['duty_inf']) . ' ) - наряд. с ' . $d1_duty
-                           . ' по ' . $d2_duty;
+                           . ' по ' . $d2_duty.'.';
                         $textrun->addText($t, $fontStyle_1);
                         $textrun->addTextBreak(); //new line
 
@@ -18535,7 +18681,9 @@ $section = $phpWord->addSection($sectionStyle);
 
                           $t = '1 чел. (' . mb_strtolower($other_inf['position']) . ' ' . $other_inf['fio'] . ' ) - другие причины c ' . $other_inf['date1'] .
                                 ( (($other_inf['date2']) != NULL) ? (' по ' . $other_inf['date2']) : '') .
-                                ', ' . $other_inf['reason'] . ' '. ((($other_inf['note']) != NULL) ? (', ' . $other_inf['note']) : '') ;
+                                ', ' . $other_inf['reason'] .
+//                              ' '. ((($other_inf['note']) != NULL) ? (', ' . $other_inf['note']) : '') ;
+                              ' ' . $other_inf['reason'] . ' '. ( ($other_inf['note'] != NULL) ? ( '('.mb_strtolower(mb_substr($other_inf['note'], 0, 1)) . mb_substr($other_inf['note'], 1).') ' ) : '' ) .'.';
                             $textrun->addText($t, $fontStyle_1);
                             $textrun->addTextBreak(); //new line
 

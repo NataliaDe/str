@@ -383,7 +383,7 @@ $cnt++;
 
                                     </label>
             <!--                                    <select class="form-control chosen-select-deselect" name="fio<?= $i ?>[]" id="fio<?= $i ?>" multiple tabindex="4" data-placeholder="Добавить" >-->
-                                    <select class="form-control js-example-basic-multiple" name="fio<?= $i ?>[]" id="fio<?= $i ?>" multiple tabindex="4" data-placeholder="Добавить" >
+                                    <select class="form-control js-example-basic-multiple b2" name="fio<?= $i ?>[]" id="fio<?= $i ?>" multiple tabindex="4" data-placeholder="Добавить" onchange="changeFio(<?= $i ?>);">
                                         <option></option>
                                         <?php
                                         if (isset($present_car_fio) && !empty($present_car_fio)) {
@@ -407,6 +407,7 @@ $cnt++;
                                         }
                                         ?>
                                     </select>
+                                    <input type="hidden" id="all_selected_fio<?= $i?>">
                                 </div>
                             </div>
 
@@ -989,7 +990,7 @@ $cnt++;
 
                                     </label>
             <!--                                    <select class="form-control chosen-select-deselect" name="fio<?= $i ?>[]" id="fio<?= $i ?>" multiple tabindex="4" data-placeholder="Добавить" >-->
-                                    <select class="form-control js-example-basic-multiple" name="fio<?= $i ?>[]" id="fio<?= $i ?>" multiple tabindex="4" data-placeholder="Добавить" >
+                                    <select class="form-control js-example-basic-multiple b2" name="fio<?= $i ?>[]" id="fio<?= $i ?>" multiple tabindex="4" data-placeholder="Добавить"  onchange="changeFio(<?= $i ?>);" >
                                         <option></option>
                                         <?php
                                         if (isset($present_car_fio) && !empty($present_car_fio)) {
@@ -1013,6 +1014,7 @@ $cnt++;
                                         }
                                         ?>
                                     </select>
+                                    <input type="hidden" id="all_selected_fio<?= $i?>">
                                 </div>
                             </div>
 
@@ -1069,6 +1071,8 @@ $cnt++;
             <?php
         }
         ?>
+
+
     </form>
 
     <?php
@@ -1079,3 +1083,156 @@ if (empty($own_car) && empty($car_in_reserve)) {
     include 'cou/is_car_form.php'; //для ЦОУ, если нет техники для заступления - поставить отметку и сохранить
 }
 ?>
+
+<script>
+
+    function changeFio(i){
+       // alert('kkk');
+var select_id_fio=$("#fio"+i+" option:selected:last").val();
+$('#fio'+i).removeClass('b2');
+
+
+      //
+
+
+
+
+     var prev_fio_ids = $('#all_selected_fio'+i).val();
+      var new_fio_ids=$("#fio"+i).val();
+
+      //alert(new_fio_ids);
+
+      if(prev_fio_ids === ''){
+
+           if(new_fio_ids !== ''){
+                if( select_id_fio !==undefined){
+
+                     // remove from post-read
+    $(".b2 option[value='"+select_id_fio+"']").remove();
+    //$('#fio'+i).addClass('b2');
+      }
+
+      }
+
+      }
+      else{
+          var prev_arr=[];
+            if(prev_fio_ids.indexOf(",") !== -1){//, isset
+              //  alert('yes');
+              var prev_arr = prev_fio_ids.split(",");
+            }
+            else{
+                 //alert('no');
+                 prev_arr.push(prev_fio_ids);
+            }
+
+            if(new_fio_ids !== null ){
+               // alert('1');
+
+            if(new_fio_ids.indexOf(",") !== -1){//, isset
+                //alert('yes');
+              var new_arr = new_fio_ids.split(",");
+            }
+            else{
+                // alert('no');
+                 var new_arr = new_fio_ids;
+            }
+
+//alert(new_arr);
+//alert(prev_arr);
+
+
+
+//alert(prev_arr.length);
+//alert(new_arr.length);
+            if(prev_arr.length>new_arr.length){
+                 // alert('11');
+
+                      /** SUBTRACT ARRAYS **/
+//function subtractarrays(array1, array2){
+    var diff = [];
+    for (var j=prev_arr.length; j--;) {
+   if (new_arr.indexOf(prev_arr[j]) === -1)
+       diff.push(prev_arr[j]);
+}
+ //alert(diff);
+
+//    for( var i = 0; i < new_arr.length; i++ ) {
+//        if( $.inArray( new_arr[i], prev_arr ) == -1 ) {
+//            alert('h');
+//                    diff.push(new_arr[i]);
+//        }
+//    }
+   // }
+
+               // var diff = $(new_arr).not(prev_arr).get();
+               // var diff_fio_text=$("#hidden-fio option[value='"+diff+"']").text();
+                var diff_fio_text=$("#fio"+i+" option[value='"+diff+"']").text();
+
+              //  alert(diff_fio_text);
+                // back to select
+               $(".b2").append('<option value="' + diff + '">' + diff_fio_text + ' </option>');
+
+            }
+            else{
+               // alert('12');
+                //remove from select
+                if( select_id_fio !==undefined){
+
+                 // remove from post-read
+                $(".b2 option[value='"+select_id_fio+"']").remove();
+               // $('#fio'+i).addClass('b2');
+                  }
+
+            }
+
+              }
+              else{
+//alert('2');
+                var diff = prev_fio_ids;
+               // var diff_fio_text=$("#hidden-fio option[value='144']").text();
+                var diff_fio_text=$("#fio"+i+" option[value='"+diff+"']").text();
+               // alert(diff);
+                //alert(diff_fio_text);
+                   // back to select
+                   $(".b2").append('<option value="' + diff + '">' + diff_fio_text + ' </option>');
+              }
+      }
+
+
+//var res_1 = prev_fio_ids.split(",");
+//var res_1 = prev_fio_ids;
+//alert(res_1);
+//$.each(res_1, function(index, value) {
+//  alert(index + ': ' + value);
+//});
+
+
+
+
+   // var res_2 = new_fio_ids.split(",");
+//var res_2 =new_fio_ids;
+
+    /** SUBTRACT ARRAYS **/
+//function subtractarrays(array1, array2){
+//    var difference = [];
+//    for( var i = 0; i < res_1.length; i++ ) {
+//        if( $.inArray( res_1[i], res_2 ) == -1 ) {
+//                    difference.push(res_1[i]);
+//        }
+//    }
+//alert(difference);
+   // return difference;
+//}
+//var diff = $(res_1).not(res_2).get();
+//var diff = [...prev_fio_ids].filter(v => [...new_fio_ids].indexOf(v) == -1);
+//alert(diff);
+
+ $('#fio'+i).addClass('b2');
+$('#all_selected_fio'+i).val(new_fio_ids);
+
+
+    }
+
+
+    </script>

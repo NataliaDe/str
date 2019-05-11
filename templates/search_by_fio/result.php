@@ -69,7 +69,9 @@ if(isset($result) && !empty($result)){
                             }
                             ?>
 
-                                <td><a href="/str/search_by_fio/detail/<?= $row['id_fio'] ?>" data-toggle="tooltip" data-placement="left" title="Подробная информация" target="_blank"><?= $row['fio'] ?></a></td>
+                                <td><a href="/str/search_by_fio/detail/<?= $row['id_fio'] ?>" data-toggle="tooltip" data-placement="left" title="Подробная информация" target="_blank"><?= $row['fio'] ?></a><br>
+                                  <?= (!empty($row['phone'] ))? ('тел: '.$row['phone']) : '' ?>
+                                </td>
                             <td><?= $row['rank'] ?></td>
                             <td><?= $row['position'] ?></td>
                             <td><?= $row['divizion'] ?></td>

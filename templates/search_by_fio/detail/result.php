@@ -110,7 +110,7 @@ if (isset($result) && !empty($result)) {
             <span style="font-size: 14px;">
                 <?php
                 echo (($row['ch'] == 0) ? 'ежедневник, ' : ('  работник ' . $row['ch'] . ' смены, ' )) . $row['locorg_name'] . ', ' . $row['divizion'] . ', ' . $name_oblast;
-
+ echo (!empty($row['phone'] ))? ('<br>'.'тел: '.$row['phone']) : '' ;
                 ?>
             </span>
             <hr style="width: 15%;">
