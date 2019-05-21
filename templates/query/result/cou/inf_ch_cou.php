@@ -11,13 +11,14 @@ if (isset($main) && !empty($main)) {
     <?php
     if (isset($head_info) && !empty($head_info)) {
         foreach ($head_info as $h) {
-            $dateduty_head = $h['dateduty'];
+            $dateduty_head = date('d.m.Y', strtotime($h['dateduty']));
             $name_head = $h['name'];
         }
         echo 'Результат запроса за ' . $dateduty_head . ', ' . $name_head;
     }
     ?>
-        </b></center>
+        </b>
+    <br>
     <!--    <div class="table-responsive" id="tbl-query-result">-->
     <table class="table table-condensed   table-bordered tbl_show_inf" style="width: 79% !important" >
         <!--   строка 1 -->
@@ -129,6 +130,7 @@ if (isset($main) && !empty($main)) {
 
     </tbody>
     </table>
+    </center>
     <!--
         </div>-->
 

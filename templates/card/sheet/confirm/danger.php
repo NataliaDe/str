@@ -48,7 +48,7 @@ echo $k.'. ';
         <?php
 }
 
-elseif($key=='vacant_from_main_table'){
+elseif($key=='vacant_form_main_table'){
     /* 6 */
     ?>
         Не соблюдена формула: <b><u>по штату - по списку = вакант</u></b>. <?= $spravka ?>

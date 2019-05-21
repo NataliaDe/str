@@ -104,6 +104,9 @@ include 'templates/query/pzform.php';
                     }
 
                     foreach ($locorg as $lo) {
+                        ?>
+
+                         <?php
                         printf("<p><option value='%s' class='%s'  ><label>%s</label></option></p>", $lo['locorg_id'], $lo['region'], $lo['locor']);
                     }
                     ?>
@@ -117,7 +120,7 @@ include 'templates/query/pzform.php';
             <div class="form-group">
                 <label for="diviz">Часть</label>
                 <select class="form-control" name="diviz" id="diviz" >
-
+                <option value="">все</option>
                     <?php
                             foreach ($diviz as $di) {
 
