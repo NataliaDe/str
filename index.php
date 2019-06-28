@@ -7891,7 +7891,9 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
             else {
             $app->redirect('/str/listfio/close_ill/' . $id);
         }
-        } else {
+        }
+
+        else {
             $app->redirect('/str/listfio/close_ill/' . $id);
         }
     });
@@ -7934,6 +7936,82 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
     /*----------------------------------- END Отозвать из отпуска -----------------------------------*/
 
+
+    /*----------------------------------- close other -----------------------------------*/
+
+        //Отозвать из отпуска
+    $app->get('/close_other/next/:id', function ($id) use ($app) {
+        array($app, 'is_auth');
+
+        //отпуск закрывается вчерашним днем
+        $other = R::load('other', $id);
+        $other->date2 = date("Y-m-d", time() - (60 * 60 * 24));
+        $other->last_update = date("Y-m-d H:i:s");
+        R::store($other);
+
+       if ($_SESSION['ulevel'] == 1) {
+            $app->redirect('/str/listfio/other');
+       }
+       else
+       $app->redirect('/str/listfio');
+    });
+    //форма Отозвать из отпуска
+     $app->get('/close_other/:id', function ($id) use ($app) {
+        array($app, 'is_auth'); //авторизован ли пользователь
+        $data['id_hol'] = $id;//hol.id
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['convex_item']['close_other_sub']=1;
+
+        $app->render('layouts/header.php',$data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+        $app->render('listfio/close_other/danger.php', $data); //предупрежд сообщение
+        $app->render('listfio/back.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+    /*----------------------------------- END close other -----------------------------------*/
+
+
+
+    /*----------------------------------- close trip -----------------------------------*/
+
+
+    //close trip
+    $app->get('/close_trip/next/:id', function ($id) use ($app) {
+        array($app, 'is_auth');
+
+        //отпуск закрывается вчерашним днем
+        $trip = R::load('trip', $id);
+        $trip->date2 = date("Y-m-d", time() - (60 * 60 * 24));
+        $trip->last_update = date("Y-m-d H:i:s");
+        R::store($trip);
+
+       if ($_SESSION['ulevel'] == 1) {
+            $app->redirect('/str/listfio/trip');
+       }
+       else
+       $app->redirect('/str/listfio');
+    });
+    //trip msg
+     $app->get('/close_trip/:id', function ($id) use ($app) {
+        array($app, 'is_auth'); //авторизован ли пользователь
+        $data['id_hol'] = $id;//hol.id
+
+        $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['convex_item']['close_trip_sub']=1;
+
+        $app->render('layouts/header.php',$data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+        $app->render('listfio/close_trip/danger.php', $data); //предупрежд сообщение
+        $app->render('listfio/back.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+    /*----------------------------------- END close trip -----------------------------------*/
+
         $app->get('(/:vid_absent)', function ($vid_absent = NULL) use ($app) {// список смен
         array($app, 'is_auth');
 
@@ -7972,6 +8050,41 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         }
         /* -------END ФИО, кого можно отозвать из отпуска  --------- */
 
+
+
+                /* ------- other --------- */
+        $is_other = R::getAll('select id_fio,id from other as i where ( (? BETWEEN i.date1 and i.date2) or(? >= i.date1 and i.date2 is NULL) ) AND i.date1 <> ? ', array($today, $today,$today));
+        $data['is_other'] = $is_other;
+
+        //employess other
+        if (isset($is_other) && !empty($is_other)) {
+            foreach ($is_other as $i) {
+                $other[] = $i['id_fio'];
+                $id_of_other[$i['id_fio']] = $i['id']; //arr of fio=>other.id
+            }
+        } else {
+            $other = array();
+        }
+        /* -------END other --------- */
+
+
+
+                /* ------- trip --------- */
+        $is_trip = R::getAll('select id_fio,id from trip as i where ( (? BETWEEN i.date1 and i.date2) or(? >= i.date1 and i.date2 is NULL) ) AND i.date1 <> ? ', array($today, $today, $today));
+        $data['is_trip'] = $is_trip;
+
+        //employess trip
+        if (isset($is_trip) && !empty($is_trip)) {
+            foreach ($is_trip as $i) {
+                $trip[] = $i['id_fio'];
+                $id_of_trip[$i['id_fio']] = $i['id']; //arr of fio=>trip.id
+            }
+        } else {
+            $trip = array();
+        }
+        /* -------END trip --------- */
+
+
         $listfio = array();
 
         if ($_SESSION['ulevel'] == 1 && $_SESSION['is_admin'] == 1) {//РЦУ
@@ -7988,6 +8101,21 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
                 if (!empty($hol))
                     $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $hol) . ')');
+            }
+
+            elseif (isset($vid_absent) && $vid_absent == 'other') {//close other
+
+                $data['convex_item']['close_other_sub']=1;
+
+                if (!empty($other))
+                    $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $other) . ')');
+            }
+             elseif (isset($vid_absent) && $vid_absent == 'trip') {//close trip
+
+                $data['convex_item']['close_trip_sub']=1;
+
+                if (!empty($trip))
+                    $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $trip) . ')');
             }
         }
         elseif ($_SESSION['ulevel'] == 2) {
@@ -8011,7 +8139,23 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
                     if (!empty($hol))
                         $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $hol) . ')and id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
-                } else{ //просто список всей области
+                }
+
+                elseif (isset($vid_absent) && $vid_absent == 'other') {//other
+
+                    $data['convex_item']['close_other_sub']=1;
+
+                    if (!empty($other))
+                        $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $other) . ')and id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
+                }
+                elseif (isset($vid_absent) && $vid_absent == 'trip') {//trip
+
+                    $data['convex_item']['close_trip_sub']=1;
+
+                    if (!empty($trip))
+                        $listfio = R::getAll('SELECT * from list_of_change WHERE id_fio IN (' . implode(",", $trip) . ')and id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
+                }
+                else{ //просто список всей области
                     $listfio = R::getAll('SELECT * from list_of_change WHERE id_region = ? and id_organ NOT IN (' . implode(",", $cp) . ')', array($_SESSION['uregions']));
                     $data['convex_item']['all_listfio_sub']=1;
                 }
@@ -8046,7 +8190,14 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
                 $app->render('listfio/absent/listIll.php', $data);
             } elseif (isset($vid_absent) && $vid_absent == 'holiday') {
                 $app->render('listfio/absent/listHoliday.php', $data);
-            } else {
+            }
+             elseif (isset($vid_absent) && $vid_absent == 'other') {
+                $app->render('listfio/absent/listOther.php', $data);
+            }
+            elseif (isset($vid_absent) && $vid_absent == 'trip') {
+                $app->render('listfio/absent/listTrip.php', $data);
+            }
+            else {
                 $app->render('listfio/listFio.php', $data);
             }
         } else {
@@ -8055,7 +8206,15 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
                 $app->render('listfio/absent/listIll.php', $data);
             } elseif (isset($vid_absent) && $vid_absent == 'holiday') {
                 $app->render('listfio/absent/listHoliday.php', $data);
-            } else {
+            }
+
+            elseif (isset($vid_absent) && $vid_absent == 'other') {
+                $app->render('listfio/absent/listOther.php', $data);
+            }
+            elseif (isset($vid_absent) && $vid_absent == 'trip') {
+                $app->render('listfio/absent/listTrip.php', $data);
+            }
+            else {
                 if ($_SESSION['ulevel'] == 3 || $_SESSION['ulevel'] == 4 || $_SESSION['note'] == UGZ || $_SESSION['note'] == ROSN || $_SESSION['note'] == AVIA)
                     $app->render('listfio/listFio.php', $data);//можно редактировать
                 else//область видит весь список
@@ -9936,6 +10095,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $own_car = getOwnCar($id, $change, $today); //машины свои
         $car_from_reserve = getCarInReserve($id, $today, $change); //из др пасч
         $k = 0;
+        $mas_error['teh']=0;
 //        if (!empty($own_car)) {
 //
 //            foreach ($own_car as $value) {
@@ -9968,10 +10128,10 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
             }
             if ($k != 0)
                 $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
-            else
-                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
+           // else
+              //  $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
         }
-        elseif (!empty($car_from_reserve)) {
+        if (!empty($car_from_reserve)) {
             foreach ($car_from_reserve as $value) {
                 if ($value['dateduty'] != $today)
                     $k++;
@@ -9979,12 +10139,10 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
             if ($k != 0)
                    $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
 
-            else
-              $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
+           // else
+             // $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
         }
-        else {
-            $mas_error['teh'] = 1;
-        }
+
         return $mas_error['teh'];
     }
 
@@ -19718,9 +19876,22 @@ $others=array();
     /* ----------------- END ЗАКРЫТЬ ДОСТУП НА РЕД -----------------*/
 
 
+    function sumElementsArray($arr)
+    {
+        $new_arr = array();
 
 
-        /* +++++++++++++++++++++ инф по сменам +++++++++++++++++++++ */
+        foreach ($arr as $k => $subArray) {
+            foreach ($subArray as $id => $value) {
+                if (isset($new_arr[$id]))
+                    $new_arr[$id] += $value;
+                else
+                    $new_arr[$id] = $value;
+            }
+        }
+        return $new_arr;
+    }
+    /* +++++++++++++++++++++ инф по сменам +++++++++++++++++++++ */
         $app->post('/builder/basic/inf_ch_cou/:type', function ($type) use ($app) {// результат запросника информация по сменам ЦОУ, ШЛЧС
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
@@ -19754,9 +19925,9 @@ $others=array();
         $yesterday = date("Y-m-d", time() - (60 * 60 * 24));
         $day_before_yesterday = date("Y-m-d", time() - (60 * 60 * 24) - (60 * 60 * 24));
 
-//        if ($date != $today && $date != $yesterday && $date != $day_before_yesterday) {
-//            $date = 0;
-//        }
+        if ($date != $today && $date != $yesterday && $date != $day_before_yesterday) {
+            $date = 0;
+        }
         /* ------------ END дата, на которую надо выбирать данные ------------ */
 
 
@@ -19887,70 +20058,169 @@ $divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = 
                  //by rb
                 $rb_inf_bd=R::getAll("select * from main_cou_cnt_rb_pos as m where m.dateduty= ?",array($dateduty_head));
 
+
                 foreach ($region_inf_bd as $value) {
-                    $cnt_by_region[$value['region_id']][$value['id_pos_duty']]=$value['cnt_pos'];
+                    $cnt_by_region[$value['region_id']][$value['id_pos_duty']] = $value['cnt_pos'];
                 }
-$data['cnt_by_region']=$cnt_by_region;
+                $data['cnt_by_region'] = $cnt_by_region;
 
                 foreach ($rb_inf_bd as $value) {
-                    $cnt_by_rb[$value['id_pos_duty']]=$value['cnt_pos'];
+                    $cnt_by_rb[$value['id_pos_duty']] = $value['cnt_pos'];
                 }
-$data['cnt_by_rb']=$cnt_by_rb;
-//print_r($rb_inf_bd);exit();
+                $data['cnt_by_rb'] = $cnt_by_rb;
+
+
+//print_r( $region_inf_bd);exit();
+
+                /* itogo position region */
+                $region_itogo = array();
+                foreach ($region_inf_bd as $value) {
+                    $region_itogo[$value['region_id']]['position'][$value['id_pos_duty']] = array('id_pos_duty' => $value['id_pos_duty'], 'pos_name' => $value['pos_name'], 'cnt_pos' => $value['cnt_pos']);
+                    $region_itogo[$value['region_id']]['info']['region_name'] = $value['region'];
+                }
+
+                /* itogo position rb */
+                $rb_itogo = array();
+                foreach ($rb_inf_bd as $value) {
+                    $rb_itogo[$value['id_pos_duty']] = array('id_pos_duty' => $value['id_pos_duty'], 'pos_name' => $value['pos_name'], 'cnt_pos' => $value['cnt_pos']);
+                }
+
+                $data['region_itogo'] = $region_itogo;
+                $data['rb_itogo'] = $rb_itogo;
+
+
+
+                /* ROSN */
+
+                //by region
+                $region_rosn_inf_bd = R::getAll("select * from main_cou_cnt_region_rosn_pos as m where m.dateduty= ?", array($dateduty_head));
+
+                /* itogo position region */
+                $region_rosn_itogo = array();
+                foreach ($region_rosn_inf_bd as $value) {
+                    $region_rosn_itogo[$value['organ_id']]['position'][$value['id_pos_duty']] = array('id_pos_duty' => $value['id_pos_duty'], 'pos_name' => $value['pos_name'], 'cnt_pos' => $value['cnt_pos']);
+                    $region_rosn_itogo[$value['organ_id']]['info']['region_name'] = $value['region'];
+                }
+
+                $data['region_rosn_itogo'] = $region_rosn_itogo;
+
+
+
+
+//print_r( $region_rosn_itogo);exit();
+
+                /* shtat, absent */
                 $pasp_inf_new=array();
+                $shtat[1]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[2]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[3]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[4]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[5]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[6]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[7]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[8]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[9]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+                $shtat[12]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
+
+                $absent[1]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[2]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[3]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[4]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[5]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[6]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[7]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[8]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[9]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+                $absent[12]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
+
+                $count_fio_on_car[1]=array('cnt_on_car'=>0);
+                $count_fio_on_car[2]=array('cnt_on_car'=>0);
+                $count_fio_on_car[3]=array('cnt_on_car'=>0);
+                $count_fio_on_car[4]=array('cnt_on_car'=>0);
+                $count_fio_on_car[5]=array('cnt_on_car'=>0);
+                $count_fio_on_car[6]=array('cnt_on_car'=>0);
+                $count_fio_on_car[7]=array('cnt_on_car'=>0);
+                $count_fio_on_car[8]=array('cnt_on_car'=>0);
+                $count_fio_on_car[9]=array('cnt_on_car'=>0);
+                $count_fio_on_car[12]=array('cnt_on_car'=>0);
+
+
+
+
+                /* unique id card */
+                $ids_card=array();
+
                 foreach ($pasp_inf_bd as $row) {
 
-                    $pasp_inf_new[$row['id_card']]['general_inf']=$row;
-                    $pasp_inf_new[$row['id_card']]['position'][$row['id_pos_duty']]=array('pos_name'=>$row['pos_name'],'pos_cnt'=>$row['cnt_pos']);
+                    $arr_cp = array(8, 9, 12);
 
-                    $divizion=$row['id_card'];
+                    if (in_array($row['organ_id'], $arr_cp)) {
+                        $id_reg = $row['organ_id'];
+                    } else {
+                        $id_reg = $row['region_id'];
+                    }
 
-                     /* ------------- по штату в деж смене выбираем из карточки для данной смены! ---------------- */
-                    $shtat[$row['id_card']]['shtat_ch'] = getShtatFromKUSiS($change, $divizion);
+                    if (isset($ids_card[$id_reg]) && !empty($ids_card[$id_reg])) {
+                            if (!in_array($row['id_card'], $ids_card[$id_reg])) {
+                                $ids_card[$id_reg][] = $row['id_card'];
+                            }
+                        } else {
+                            $ids_card[$id_reg][] = $row['id_card'];
+                        }
 
-                    /* ------------------- вакантов в деж смене -  из списка смен ---------------------- */
-                    $shtat[$row['id_card']]['vacant_ch'] = getCountVacantOnList($divizion, $change);
-
-                    /* ------------------- сколько человек в б.р.(на технике) ---------------------- */
-                    $count_fio_on_car['id_card'] = getCountCalc($divizion, $change, $dateduty_head);
-
-                    /* --------------- отсутствующие ---------------- */
-                    $absent[$row['id_card']] ['trip'] = getCountTrip($divizion, $change, $dateduty_head);
-                    $absent[$row['id_card']]['holiday'] = getCountHoliday($divizion, $change, $dateduty_head);
-                    $absent [$row['id_card']]['ill'] = getCountIll($divizion, $change, $dateduty_head);
-                    $absent[$row['id_card']]['other'] = getCountOther($divizion, $change, $dateduty_head);
-
-                    $data['absent'] = $absent;
-
-
-                    /* ----------------- л/с подразделения ------------- */
-                    //по штату   по подразделению c ежедневниками
-                    $shtat[$row['id_card']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
-                            . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ?  ', array($divizion));
-                    //вакансия по подразделению
-                    $shtat[$row['id_card']] ['vacant'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
-                            . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND l.is_vacant = ? ', array($divizion, 1));
-
-                    /* ----------------- END л/с подразделения ------------- */
                 }
-//print_r($pasp_inf_bd);exit();
-//echo '<br>';
-             //   print_r($pasp_inf_new);exit();
+
+               // print_r($ids_card);
+
+                /* shtat, absent */
+                foreach ($ids_card as $id_region=>$value) {
+                    foreach ($value as $row) {
+                        $shtat[$id_region]['shtat_ch']+= getShtatFromKUSiS($change, $row);
+                        $shtat[$id_region]['vacant_ch']+= getCountVacantOnList($row, $change);
+
+                         $shtat[$id_region] ['shtat'] += R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ?  ', array($row));
+                        //вакансия по подразделению
+                        $shtat[$id_region] ['vacant'] += R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND l.is_vacant = ? ', array($row, 1));
+
+                        $absent[$id_region] ['trip'] += getCountTrip($row, $change, $dateduty_head);
+                        $absent[$id_region]['holiday'] += getCountHoliday($row, $change, $dateduty_head);
+                        $absent [$id_region]['ill'] += getCountIll($row, $change, $dateduty_head);
+                        $absent[$id_region]['other'] += getCountOther($row, $change, $dateduty_head);
+
+                        $count_fio_on_car[$id_region]['cnt_on_car']+= getCountCalc($row, $change, $dateduty_head);
+                    }
+                }
+
+               // echo '<br>';
+
+
+                $data['shtatRb'] = sumElementsArray($shtat);
+                $data['absentRb'] = sumElementsArray($absent);
+                $data['countBrRb'] = sumElementsArray($count_fio_on_car);
+
+
+
+//                print_r($aa);
+//                exit();
 
                 $data['main_cou'] = $pasp_inf_new;
                 $data['shtat'] = $shtat;
                 $data['absent'] = $absent;
                 $data['count_fio_on_car'] = $count_fio_on_car;
+               // exit();
 
                 /* -------------------------- export to excel ---------------------------- */
             if (isset($_POST['export_to_excel'])) {
-               exportToExcelInfChCouByRb($pasp_inf_new,$cnt_by_region,$cnt_by_rb, $shtat, $absent, $count_fio_on_car, $head_info);
+               exportToExcelInfChCouByRb($region_itogo,$region_rosn_itogo,$rb_itogo, $data['shtatRb'], $data['absentRb'], $data['countBrRb'],$cnt_by_region,$cnt_by_rb, $shtat, $absent, $count_fio_on_car, $head_info);
                 // exportToExcelInfChCouByRegion($cou_ids,$new_mas_pos_fio,$cnt_main_cou,$main_cou, $shtat, $absent, $count_fio_on_car, $head_info);
 
             }
             /* ---------------------- view on screen  ----------------------------- */ else {
                 //print_r($absent);
-                $app->render('query/result/cou/inf_ch_cou_by_rb.php', $data); //result
+                //$app->render('query/result/cou/inf_ch_cou_by_rb.php', $data); //result
+                 $app->render('query/result/cou/inf_ch_cou_by_rb_1.php', $data); //result
                 $app->render('query/pzend.php');
             }
 
@@ -20472,7 +20742,7 @@ function exportToExcelInfChCouByRegion($cou_ids,$new_mas_pos_fio,$cnt_main_cou,$
                     $fio = '';
                     if (!empty($row)) {
                         foreach ($row as $ro) {
-                            if ($roo['slug'] == '') {
+                            if ($ro['slug'] == '') {
                                 $fio = $fio . $ro['fio'] . ' ' . $ro['pasp'] . ' ' . $ro['locorg_name'] . chr(10);
                             } else {
                                 $fio = $fio . $ro['fio'] . ' ' . $ro['pasp'] . ' ' . $ro['locorg_name'] . ' (' . mb_strtolower($ro['slug']) . ')' . chr(10);
@@ -20593,7 +20863,7 @@ $sheet->setCellValue('O' . $r, (($itogo_region_vacant != 0) ? $itogo_region_vaca
 
 
 
-function exportToExcelInfChCouByRb($main_cou,$cnt_by_region,$cnt_by_rb, $shtat, $absent, $count_fio_on_car, $head_info) {
+function exportToExcelInfChCouByRb($region_itogo,$region_rosn_itogo,$rb_itogo, $shtatRb, $absentRb, $countBrRb,$cnt_by_region,$cnt_by_rb, $shtat, $absent, $count_fio_on_car, $head_info) {
 
     $objPHPExcel = new PHPExcel();
     $objReader = PHPExcel_IOFactory::createReader("Excel2007");
@@ -20660,215 +20930,111 @@ function exportToExcelInfChCouByRb($main_cou,$cnt_by_region,$cnt_by_rb, $shtat, 
 
     /* ---------------все должности и ФИО на этих должностях------------ */
 
-            $prev_region_id=0;
-
-            $itogo_rn_shtat_ch = 0;
-            $itogo_rb_vacant_ch = 0;
-            $itogo_rb_br = 0;
-            $itogo_rb_trip = 0;
-            $itogo_rb_holiday = 0;
-            $itogo_rb_ill = 0;
-            $itogo_rb_other = 0;
-            $itogo_rb_shtat = 0;
-            $itogo_rb_vacant = 0;
 
 
-       foreach ($main_cou as $key => $row) {
 
-        $region_id = $row['general_inf']['region_id'];
-        if ($region_id != $prev_region_id) {
-            if (isset($cnt_by_region[$prev_region_id])) {
+    foreach ($region_itogo as $id_region => $value) {
 
-                            $sheet->setCellValue('A' . $r, 'Итого по области');
-            $sheet->setCellValue('C' . $r, ((isset($cnt_by_region[$prev_region_id][1]) && $cnt_by_region[$prev_region_id][1] != 0) ? $cnt_by_region[$prev_region_id][1] : ''));
-            $sheet->setCellValue('D' . $r, ((isset($cnt_by_region[$prev_region_id][2]) && $cnt_by_region[$prev_region_id][2] != 0) ? $cnt_by_region[$prev_region_id][2] : ''));
-            $sheet->setCellValue('E' . $r, ((isset($cnt_by_region[$prev_region_id][3]) && $cnt_by_region[$prev_region_id][3] != 0) ? $cnt_by_region[$prev_region_id][3] : ''));
-            $sheet->setCellValue('F' . $r, ((isset($cnt_by_region[$prev_region_id][4]) && $cnt_by_region[$prev_region_id][4] != 0) ? $cnt_by_region[$prev_region_id][4] : ''));
-            $sheet->setCellValue('G' . $r, ((isset($cnt_by_region[$prev_region_id][5]) && $cnt_by_region[$prev_region_id][5] != 0) ? $cnt_by_region[$prev_region_id][5] : ''));
-            $sheet->setCellValue('H' . $r, ((isset($cnt_by_region[$prev_region_id][6]) && $cnt_by_region[$prev_region_id][6] != 0) ? $cnt_by_region[$prev_region_id][6] : ''));
-            $sheet->setCellValue('I' . $r, ((isset($cnt_by_region[$prev_region_id][7]) && $cnt_by_region[$prev_region_id][7] != 0) ? $cnt_by_region[$prev_region_id][7] : ''));
-            $sheet->setCellValue('J' . $r, ((isset($cnt_by_region[$prev_region_id][8]) && $cnt_by_region[$prev_region_id][8] != 0) ? $cnt_by_region[$prev_region_id][8] : ''));
-            $sheet->setCellValue('K' . $r, ((isset($cnt_by_region[$prev_region_id][9]) && $cnt_by_region[$prev_region_id][9] != 0) ? $cnt_by_region[$prev_region_id][9] : ''));
-            $sheet->setCellValue('L' . $r, ((isset($cnt_by_region[$prev_region_id][10]) && $cnt_by_region[$prev_region_id][10] != 0) ? $cnt_by_region[$prev_region_id][10] : ''));
-            $sheet->setCellValue('M' . $r, ((isset($cnt_by_region[$prev_region_id][11]) && $cnt_by_region[$prev_region_id][11] != 0) ? $cnt_by_region[$prev_region_id][11] : ''));
-            $sheet->setCellValue('N' . $r, ((isset($cnt_by_region[$prev_region_id][12]) && $cnt_by_region[$prev_region_id][12] != 0) ? $cnt_by_region[$prev_region_id][12] : ''));
-            $sheet->setCellValue('O' . $r, ((isset($cnt_by_region[$prev_region_id][13]) && $cnt_by_region[$prev_region_id][13] != 0) ? $cnt_by_region[$prev_region_id][13] : ''));
-            $sheet->setCellValue('P' . $r, ((isset($cnt_by_region[$prev_region_id][14]) && $cnt_by_region[$prev_region_id][14] != 0) ? $cnt_by_region[$prev_region_id][15] : ''));
+         $sheet->setCellValue('A' . $r, $value['info']['region_name']);
+         $sheet->setCellValue('B' . $r, ((isset($value['position'][1]['cnt_pos']) && $value['position'][1]['cnt_pos'] != 0) ? $value['position'][1]['cnt_pos'] : ''));
+         $sheet->setCellValue('C' . $r, ((isset($value['position'][2]['cnt_pos']) && $value['position'][2]['cnt_pos'] != 0) ? $value['position'][2]['cnt_pos'] : ''));
+         $sheet->setCellValue('D' . $r, ((isset($value['position'][3]['cnt_pos']) && $value['position'][3]['cnt_pos'] != 0) ? $value['position'][3]['cnt_pos'] : ''));
+         $sheet->setCellValue('E' . $r, ((isset($value['position'][4]['cnt_pos']) && $value['position'][4]['cnt_pos'] != 0) ? $value['position'][4]['cnt_pos'] : ''));
+         $sheet->setCellValue('F' . $r, ((isset($value['position'][5]['cnt_pos']) && $value['position'][5]['cnt_pos'] != 0) ? $value['position'][5]['cnt_pos'] : ''));
+         $sheet->setCellValue('G' . $r, ((isset($value['position'][6]['cnt_pos']) && $value['position'][6]['cnt_pos'] != 0) ? $value['position'][6]['cnt_pos'] : ''));
+         $sheet->setCellValue('H' . $r, ((isset($value['position'][7]['cnt_pos']) && $value['position'][7]['cnt_pos'] != 0) ? $value['position'][7]['cnt_pos'] : ''));
+         $sheet->setCellValue('I' . $r, ((isset($value['position'][8]['cnt_pos']) && $value['position'][8]['cnt_pos'] != 0) ? $value['position'][8]['cnt_pos'] : ''));
+         $sheet->setCellValue('J' . $r, ((isset($value['position'][9]['cnt_pos']) && $value['position'][9]['cnt_pos'] != 0) ? $value['position'][9]['cnt_pos'] : ''));
+         $sheet->setCellValue('K' . $r, ((isset($value['position'][10]['cnt_pos']) && $value['position'][10]['cnt_pos'] != 0) ? $value['position'][10]['cnt_pos'] : ''));
+         $sheet->setCellValue('L' . $r, ((isset($value['position'][11]['cnt_pos']) && $value['position'][11]['cnt_pos'] != 0) ? $value['position'][11]['cnt_pos'] : ''));
+         $sheet->setCellValue('M' . $r, ((isset($value['position'][12]['cnt_pos']) && $value['position'][12]['cnt_pos'] != 0) ? $value['position'][12]['cnt_pos'] : ''));
+         $sheet->setCellValue('N' . $r, ((isset($value['position'][13]['cnt_pos']) && $value['position'][13]['cnt_pos'] != 0) ? $value['position'][13]['cnt_pos'] : ''));
+         $sheet->setCellValue('O' . $r, ((isset($value['position'][14]['cnt_pos']) && $value['position'][14]['cnt_pos'] != 0) ? $value['position'][14]['cnt_pos'] : ''));
 
-            $sheet->setCellValue('Q' . $r, ((isset($itogo_region_shtat_ch) && $itogo_region_shtat_ch != 0) ? $itogo_region_shtat_ch : ''));
-            $sheet->setCellValue('R' . $r, ((isset($itogo_region_vacant_ch) && $itogo_region_vacant_ch != 0) ? $itogo_region_vacant_ch : ''));
-            $sheet->setCellValue('S' . $r, ((isset($itogo_region_br) && $itogo_region_br != 0) ? $itogo_region_br : ''));
-            $sheet->setCellValue('T' . $r, ((isset($itogo_region_trip) && $itogo_region_trip != 0) ? $itogo_region_trip : ''));
-            $sheet->setCellValue('U' . $r, ((isset($itogo_region_holiday) && $itogo_region_holiday != 0) ? $itogo_region_holiday : ''));
-            $sheet->setCellValue('V' . $r, ((isset($itogo_region_ill) && $itogo_region_ill != 0) ? $itogo_region_ill : ''));
-            $sheet->setCellValue('W' . $r, ((isset($itogo_region_other) && $itogo_region_other != 0) ? $itogo_region_other : ''));
-            $sheet->setCellValue('X' . $r, ((isset($itogo_region_shtat) && $itogo_region_shtat != 0) ? $itogo_region_shtat : ''));
-            $sheet->setCellValue('Y' . $r, ((isset($itogo_region_vacant) && $itogo_region_vacant != 0) ? $itogo_region_vacant : ''));
+         $sheet->setCellValue('P' . $r, ((isset($shtat[$id_region]['shtat_ch']) && $shtat[$id_region]['shtat_ch'] != 0) ? $shtat[$id_region]['shtat_ch'] : ''));
+         $sheet->setCellValue('Q' . $r, ((isset($shtat[$id_region]['vacant_ch']) && $shtat[$id_region]['vacant_ch'] != 0) ? $shtat[$id_region]['vacant_ch'] : ''));
+         $sheet->setCellValue('R' . $r, ((isset($count_fio_on_car[$id_region]['cnt_on_car']) && $count_fio_on_car[$id_region]['cnt_on_car'] != 0) ? $count_fio_on_car[$id_region]['cnt_on_car'] : ''));
+         $sheet->setCellValue('S' . $r, ((isset($absent[$id_region]['trip']) && $absent[$id_region]['trip'] != 0) ? $absent[$id_region]['trip'] : ''));
+         $sheet->setCellValue('T' . $r, ((isset($absent[$id_region]['holiday']) && $absent[$id_region]['holiday'] != 0) ? $absent[$id_region]['holiday'] : ''));
+         $sheet->setCellValue('U' . $r, ((isset($absent[$id_region]['ill']) && $absent[$id_region]['ill'] != 0) ? $absent[$id_region]['ill'] : ''));
+         $sheet->setCellValue('V' . $r, ((isset($absent[$id_region]['other']) && $absent[$id_region]['other'] != 0) ? $absent[$id_region]['other'] : ''));
+         $sheet->setCellValue('W' . $r, ((isset($shtat[$id_region]['shtat']) && $shtat[$id_region]['shtat'] != 0) ? $shtat[$id_region]['shtat'] : ''));
+         $sheet->setCellValue('X' . $r, ((isset($shtat[$id_region]['vacant']) && $shtat[$id_region]['vacant'] != 0) ? $shtat[$id_region]['vacant'] : ''));
 
-            $sheet->getStyleByColumnAndRow(0, $r, 24, $r)->applyFromArray($style_all_grochs);
+$r++;
+
+
+    }
+
+     $cp = array(8, 9, 12);
+            foreach ($cp as $id_organ) {
+                $id_region = $id_organ;
+
+
+         $sheet->setCellValue('A' . $r, ( ($id_organ == 8) ? 'РОСН' : (($id_organ == 9) ? 'УГЗ' : (($id_organ == 12) ? 'Авиация' : ''))));
+         $sheet->setCellValue('B' . $r, ((isset($region_rosn_itogo[$id_region]['position'][1]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][1]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][1]['cnt_pos'] : ''));
+         $sheet->setCellValue('C' . $r, ((isset($region_rosn_itogo[$id_region]['position'][2]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][2]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][2]['cnt_pos'] : ''));
+         $sheet->setCellValue('D' . $r, ((isset($region_rosn_itogo[$id_region]['position'][3]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][3]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][3]['cnt_pos'] : ''));
+         $sheet->setCellValue('E' . $r, ((isset($region_rosn_itogo[$id_region]['position'][4]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][4]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][4]['cnt_pos'] : ''));
+         $sheet->setCellValue('F' . $r, ((isset($region_rosn_itogo[$id_region]['position'][5]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][5]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][5]['cnt_pos'] : ''));
+         $sheet->setCellValue('G' . $r, ((isset($region_rosn_itogo[$id_region]['position'][6]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][6]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][6]['cnt_pos'] : ''));
+         $sheet->setCellValue('H' . $r, ((isset($region_rosn_itogo[$id_region]['position'][7]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][7]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][7]['cnt_pos'] : ''));
+         $sheet->setCellValue('I' . $r, ((isset($region_rosn_itogo[$id_region]['position'][8]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][8]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][8]['cnt_pos'] : ''));
+         $sheet->setCellValue('J' . $r, ((isset($region_rosn_itogo[$id_region]['position'][9]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][9]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][9]['cnt_pos'] : ''));
+         $sheet->setCellValue('K' . $r, ((isset($region_rosn_itogo[$id_region]['position'][10]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][10]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][10]['cnt_pos'] : ''));
+         $sheet->setCellValue('L' . $r, ((isset($region_rosn_itogo[$id_region]['position'][11]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][11]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][11]['cnt_pos'] : ''));
+         $sheet->setCellValue('M' . $r, ((isset($region_rosn_itogo[$id_region]['position'][12]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][12]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][12]['cnt_pos'] : ''));
+         $sheet->setCellValue('N' . $r, ((isset($region_rosn_itogo[$id_region]['position'][13]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][13]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][13]['cnt_pos'] : ''));
+         $sheet->setCellValue('O' . $r, ((isset($region_rosn_itogo[$id_region]['position'][14]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][14]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][14]['cnt_pos'] : ''));
+
+
+         $sheet->setCellValue('P' . $r, ((isset($shtat[$id_region]['shtat_ch']) && $shtat[$id_region]['shtat_ch'] != 0) ? $shtat[$id_region]['shtat_ch'] : ''));
+         $sheet->setCellValue('Q' . $r, ((isset($shtat[$id_region]['vacant_ch']) && $shtat[$id_region]['vacant_ch'] != 0) ? $shtat[$id_region]['vacant_ch'] : ''));
+         $sheet->setCellValue('R' . $r, ((isset($count_fio_on_car[$id_region]['cnt_on_car']) && $count_fio_on_car[$id_region]['cnt_on_car'] != 0) ? $count_fio_on_car[$id_region]['cnt_on_car'] : ''));
+         $sheet->setCellValue('S' . $r, ((isset($absent[$id_region]['trip']) && $absent[$id_region]['trip'] != 0) ? $absent[$id_region]['trip'] : ''));
+         $sheet->setCellValue('T' . $r, ((isset($absent[$id_region]['holiday']) && $absent[$id_region]['holiday'] != 0) ? $absent[$id_region]['holiday'] : ''));
+         $sheet->setCellValue('U' . $r, ((isset($absent[$id_region]['ill']) && $absent[$id_region]['ill'] != 0) ? $absent[$id_region]['ill'] : ''));
+         $sheet->setCellValue('V' . $r, ((isset($absent[$id_region]['other']) && $absent[$id_region]['other'] != 0) ? $absent[$id_region]['other'] : ''));
+         $sheet->setCellValue('W' . $r, ((isset($shtat[$id_region]['shtat']) && $shtat[$id_region]['shtat'] != 0) ? $shtat[$id_region]['shtat'] : ''));
+         $sheet->setCellValue('X' . $r, ((isset($shtat[$id_region]['vacant']) && $shtat[$id_region]['vacant'] != 0) ? $shtat[$id_region]['vacant'] : ''));
 
 $r++;
             }
 
 
-            $itogo_rb_shtat_ch +=$itogo_region_shtat_ch;
-            $itogo_rb_vacant_ch +=$itogo_region_vacant_ch;
-            $itogo_rb_br +=$itogo_region_br;
-            $itogo_rb_trip +=$itogo_region_trip;
-            $itogo_rb_holiday +=$itogo_region_holiday;
-            $itogo_rb_ill +=$itogo_region_ill;
-            $itogo_rb_other +=$itogo_region_other;
-            $itogo_rb_shtat +=$itogo_region_shtat;
-            $itogo_rb_vacant +=$itogo_region_vacant;
+         $sheet->setCellValue('A' . $r, 'Итого по республике');
+         $sheet->setCellValue('B' . $r, ((isset($rb_itogo[1]['cnt_pos']) && $rb_itogo[1]['cnt_pos'] != 0) ? $rb_itogo[1]['cnt_pos'] : ''));
+         $sheet->setCellValue('C' . $r, ((isset($rb_itogo[2]['cnt_pos']) && $rb_itogo[2]['cnt_pos'] != 0) ? $rb_itogo[2]['cnt_pos'] : ''));
+         $sheet->setCellValue('D' . $r, ((isset($rb_itogo[3]['cnt_pos']) && $rb_itogo[3]['cnt_pos'] != 0) ? $rb_itogo[3]['cnt_pos'] : ''));
+         $sheet->setCellValue('E' . $r, ((isset($rb_itogo[4]['cnt_pos']) && $rb_itogo[4]['cnt_pos'] != 0) ? $rb_itogo[4]['cnt_pos'] : ''));
+         $sheet->setCellValue('F' . $r, ((isset($rb_itogo[5]['cnt_pos']) && $rb_itogo[5]['cnt_pos'] != 0) ? $rb_itogo[5]['cnt_pos'] : ''));
+         $sheet->setCellValue('G' . $r, ((isset($rb_itogo[6]['cnt_pos']) && $rb_itogo[6]['cnt_pos'] != 0) ? $rb_itogo[6]['cnt_pos'] : ''));
+         $sheet->setCellValue('H' . $r, ((isset($rb_itogo[7]['cnt_pos']) && $rb_itogo[7]['cnt_pos'] != 0) ? $rb_itogo[7]['cnt_pos'] : ''));
+         $sheet->setCellValue('I' . $r, ((isset($rb_itogo[8]['cnt_pos']) && $rb_itogo[8]['cnt_pos'] != 0) ? $rb_itogo[8]['cnt_pos'] : ''));
+         $sheet->setCellValue('J' . $r, ((isset($rb_itogo[9]['cnt_pos']) && $rb_itogo[9]['cnt_pos'] != 0) ? $rb_itogo[9]['cnt_pos'] : ''));
+         $sheet->setCellValue('K' . $r, ((isset($rb_itogo[10]['cnt_pos']) && $rb_itogo[10]['cnt_pos'] != 0) ? $rb_itogo[10]['cnt_pos'] : ''));
+         $sheet->setCellValue('L' . $r, ((isset($rb_itogo[11]['cnt_pos']) && $rb_itogo[11]['cnt_pos'] != 0) ? $rb_itogo[11]['cnt_pos'] : ''));
+         $sheet->setCellValue('M' . $r, ((isset($rb_itogo[12]['cnt_pos']) && $rb_itogo[12]['cnt_pos'] != 0) ? $rb_itogo[12]['cnt_pos'] : ''));
+         $sheet->setCellValue('N' . $r, ((isset($rb_itogo[13]['cnt_pos']) && $rb_itogo[13]['cnt_pos'] != 0) ? $rb_itogo[13]['cnt_pos'] : ''));
+         $sheet->setCellValue('O' . $r, ((isset($rb_itogo[14]['cnt_pos']) && $rb_itogo[14]['cnt_pos'] != 0) ? $rb_itogo[14]['cnt_pos'] : ''));
+
+
+         $sheet->setCellValue('P' . $r, ((isset($shtatRb['shtat_ch']) && $shtatRb['shtat_ch'] != 0) ? $shtatRb['shtat_ch'] : ''));
+         $sheet->setCellValue('Q' . $r, ((isset($shtatRb['vacant_ch']) && $shtatRb['vacant_ch'] != 0) ? $shtatRb['vacant_ch'] : ''));
+         $sheet->setCellValue('R' . $r, ((isset($countBrRb['cnt_on_car']) && $countBrRb['cnt_on_car'] != 0) ? $countBrRb['cnt_on_car'] : ''));
+         $sheet->setCellValue('S' . $r, ((isset($absentRb['trip']) && $absentRb['trip'] != 0) ? $absentRb['trip'] : ''));
+         $sheet->setCellValue('T' . $r, ((isset($absentRb['holiday']) && $absentRb['holiday'] != 0) ? $absentRb['holiday'] : '' ));
+         $sheet->setCellValue('U' . $r, ((isset($absentRb['ill']) && $absentRb['ill'] != 0) ? $absentRb['ill'] : ''));
+         $sheet->setCellValue('V' . $r, ((isset($absentRb['other']) && $absentRb['other'] != 0) ? $absentRb['other'] : ''));
+         $sheet->setCellValue('W' . $r, ((isset($shtatRb['shtat']) && $shtatRb['shtat'] != 0) ? $shtatRb['shtat'] : ''));
+         $sheet->setCellValue('X' . $r, ((isset($shtatRb['vacant']) && $shtatRb['vacant'] != 0) ? $shtatRb['vacant'] : ''));
+
+
+    $sheet->getStyleByColumnAndRow(0, $r, 23, $r)->applyFromArray($style_all_region);
 
 
 
-
-            $itogo_region_shtat_ch = 0;
-            $itogo_region_vacant_ch = 0;
-            $itogo_region_br = 0;
-            $itogo_region_trip = 0;
-            $itogo_region_holiday = 0;
-            $itogo_region_ill = 0;
-            $itogo_region_other = 0;
-            $itogo_region_shtat = 0;
-            $itogo_region_vacant = 0;
-        }
-
-
-        $sheet->setCellValue('A' . $r, $row['general_inf']['region']);
-        $sheet->setCellValue('B' . $r, ($row['general_inf']['locorg'].chr(10).$row['general_inf']['divizion_name']));
-        $sheet->setCellValue('C' . $r, ((isset($row['position'][1])) ? $row['position'][1]['pos_cnt'] : ''));
-        $sheet->setCellValue('D' . $r, ((isset($row['position'][2])) ? $row['position'][2]['pos_cnt'] : ''));
-        $sheet->setCellValue('E' . $r, ((isset($row['position'][3])) ? $row['position'][3]['pos_cnt'] : ''));
-        $sheet->setCellValue('F' . $r, ((isset($row['position'][4])) ? $row['position'][4]['pos_cnt'] : ''));
-        $sheet->setCellValue('G' . $r, ((isset($row['position'][5])) ? $row['position'][5]['pos_cnt'] : ''));
-        $sheet->setCellValue('H' . $r, ((isset($row['position'][6])) ? $row['position'][6]['pos_cnt'] : ''));
-        $sheet->setCellValue('I' . $r, ((isset($row['position'][7])) ? $row['position'][7]['pos_cnt'] : ''));
-        $sheet->setCellValue('J' . $r, ((isset($row['position'][8])) ? $row['position'][8]['pos_cnt'] : ''));
-        $sheet->setCellValue('K' . $r, ((isset($row['position'][9])) ? $row['position'][9]['pos_cnt'] : ''));
-        $sheet->setCellValue('L' . $r, ((isset($row['position'][10])) ? $row['position'][10]['pos_cnt'] : ''));
-        $sheet->setCellValue('M' . $r, ((isset($row['position'][11])) ? $row['position'][11]['pos_cnt'] : ''));
-        $sheet->setCellValue('N' . $r, ((isset($row['position'][12])) ? $row['position'][12]['pos_cnt'] : ''));
-        $sheet->setCellValue('O' . $r, ((isset($row['position'][13])) ? $row['position'][13]['pos_cnt'] : ''));
-        $sheet->setCellValue('P' . $r, ((isset($row['position'][14])) ? $row['position'][14]['pos_cnt'] : ''));
-
-
-        $sheet->setCellValue('Q' . $r, ((isset($shtat[$key]['shtat_ch']) && $shtat[$key]['shtat_ch'] != 0) ? $shtat[$key]['shtat_ch'] : ''));
-        $itogo_region_shtat_ch += $shtat[$key]['shtat_ch'];
-
-        $sheet->setCellValue('R' . $r, ((isset($shtat[$key]['vacant_ch']) && $shtat[$key]['vacant_ch'] != 0) ? $shtat[$key]['vacant_ch'] : ''));
-        $itogo_region_vacant_ch += $shtat[$key]['vacant_ch'];
-
-        $sheet->setCellValue('S' . $r, ((isset($count_fio_on_car[$key]) && $count_fio_on_car[$key] != 0) ? $count_fio_on_car[$key] : ''));
-        $itogo_region_br += $count_fio_on_car[$key];
-
-
-        $sheet->setCellValue('T' . $r, ((isset($absent[$key]['trip']) && $absent[$key]['trip'] != 0) ? $absent[$key]['trip'] : ''));
-        $itogo_region_trip += $absent[$key]['trip'];
-
-
-        $sheet->setCellValue('U' . $r, ((isset($absent[$key]['holiday']) && $absent[$key]['holiday'] != 0) ? $absent[$key]['holiday'] : ''));
-        $itogo_region_holiday += $absent[$key]['holiday'];
-
-
-        $sheet->setCellValue('V' . $r, ((isset($absent[$key]['ill']) && $absent[$key]['ill'] != 0) ? $absent[$key]['ill'] : ''));
-        $itogo_region_ill += $absent[$key]['ill'];
-
-        $sheet->setCellValue('W' . $r, ((isset($absent[$key]['other']) && $absent[$key]['other'] != 0) ? $absent[$key]['other'] : ''));
-        $itogo_region_other += $absent[$key]['other'];
-
-        $sheet->setCellValue('X' . $r, ((isset($shtat[$key]['shtat']) && $shtat[$key]['shtat'] != 0) ? $shtat[$key]['shtat'] : ''));
-        $itogo_region_shtat += $shtat[$key]['shtat'];
-
-        $sheet->setCellValue('Y' . $r, ((isset($shtat[$key]['vacant']) && $shtat[$key]['vacant'] != 0) ? $shtat[$key]['vacant'] : ''));
-        $itogo_region_vacant += $shtat[$key]['vacant'];
-
-        $prev_region_id = $region_id;
-
-        $r++;
-    }
-
-            $itogo_rb_shtat_ch +=$itogo_region_shtat_ch;
-            $itogo_rb_vacant_ch +=$itogo_region_vacant_ch;
-            $itogo_rb_br +=$itogo_region_br;
-            $itogo_rb_trip +=$itogo_region_trip;
-            $itogo_rb_holiday +=$itogo_region_holiday;
-            $itogo_rb_ill +=$itogo_region_ill;
-            $itogo_rb_other +=$itogo_region_other;
-            $itogo_rb_shtat +=$itogo_region_shtat;
-            $itogo_rb_vacant +=$itogo_region_vacant;
-
-
- if ($prev_region_id != 0) {
-
-
-        if (isset($cnt_by_region[$prev_region_id])) {
-
-            $sheet->setCellValue('A' . $r, 'Итого по области');
-            $sheet->setCellValue('C' . $r, ((isset($cnt_by_region[$prev_region_id][1]) && $cnt_by_region[$prev_region_id][1] != 0) ? $cnt_by_region[$prev_region_id][1] : ''));
-            $sheet->setCellValue('D' . $r, ((isset($cnt_by_region[$prev_region_id][2]) && $cnt_by_region[$prev_region_id][2] != 0) ? $cnt_by_region[$prev_region_id][2] : ''));
-            $sheet->setCellValue('E' . $r, ((isset($cnt_by_region[$prev_region_id][3]) && $cnt_by_region[$prev_region_id][3] != 0) ? $cnt_by_region[$prev_region_id][3] : ''));
-            $sheet->setCellValue('F' . $r, ((isset($cnt_by_region[$prev_region_id][4]) && $cnt_by_region[$prev_region_id][4] != 0) ? $cnt_by_region[$prev_region_id][4] : ''));
-            $sheet->setCellValue('G' . $r, ((isset($cnt_by_region[$prev_region_id][5]) && $cnt_by_region[$prev_region_id][5] != 0) ? $cnt_by_region[$prev_region_id][5] : ''));
-            $sheet->setCellValue('H' . $r, ((isset($cnt_by_region[$prev_region_id][6]) && $cnt_by_region[$prev_region_id][6] != 0) ? $cnt_by_region[$prev_region_id][6] : ''));
-            $sheet->setCellValue('I' . $r, ((isset($cnt_by_region[$prev_region_id][7]) && $cnt_by_region[$prev_region_id][7] != 0) ? $cnt_by_region[$prev_region_id][7] : ''));
-            $sheet->setCellValue('J' . $r, ((isset($cnt_by_region[$prev_region_id][8]) && $cnt_by_region[$prev_region_id][8] != 0) ? $cnt_by_region[$prev_region_id][8] : ''));
-            $sheet->setCellValue('K' . $r, ((isset($cnt_by_region[$prev_region_id][9]) && $cnt_by_region[$prev_region_id][9] != 0) ? $cnt_by_region[$prev_region_id][9] : ''));
-            $sheet->setCellValue('L' . $r, ((isset($cnt_by_region[$prev_region_id][10]) && $cnt_by_region[$prev_region_id][10] != 0) ? $cnt_by_region[$prev_region_id][10] : ''));
-            $sheet->setCellValue('M' . $r, ((isset($cnt_by_region[$prev_region_id][11]) && $cnt_by_region[$prev_region_id][11] != 0) ? $cnt_by_region[$prev_region_id][11] : ''));
-            $sheet->setCellValue('N' . $r, ((isset($cnt_by_region[$prev_region_id][12]) && $cnt_by_region[$prev_region_id][12] != 0) ? $cnt_by_region[$prev_region_id][12] : ''));
-            $sheet->setCellValue('O' . $r, ((isset($cnt_by_region[$prev_region_id][13]) && $cnt_by_region[$prev_region_id][13] != 0) ? $cnt_by_region[$prev_region_id][13] : ''));
-            $sheet->setCellValue('P' . $r, ((isset($cnt_by_region[$prev_region_id][14]) && $cnt_by_region[$prev_region_id][14] != 0) ? $cnt_by_region[$prev_region_id][15] : ''));
-
-            $sheet->setCellValue('Q' . $r, ((isset($itogo_region_shtat_ch) && $itogo_region_shtat_ch != 0) ? $itogo_region_shtat_ch : ''));
-            $sheet->setCellValue('R' . $r, ((isset($itogo_region_vacant_ch) && $itogo_region_vacant_ch != 0) ? $itogo_region_vacant_ch : ''));
-            $sheet->setCellValue('S' . $r, ((isset($itogo_region_br) && $itogo_region_br != 0) ? $itogo_region_br : ''));
-            $sheet->setCellValue('T' . $r, ((isset($itogo_region_trip) && $itogo_region_trip != 0) ? $itogo_region_trip : ''));
-            $sheet->setCellValue('U' . $r, ((isset($itogo_region_holiday) && $itogo_region_holiday != 0) ? $itogo_region_holiday : ''));
-            $sheet->setCellValue('V' . $r, ((isset($itogo_region_ill) && $itogo_region_ill != 0) ? $itogo_region_ill : ''));
-            $sheet->setCellValue('W' . $r, ((isset($itogo_region_other) && $itogo_region_other != 0) ? $itogo_region_other : ''));
-            $sheet->setCellValue('X' . $r, ((isset($itogo_region_shtat) && $itogo_region_shtat != 0) ? $itogo_region_shtat : ''));
-            $sheet->setCellValue('Y' . $r, ((isset($itogo_region_vacant) && $itogo_region_vacant != 0) ? $itogo_region_vacant : ''));
-
-            $sheet->getStyleByColumnAndRow(0, $r, 24, $r)->applyFromArray($style_all_grochs);
-            $r++;
-        }
-    }
-
-
-    $sheet->setCellValue('A' . $r, 'Итого по республике');
-    $sheet->setCellValue('C' . $r, ((isset($cnt_by_rb[1]) && $cnt_by_rb[1] != 0) ? $cnt_by_rb[1] : ''));
-    $sheet->setCellValue('D' . $r, ((isset($cnt_by_rb[2]) && $cnt_by_rb[2] != 0) ? $cnt_by_rb[2] : ''));
-    $sheet->setCellValue('E' . $r, ((isset($cnt_by_rb[3]) && $cnt_by_rb[3] != 0) ? $cnt_by_rb[3] : ''));
-    $sheet->setCellValue('F' . $r, ((isset($cnt_by_rb[4]) && $cnt_by_rb[4] != 0) ? $cnt_by_rb[4] : ''));
-    $sheet->setCellValue('G' . $r, ((isset($cnt_by_rb[5]) && $cnt_by_rb[5] != 0) ? $cnt_by_rb[5] : ''));
-    $sheet->setCellValue('H' . $r, ((isset($cnt_by_rb[6]) && $cnt_by_rb[6] != 0) ? $cnt_by_rb[6] : ''));
-    $sheet->setCellValue('I' . $r, ((isset($cnt_by_rb[7]) && $cnt_by_rb[7] != 0) ? $cnt_by_rb[7] : ''));
-    $sheet->setCellValue('J' . $r, ((isset($cnt_by_rb[8]) && $cnt_by_rb[8] != 0) ? $cnt_by_rb[8] : ''));
-    $sheet->setCellValue('K' . $r, ((isset($cnt_by_rb[9]) && $cnt_by_rb[9] != 0) ? $cnt_by_rb[9] : ''));
-    $sheet->setCellValue('L' . $r, ((isset($cnt_by_rb[10]) && $cnt_by_rb[10] != 0) ? $cnt_by_rb[10] : ''));
-    $sheet->setCellValue('M' . $r, ((isset($cnt_by_rb[11]) && $cnt_by_rb[11] != 0) ? $cnt_by_rb[11] : ''));
-    $sheet->setCellValue('N' . $r, ((isset($cnt_by_rb[12]) && $cnt_by_rb[12] != 0) ? $cnt_by_rb[12] : ''));
-    $sheet->setCellValue('O' . $r, ((isset($cnt_by_rb[13]) && $cnt_by_rb[13] != 0) ? $cnt_by_rb[13] : ''));
-    $sheet->setCellValue('P' . $r, ((isset($cnt_by_rb[14]) && $cnt_by_rb[14] != 0) ? $cnt_by_rb[14] : ''));
-
-
-    $sheet->setCellValue('Q' . $r, ((isset($itogo_rb_shtat_ch) && $itogo_rb_shtat_ch != 0) ? $itogo_rb_shtat_ch : ''));
-    $sheet->setCellValue('R' . $r, ((isset($itogo_rb_vacant_ch) && $itogo_rb_vacant_ch != 0) ? $itogo_rb_vacant_ch : ''));
-    $sheet->setCellValue('S' . $r, ((isset($itogo_rb_br) && $itogo_rb_br != 0) ? $itogo_rb_br : ''));
-    $sheet->setCellValue('T' . $r, ((isset($itogo_rb_trip) && $itogo_rb_trip != 0) ? $itogo_rb_trip : ''));
-    $sheet->setCellValue('U' . $r, ((isset($itogo_rb_holiday) && $itogo_rb_holiday != 0) ? $itogo_rb_holiday : ''));
-    $sheet->setCellValue('V' . $r, ((isset($itogo_rb_ill) && $itogo_rb_ill != 0) ? $itogo_rb_ill : ''));
-    $sheet->setCellValue('W' . $r, ((isset($itogo_rb_other) && $itogo_rb_other != 0) ? $itogo_rb_other : ''));
-    $sheet->setCellValue('X' . $r, ((isset($itogo_rb_shtat) && $itogo_rb_shtat != 0) ? $itogo_rb_shtat : ''));
-    $sheet->setCellValue('Y' . $r, ((isset($itogo_rb_vacant) && $itogo_rb_vacant != 0) ? $itogo_rb_vacant : ''));
-
-    $sheet->getStyleByColumnAndRow(0, $r, 24, $r)->applyFromArray($style_all_region);
-
-
-
-   $sheet->getStyleByColumnAndRow(0, 8, 24, $r)->applyFromArray($style_all);
+   $sheet->getStyleByColumnAndRow(0, 8, 23, $r)->applyFromArray($style_all);
 
     /* Сохранить в файл */
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

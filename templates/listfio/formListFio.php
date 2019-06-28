@@ -28,7 +28,7 @@
 
 
         <form  role="form" id="formListFioAdd" method="POST" action="/str/listfio">
-            <u> <b><?= $pasp ?> смена <?= $ch ?></b></u>
+            <u> <b><?= $pasp ?>  <?= ($ch != 0) ? ('смена '.$ch) : 'ежедневник' ?></b></u>
             <br><br><br>
             <b>Заполните поля формы :</b>
             <br><br>

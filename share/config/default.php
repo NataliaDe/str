@@ -3,11 +3,15 @@
 $config['db'] = array(
     'driver' => 'mysql',
     //local
-    'host' => 'localhost',
-    'user' => 'ss',
-    'pass' => 'ss02GB47',
-    'dbname' => 'str'
+//    'host' => 'localhost',
+//    'user' => 'ss',
+//    'pass' => 'ss02GB47',
+//    'dbname' => 'str'
 
+    'host' => '172.26.200.14',
+    'user' => 'str_natali',
+    'pass' => 'str_natali',
+    'dbname' => 'str'
 
 
         /*

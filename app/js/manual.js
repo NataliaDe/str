@@ -1500,3 +1500,26 @@ $('#show_detail_by_fio').on({
         }
 
     });
+
+
+
+
+//    $('form#close_ill').submit(function(e){
+//
+//         // Запрещаем стандартное поведение для кнопки submit
+//         e.preventDefault();
+//
+//        var date_start=$('#close_ill [name="date2"]').val();
+//        var date_end=$('#close_ill [name="date1"]').val();
+//
+////alert(certificate_id);
+//
+// if(date_start > date_end){
+//          toastr.error('Дата закрытия должна быть больше даты открытия больничного ', 'Ошибка!', {timeOut: 5000});
+//    }
+//          else{
+//          //later you decide you want to submit
+//         $(this).unbind('submit').submit();
+//            }
+//
+//         });

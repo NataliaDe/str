@@ -13,7 +13,7 @@
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins)
 <script src="/sl/vendor/components/jquery/jquery.min.js"></script>-->
-<script type="text/javascript" src="/str/vendor/components/jquery/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/str/app/js/jquery-1.11.1.js"></script>
 <!-- <script type="text/javascript" src="/ss/assets/js/jquery.maskedinput.min.js"></script>
 
 
@@ -56,7 +56,7 @@
 -->
 
 
-
+<script src="/str/app/toastr/js/toastr.min.js"></script>
 <!-- select2 jquery js - поиск в выпад списке -->
 <script src="/str/app/js/select2/select2.min.js" type="text/javascript" charset="utf-8"></script>
 

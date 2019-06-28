@@ -60,6 +60,9 @@
         <!-- select2 css - поиск в выпад списке -->
                 <link rel="stylesheet" href="/str/app/js/select2/select2_1.css">
 
+
+                <link rel="stylesheet" href="/str/app/toastr/css/toastr.min.css">
+
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>

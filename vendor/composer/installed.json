@@ -1,20 +1,20 @@
 [
     {
         "name": "components/jquery",
-        "version": "3.2.1",
-        "version_normalized": "3.2.1.0",
+        "version": "3.3.1",
+        "version_normalized": "3.3.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/components/jquery.git",
-            "reference": "e5534d4ab8e80c159553d507e358ed20a806d3bf"
+            "reference": "459648cda77875519c5da3ae1dd0ed5d170aa649"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/components/jquery/zipball/e5534d4ab8e80c159553d507e358ed20a806d3bf",
-            "reference": "e5534d4ab8e80c159553d507e358ed20a806d3bf",
+            "url": "https://api.github.com/repos/components/jquery/zipball/459648cda77875519c5da3ae1dd0ed5d170aa649",
+            "reference": "459648cda77875519c5da3ae1dd0ed5d170aa649",
             "shasum": ""
         },
-        "time": "2017-03-21T07:01:49+00:00",
+        "time": "2018-03-04T13:23:48+00:00",
         "type": "component",
         "extra": {
             "component": {
@@ -98,20 +98,20 @@
         "source": {
             "type": "git",
             "url": "https://github.com/gabordemooij/redbean.git",
-            "reference": "0fdbf66bac95876ac5d6ccb6b20e71f157545d3c"
+            "reference": "a5c4ff3adf570d26201ecd58d2f2eb929e9965dd"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/gabordemooij/redbean/zipball/0fdbf66bac95876ac5d6ccb6b20e71f157545d3c",
-            "reference": "0fdbf66bac95876ac5d6ccb6b20e71f157545d3c",
+            "url": "https://api.github.com/repos/gabordemooij/redbean/zipball/a5c4ff3adf570d26201ecd58d2f2eb929e9965dd",
+            "reference": "a5c4ff3adf570d26201ecd58d2f2eb929e9965dd",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.4"
         },
-        "time": "2017-04-09T17:29:39+00:00",
+        "time": "2019-06-20T20:47:05+00:00",
         "type": "library",
-        "installation-source": "dist",
+        "installation-source": "source",
         "autoload": {
             "psr-4": {
                 "RedBeanPHP\\": "RedBeanPHP"
@@ -119,34 +119,34 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "New BSD and GPLv2"
+            "BSD-3-Clause"
         ],
         "authors": [
             {
                 "name": "Gabor de Mooij",
                 "email": "gabor@redbeanphp.com",
-                "homepage": "http://redbeanphp.com"
+                "homepage": "https://redbeanphp.com"
             }
         ],
         "description": "RedBeanPHP ORM",
-        "homepage": "http://redbeanphp.com/",
+        "homepage": "https://redbeanphp.com/",
         "keywords": [
             "orm"
         ]
     },
     {
         "name": "monolog/monolog",
-        "version": "1.23.0",
-        "version_normalized": "1.23.0.0",
+        "version": "1.24.0",
+        "version_normalized": "1.24.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/Seldaek/monolog.git",
-            "reference": "fd8c787753b3a2ad11bc60c063cff1358a32a3b4"
+            "reference": "bfc9ebb28f97e7a24c45bdc3f0ff482e47bb0266"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Seldaek/monolog/zipball/fd8c787753b3a2ad11bc60c063cff1358a32a3b4",
-            "reference": "fd8c787753b3a2ad11bc60c063cff1358a32a3b4",
+            "url": "https://api.github.com/repos/Seldaek/monolog/zipball/bfc9ebb28f97e7a24c45bdc3f0ff482e47bb0266",
+            "reference": "bfc9ebb28f97e7a24c45bdc3f0ff482e47bb0266",
             "shasum": ""
         },
         "require": {
@@ -182,7 +182,7 @@
             "ruflin/elastica": "Allow sending log messages to an Elastic Search server",
             "sentry/sentry": "Allow sending log messages to a Sentry server"
         },
-        "time": "2017-06-19T01:22:40+00:00",
+        "time": "2018-11-05T09:00:11+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -213,6 +213,63 @@
             "logging",
             "psr-3"
         ]
+    },
+    {
+        "name": "parsecsv/php-parsecsv",
+        "version": "1.1.1",
+        "version_normalized": "1.1.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/parsecsv/parsecsv-for-php.git",
+            "reference": "65566adcd3383da4820cd3bca27e51fe3fbaf15c"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/parsecsv/parsecsv-for-php/zipball/65566adcd3383da4820cd3bca27e51fe3fbaf15c",
+            "reference": "65566adcd3383da4820cd3bca27e51fe3fbaf15c",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.1.*"
+        },
+        "suggest": {
+            "illuminate/support": "Fluent array interface for map functions"
+        },
+        "time": "2019-02-02T19:40:45+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "ParseCsv\\": "src",
+                "ParseCsv\\extensions\\": "src\\extensions"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jim Myhrberg",
+                "email": "contact@jimeh.me"
+            },
+            {
+                "name": "William Knauss",
+                "email": "will.knauss@gmail.com"
+            },
+            {
+                "name": "Susann Sgorzaly",
+                "homepage": "https://github.com/susgo"
+            },
+            {
+                "name": "Christian Bläul",
+                "homepage": "https://github.com/Fonata"
+            }
+        ],
+        "description": "CSV data parser for PHP"
     },
     {
         "name": "pclzip/pclzip",
@@ -312,25 +369,29 @@
     },
     {
         "name": "phpoffice/phpexcel",
-        "version": "1.8.1",
-        "version_normalized": "1.8.1.0",
+        "version": "1.8.2",
+        "version_normalized": "1.8.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/PHPOffice/PHPExcel.git",
-            "reference": "372c7cbb695a6f6f1e62649381aeaa37e7e70b32"
+            "reference": "1441011fb7ecdd8cc689878f54f8b58a6805f870"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/PHPOffice/PHPExcel/zipball/372c7cbb695a6f6f1e62649381aeaa37e7e70b32",
-            "reference": "372c7cbb695a6f6f1e62649381aeaa37e7e70b32",
+            "url": "https://api.github.com/repos/PHPOffice/PHPExcel/zipball/1441011fb7ecdd8cc689878f54f8b58a6805f870",
+            "reference": "1441011fb7ecdd8cc689878f54f8b58a6805f870",
             "shasum": ""
         },
         "require": {
+            "ext-mbstring": "*",
             "ext-xml": "*",
             "ext-xmlwriter": "*",
-            "php": ">=5.2.0"
+            "php": "^5.2|^7.0"
         },
-        "time": "2015-05-01T07:00:55+00:00",
+        "require-dev": {
+            "squizlabs/php_codesniffer": "2.*"
+        },
+        "time": "2018-11-22T23:07:24+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -340,7 +401,7 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "LGPL"
+            "LGPL-2.1"
         ],
         "authors": [
             {
@@ -348,18 +409,19 @@
                 "homepage": "http://blog.maartenballiauw.be"
             },
             {
-                "name": "Mark Baker"
+                "name": "Erik Tilt"
             },
             {
                 "name": "Franck Lefevre",
-                "homepage": "http://blog.rootslabs.net"
+                "homepage": "http://rootslabs.net"
             },
             {
-                "name": "Erik Tilt"
+                "name": "Mark Baker",
+                "homepage": "http://markbakeruk.net"
             }
         ],
         "description": "PHPExcel - OpenXML - Read, Create and Write Spreadsheet documents in PHP - Spreadsheet engine",
-        "homepage": "http://phpexcel.codeplex.com",
+        "homepage": "https://github.com/PHPOffice/PHPExcel",
         "keywords": [
             "OpenXML",
             "excel",
@@ -483,23 +545,23 @@
     },
     {
         "name": "psr/log",
-        "version": "1.0.2",
-        "version_normalized": "1.0.2.0",
+        "version": "1.1.0",
+        "version_normalized": "1.1.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/php-fig/log.git",
-            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
+            "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
-            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+            "url": "https://api.github.com/repos/php-fig/log/zipball/6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
+            "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.0"
         },
-        "time": "2016-10-10T12:19:37+00:00",
+        "time": "2018-11-20T15:27:04+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -581,27 +643,27 @@
     },
     {
         "name": "twbs/bootstrap",
-        "version": "v3.3.7",
-        "version_normalized": "3.3.7.0",
+        "version": "v3.4.1",
+        "version_normalized": "3.4.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/twbs/bootstrap.git",
-            "reference": "0b9c4a4007c44201dce9a6cc1a38407005c26c86"
+            "reference": "68b0d231a13201eb14acd3dc84e51543d16e5f7e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/twbs/bootstrap/zipball/0b9c4a4007c44201dce9a6cc1a38407005c26c86",
-            "reference": "0b9c4a4007c44201dce9a6cc1a38407005c26c86",
+            "url": "https://api.github.com/repos/twbs/bootstrap/zipball/68b0d231a13201eb14acd3dc84e51543d16e5f7e",
+            "reference": "68b0d231a13201eb14acd3dc84e51543d16e5f7e",
             "shasum": ""
         },
         "replace": {
             "twitter/bootstrap": "self.version"
         },
-        "time": "2016-07-25T15:51:55+00:00",
+        "time": "2019-02-13T15:55:38+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.3.x-dev"
+                "dev-master": "3.4.x-dev"
             }
         },
         "installation-source": "dist",
@@ -620,7 +682,7 @@
             }
         ],
         "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
-        "homepage": "http://getbootstrap.com",
+        "homepage": "https://getbootstrap.com/",
         "keywords": [
             "JS",
             "css",

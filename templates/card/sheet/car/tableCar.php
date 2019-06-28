@@ -46,8 +46,35 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                     ?>
 
 
+
+            <!--        badge-->
+                        <?php
+                         $badge_cnt=0;
+                        if (isset($present_car_fio) && !empty($present_car_fio)) {
+                            foreach ($present_car_fio as $present) {
+                                if (isset($last_fio_on_car) && !empty($last_fio_on_car)) {
+                                    $k = 0;
+                                    foreach ($last_fio_on_car as $value) {
+                                        if ($row['tehstr_id'] == $value['tehstr_id'] && $present['id'] == $value['id']) {
+                                            $k++;
+                                        }
+                                    }
+                                    if ($k != 0)
+                                       $badge_cnt++;
+
+                                }
+                            }
+                        }
+
+                        ?>
+
+
+
+
                     <!---------------------------------------- отображаем постоянно ----------------------------------------->
+
                     <div class="row" style="background-color: <?= $color ?>;" >
+                        <a href="#" class="badge" id="badge-cnt-fio<?= $i ?>" style="position: absolute;background-color: <?= ($badge_cnt > 0)? '#dc3545': '#007bff' ?>;"><?= $badge_cnt?></a>
                         <div class="col-lg-2">
                             <div class="form-group">
                                 <label for="numbsign<?= $i ?>"></label>
@@ -722,7 +749,32 @@ $cnt++;
 
 
    <!---------------------------------------- отображаем постоянно ----------------------------------------->
+
+
+
+               <?php
+               $badge_cnt=0;
+               if (isset($present_car_fio) && !empty($present_car_fio)) {
+                   foreach ($present_car_fio as $present) {
+                       if (isset($last_fio_on_car) && !empty($last_fio_on_car)) {
+                           $k = 0;
+                           foreach ($last_fio_on_car as $value) {
+                               if ($row['tehstr_id'] == $value['tehstr_id'] && $present['id'] == $value['id']) {
+                                   $k++;
+                               }
+                           }
+                           if ($k != 0)
+                               $badge_cnt++;
+
+                       }
+                   }
+               }
+
+               ?>
+
+
                     <div class="row" style="background-color: <?= $color ?>;" >
+                        <a href="#" class="badge" id="badge-cnt-fio<?= $i ?>" style="position: absolute;background-color: <?= ($badge_cnt > 0)? '#dc3545': '#007bff' ?>;"><?= $badge_cnt?></a>
                         <div class="col-lg-2">
                             <div class="form-group">
                                 <label for="numbsign<?= $i ?>"></label>
@@ -1235,4 +1287,16 @@ $('#all_selected_fio'+i).val(new_fio_ids);
     }
 
 
+function getBadgeCntFio(){
+     // $('#badge-cnt-fio1').change(function() {
+        var selected = 0;
+        $('#fio1 option:selected').each(function(){
+            selected++;
+        });
+        //$('#badge-cnt-fio1').text(selected);
+        alert(selected);
+    //});
+}
     </script>
+
+

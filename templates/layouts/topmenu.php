@@ -212,6 +212,14 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                                 <a tabindex="-1" href="/str/listfio/holiday" class="caret-spr_inf" target="_blank">Отозвать из отпуска</a>
                             </li>
 
+                            <li class="dropdown-submenu <?php echo (isset($convex_item['close_other_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
+                                <a tabindex="-1" href="/str/listfio/other" class="caret-spr_inf" target="_blank">Др.причины</a>
+                            </li>
+
+                            <li class="dropdown-submenu <?php echo (isset($convex_item['close_trip_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
+                                <a tabindex="-1" href="/str/listfio/trip" class="caret-spr_inf" target="_blank">Командировки</a>
+                            </li>
+
                         </ul>
                     </li>
                     <?php
@@ -235,6 +243,10 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                                 <li class="dropdown-submenu <?php echo (isset($convex_item['close_hol_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio/holiday" class="caret-spr_inf" target="_blank">Отозвать из отпуска</a>
                                 </li>
+
+                            <li class="dropdown-submenu <?php echo (isset($convex_item['close_other_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
+                                <a tabindex="-1" href="/str/listfio/other" class="caret-spr_inf" target="_blank">Др.причины</a>
+                            </li>
 
                                 <li class="dropdown-submenu <?php echo (isset($convex_item['all_listfio_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio" class="caret-spr_inf" target="_blank">Весь список</a>
@@ -262,6 +274,10 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
                                 <li class="dropdown-submenu <?php echo (isset($convex_item['close_hol_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio/holiday" class="caret-spr_inf" target="_blank">Отозвать из отпуска</a>
                                 </li>
+
+                             <li class="dropdown-submenu <?php echo (isset($convex_item['close_other_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
+                                <a tabindex="-1" href="/str/listfio/other" class="caret-spr_inf" target="_blank">Др.причины</a>
+                            </li>
 
                                 <li class="dropdown-submenu <?php echo (isset($convex_item['all_listfio_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                     <a tabindex="-1" href="/str/listfio" class="caret-spr_inf" target="_blank">Весь список</a>

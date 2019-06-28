@@ -1,5 +1,16 @@
 <?php
 
+function redunit_error_handler($errno,$errstr,$errfile,$errline) {
+	$err = "REDUNITERROR: $errno,$errstr,$errfile,$errline";
+	/* ignore certain errors like deprecated notices that have already been checked in main code */
+	if (strpos($err,'PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT') !== FALSE) {
+		return FALSE;
+	}
+	echo $err;
+	throw new \Exception($err);
+	return TRUE;
+}
+
 chdir( '..' );
 $xdebugSupported = (function_exists('xdebug_start_code_coverage'));
 
@@ -13,8 +24,10 @@ error_reporting( E_ALL );
 //Load configuration file
 if ( file_exists( 'config/test.ini' ) ) {
 	$ini = parse_ini_file( "config/test.ini", TRUE );
+	$travis = FALSE;
 } elseif ( file_exists( 'config/test-travis.ini' ) ) {
 	$ini = parse_ini_file( "config/test-travis.ini", TRUE );
+	$travis = TRUE;
 } else {
 	die( 'Cant find configuration file.' );
 }
@@ -39,7 +52,7 @@ require_once( 'RedUNIT/Blackhole.php' );
 require_once( 'RedUNIT/Mysql.php' );
 require_once( 'RedUNIT/Postgres.php' );
 require_once( 'RedUNIT/Sqlite.php' );
-
+require_once( 'RedUNIT/CUBRID.php' );
 require_once( 'RedUNIT/Pretest.php' );
 
 $extraTestsFromHook = array();
@@ -49,6 +62,7 @@ $colorMap = array(
 		 'mysql'  => '0;31',
 		 'pgsql'  => '0;32',
 		 'sqlite' => '0;34',
+		 'CUBRID' => '0;35',
 );
 
 @include 'cli/test_hook.php';
@@ -58,6 +72,8 @@ if ( isset( $ini['mysql'] ) ) {
 	$dsn = "mysql:host={$ini['mysql']['host']};dbname={$ini['mysql']['schema']}";
 
 	R::addDatabase( 'mysql', $dsn, $ini['mysql']['user'], $ini['mysql']['pass'], FALSE );
+	R::addDatabase( 'mysqlc', $dsn, $ini['mysql']['user'], $ini['mysql']['pass'], FALSE );
+	R::addDatabase( 'mysqlc2', $dsn, $ini['mysql']['user'], $ini['mysql']['pass'], FALSE );
 
 	R::selectDatabase( 'mysql' );
 
@@ -71,14 +87,22 @@ if ( defined( 'HHVM_VERSION' ) ) {
 	if ( isset( $ini['pgsql'] ) ) {
 		$dsn = "pgsql:host={$ini['pgsql']['host']};dbname={$ini['pgsql']['schema']}";
 		R::addDatabase( 'pgsql', $dsn, $ini['pgsql']['user'], $ini['pgsql']['pass'], FALSE );
+		R::addDatabase( 'pgsqlc', $dsn, $ini['pgsql']['user'], $ini['pgsql']['pass'], FALSE );
+		R::addDatabase( 'pgsqlc2', $dsn, $ini['pgsql']['user'], $ini['pgsql']['pass'], FALSE );
 	}
 }
 
 if ( isset( $ini['sqlite'] ) ) {
 	R::addDatabase( 'sqlite', 'sqlite:' . $ini['sqlite']['file'], NULL, NULL, FALSE );
+	R::selectDatabase( 'sqlite' );
 }
 
-R::selectDatabase( 'sqlite' );
+if ( isset( $ini['CUBRID'] ) ) {
+       $dsn = "cubrid:host={$ini['CUBRID']['host']};port=33000;dbname={$ini['CUBRID']['schema']}";
+       R::addDatabase( 'CUBRID', $dsn, $ini['CUBRID']['user'], $ini['CUBRID']['pass'], FALSE );
+       R::selectDatabase( 'CUBRID' );
+       R::exec( 'AUTOCOMMIT IS ON' );
+}
 
 // Function to activate a driver
 function activate_driver( $d )
@@ -120,6 +144,10 @@ $allPacks = array(
 	'Blackhole/Glue',
 	'Blackhole/Plugins',
 	'Blackhole/Debug',
+	'Blackhole/Stub',
+	'Base/Productivity',
+	'Base/Quickexport',
+	'Base/Concurrency',
 	'Base/Dispense',
 	'Base/Logging',
 	'Base/Cursors',
@@ -132,6 +160,7 @@ $allPacks = array(
 	'Base/Typechecking',
 	'Base/Observers',
 	'Base/Database',
+	'Base/Exceptions',
 	'Base/Foreignkeys',
 	'Base/Namedparams',
 	'Base/Prefixes',
@@ -183,11 +212,14 @@ $allPacks = array(
 	'Postgres/Uuid',
 	'Postgres/Bigint',
 	'Postgres/Partial',
+	'Postgres/Trees',
 	'Sqlite/Setget',
 	'Sqlite/Foreignkeys',
 	'Sqlite/Parambind',
 	'Sqlite/Writer',
 	'Sqlite/Rebuild',
+	'CUBRID/Writer',
+	'CUBRID/Setget',
 );
 
 $suffix = array(
@@ -271,12 +303,12 @@ foreach( $report as $file => $lines ) {
 	$pi = pathinfo( $file );
 
 	if ( $covFilter !== null ) {
-		if ( strpos( $file, $covFilter ) === false ) continue;
+		if ( strpos( $file, $covFilter ) === FALSE ) continue;
 	} else {
-		if ( strpos( $file, '/rb.php' ) === false) {
-			if ( strpos( $file, 'phar/' ) === false ) continue;
-			if ( strpos( $file, '.php' ) === false ) continue;
-			if ( strpos( $file, 'RedBeanPHP' ) === false ) continue;
+		if ( strpos( $file, '/rb.php' ) === FALSE ) {
+			if ( strpos( $file, 'phar/' ) === FALSE ) continue;
+			if ( strpos( $file, '.php' ) === FALSE ) continue;
+			if ( strpos( $file, 'RedBeanPHP' ) === FALSE ) continue;
 		}
 	}
 	$covLines[] = '***** File:'.$file.' ******';

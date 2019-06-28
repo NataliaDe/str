@@ -605,7 +605,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
                     <div class="row">
 
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="face">Налицо
-                            <span class="glyphicon glyphicon-star" style="color: red;" data-toggle="tooltip" data-placement="left" title="Налицо = по списку - на бол.- в отпуске - в ком. - др.причины + еж. + из.др.подразд. = боевой расчет + наряд"></span>
+                            <span class="glyphicon glyphicon-star" style="color: green;" data-toggle="tooltip" data-placement="left" title="Налицо = по списку - на бол.- в отпуске - в ком. - др.причины + еж. + из.др.подразд. = боевой расчет + наряд"></span>
                             <?php
                             if ((isset($face) && ($face != $on_face_rule) ) || (!isset($face) && (0 != $on_face_rule) )) {
                                 $error_face = 1;
@@ -725,7 +725,7 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodisp">Ф.И.О работников в наряде
 
-                        <span class="glyphicon glyphicon-star" style="color: red;" data-toggle="tooltip" data-placement="left" title="указывать должность"></span>
+                        <span class="glyphicon glyphicon-star" style="color: green;" data-toggle="tooltip" data-placement="left" title="указывать должность"></span>
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                             <div class="form-group">

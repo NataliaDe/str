@@ -159,6 +159,14 @@ class Model_Taste extends RedBeanPHP\SimpleModel
  */
 class Model_Coffee extends RedBeanPHP\SimpleModel
 {
+	public function __jsonSerialize()
+	{
+		return array_merge(
+			$this->bean->export(),
+			array( 'description' => "{$this->bean->variant}.{$this->bean->strength}" )
+		);
+	}
+
 	public function update()
 	{
 		while ( count( $this->bean->ownSugar ) > 3 ) {
@@ -475,11 +483,11 @@ class Model_BookBook extends \RedBean_SimpleModel {
 
 class Model_Feed extends \RedbeanPHP\SimpleModel {
     public function update() {
-        $this->bean->post = json_encode($this->bean->post);
+        $this->bean->post = json_encode( $this->bean->post );
     }
 
     public function open() {
-        $this->bean->post = json_decode($this->bean->post, true);
+        $this->bean->post = json_decode( $this->bean->post, TRUE );
     }
 }
 
@@ -569,7 +577,6 @@ class DiagnosticBean extends \RedBeanPHP\OODBBean {
 
 		return $modFlags;
 	}
-
 }
 
 class DiagnosticModel extends \RedBeanPHP\SimpleModel
@@ -664,6 +671,54 @@ class DiagnosticModel extends \RedBeanPHP\SimpleModel
 
 }
 
+class DatabaseCapabilityChecker extends \RedBeanPHP\Driver\RPDO {
+
+	public function __construct( \PDO $pdo )
+	{
+		$this->pdo = $pdo;
+	}
+
+	public function checkCapability( $capID )
+	{
+		return $this->hasCap( $capID );
+	}
+}
+
+class Model_String extends \RedBeanPHP\SimpleModel {
+	public function __toString() {
+		return base64_encode( $this->bean->text );
+	}
+}
+
 class Model_Probe extends DiagnosticModel {};
+
+class Mockdapter implements \RedBeanPHP\Adapter {
+	
+	public function answer( $id )
+	{
+		$error = "error{$id}";
+		$property = "answer{$id}";
+		if (isset($this->$error)) throw $this->$error;
+		if (isset($this->$property)) return $this->$property;
+	}
+	
+	public function getSQL(){}
+	public function exec( $sql, $bindings = array(), $noevent = FALSE ){ return $this->answer('Exec'); }
+	public function get( $sql, $bindings = array() ){ return $this->answer('GetSQL'); }
+	public function getRow( $sql, $bindings = array() ){ return array(); }
+	public function getCol( $sql, $bindings = array() ){ return $this->answer('GetCol'); }
+	public function getCell( $sql, $bindings = array() ){ return ''; }
+	public function getAssoc( $sql, $bindings = array() ){ return array();  }
+	public function getAssocRow( $sql, $bindings = array() ){ return array(); }
+	public function getInsertID(){}
+	public function getAffectedRows(){}
+	public function getCursor( $sql, $bindings = array() ){}
+	public function getDatabase(){}
+	public function startTransaction(){}
+	public function commit(){}
+	public function rollback(){}
+	public function close(){}
+	public function setOption( $optionKey, $optionValue ){}
+}
 
 define('REDBEAN_OODBBEAN_CLASS', '\DiagnosticBean');

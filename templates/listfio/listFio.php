@@ -93,6 +93,8 @@ if (isset($is_ill) && !empty($is_ill)) {
                             ?>
                             <th>Закрыть<br>больничный</th>
                              <th>Отозвать из<br>отпуска</th>
+                             <th>Отозвать из<br>др.причин</th>
+                              <th>Отозв. из<br>ком-ки</th>
                             <?php
                         }
                         ?>
@@ -126,6 +128,8 @@ if (isset($is_ill) && !empty($is_ill)) {
                         /* ------------- право только у РЦУ админ, область админ, Авиация админ(ур 3) ------------------- */
                         if (($_SESSION['ulevel'] == 1 || $_SESSION['ulevel'] == 2 || ($_SESSION['ulevel'] == 3 && $_SESSION['note'] == AVIA)) && $_SESSION['is_admin'] == 1) {
                             ?>
+                            <th></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <?php
@@ -279,6 +283,48 @@ if (isset($is_ill) && !empty($is_ill)) {
 
                                 </td>
                                 <!--                       END         отозвать из отпуска-->
+
+                                <td>
+                                    <?php
+                                    if (isset($is_other) && !empty($is_other)) {
+                                        foreach ($is_other as $i) {
+                                            $o[] = $i['id_fio'];
+                                            $id_of_other[$i['id_fio']] = $i['id']; //массив фио=>ill.id
+                                        }
+                                    } else {
+                                        $o = array();
+                                    }
+                                    if (in_array($row['id_fio'], $o)) {
+                                        ?>
+                                        <a href="/str/listfio/close_other/<?= $id_of_other[$row['id_fio']] ?>">закр.</a>
+                                        <a href="/str/listfio/close_other/<?= $id_of_other[$row['id_fio']] ?>"> <button class="btn btn-xs btn-danger" type="button"><i class="fa fa-calendar-times-o" aria-hidden="true"></i></button></a>
+                                                <?php
+                                            }
+                                            ?>
+
+                                </td>
+
+
+                                 <td>
+                                    <?php
+                                    if (isset($is_trip) && !empty($is_trip)) {
+                                        foreach ($is_trip as $i) {
+                                            $tr[] = $i['id_fio'];
+                                            $id_of_trip[$i['id_fio']] = $i['id']; //массив фио=>ill.id
+                                        }
+                                    } else {
+                                        $tr = array();
+                                    }
+                                    if (in_array($row['id_fio'], $tr)) {
+                                        ?>
+                                        <a href="/str/listfio/close_trip/<?= $id_of_trip[$row['id_fio']] ?>">закр.</a>
+                                        <a href="/str/listfio/close_trip/<?= $id_of_trip[$row['id_fio']] ?>"> <button class="btn btn-xs btn-danger" type="button"><i class="fa fa-calendar-times-o" aria-hidden="true"></i></button></a>
+                                                <?php
+                                            }
+                                            ?>
+
+                                </td>
+
                                 <?php
                             }
                             ?>

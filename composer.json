@@ -6,7 +6,8 @@
         "components/jquery": "^3.2",
         "phpoffice/phpexcel": "^1.8",
         "flynsarmy/slim-monolog": "^1.0",
-        "phpoffice/phpword": "^0.16.0"
+        "phpoffice/phpword": "^0.16.0",
+        "parsecsv/php-parsecsv": "^1.1"
     },
     "autoload": {
         "psr-4": {

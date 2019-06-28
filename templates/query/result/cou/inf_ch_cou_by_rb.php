@@ -31,7 +31,8 @@ if (isset($main_cou) && !empty($main_cou)) {
         <thead>
             <tr >
                 <?php
-                $c=14+count($posduty_list);
+                //$c=14+count($posduty_list);
+                $c=14+14;
                 ?>
                 <th colspan="<?= $c ?>">Строевая записка по личному составу</th>
             </tr>
@@ -44,14 +45,30 @@ if (isset($main_cou) && !empty($main_cou)) {
             <th >Область</th>
             <th >Г(Р)ОЧС</th>
 
+            <th>Нач-к.<br>см.</th>
+            <th>ОД</th>
+            <th>Зам.<br>ОД</th>
+            <th>Ст.пом.<br>ОД</th>
+            <th>Пом.<br>ОД</th>
+            <th>Диспетчер</th>
+            <th>Инж.<br>ТКС</th>
+            <th>Инж.<br>связи</th>
+            <th>Мастер.<br>связи</th>
+            <th>Водитель</th>
+            <th>Стажер</th>
+            <th>Другие</th>
+            <th>Инспектор.<br>ОНиП</th>
+            <th>Отв. по <br>гарнизону</th>
 
                 <?php
-                foreach ($posduty_list as $value) {
+               // foreach ($posduty_list as $value) {
 
                     ?>
-                    <th><?= $value['name'] ?></th>
+<!--                    <th>-->
+<!--                    $value['name'] -->
+<!--                    </th>-->
                     <?php
-                }
+              //  }
 
                 ?>
 
@@ -75,8 +92,17 @@ if (isset($main_cou) && !empty($main_cou)) {
             <?php
             $prev_region_id=0;
 
+            $itogo_region_shtat_ch = 0;
+            $itogo_region_vacant_ch = 0;
+            $itogo_region_br = 0;
+            $itogo_region_trip = 0;
+            $itogo_region_holiday = 0;
+            $itogo_region_ill = 0;
+            $itogo_region_other = 0;
+            $itogo_region_shtat = 0;
+            $itogo_region_vacant = 0;
 
-            $itogo_rn_shtat_ch = 0;
+            $itogo_rb_shtat_ch = 0;
             $itogo_rb_vacant_ch = 0;
             $itogo_rb_br = 0;
             $itogo_rb_trip = 0;
@@ -85,6 +111,8 @@ if (isset($main_cou) && !empty($main_cou)) {
             $itogo_rb_other = 0;
             $itogo_rb_shtat = 0;
             $itogo_rb_vacant = 0;
+
+
 
 
             foreach ($main_cou as $key=>$row) {

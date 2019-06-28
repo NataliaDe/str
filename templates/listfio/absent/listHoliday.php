@@ -5,7 +5,7 @@
 /* ----------------------------------- право только у РЦУ админ, область админ, Авиация админ(ур 3) ------------------------------------- */
 //print_r($list_fio);
 
-  
+
                             if (isset($is_hol) && !empty($is_hol)) {
                                 foreach ($is_hol as $i) {
                                     $hol[] = $i['id_fio'];
@@ -21,7 +21,9 @@
 
         <br>
         <!--        <div class="table-responsive"  id="tbl-query-result">-->
-        <br><br>
+        <br>
+          <br>
+        <center> <b>Работники, находящиеся в отпуске</b></center>
         <table class="table table-condensed   table-bordered" id="tbl_list_fio">
             <!-- строка 1 -->
             <thead>
@@ -104,22 +106,22 @@
 
                         <td>
                             <?php
-							
+
 
                             if (in_array($row['id_fio'], $hol)) {
-						
+
                                 ?>
                                <a href="/str/listfio/close_hol/<?= $id_of_hol[$row['id_fio']] ?>">отозв.</a>
                                     <a href="/str/listfio/close_hol/<?= $id_of_hol[$row['id_fio']] ?>"> <button class="btn btn-xs btn-danger" type="button"><i class="fa fa-calendar-times-o" aria-hidden="true"></i></button></a>
-								
+
                                         <?php
-								
+
                                     }
                                     ?>
 
 
                         </td>
-                        <!--------------- END Закрыть больничный ------------------- -->   
+                        <!--------------- END Закрыть больничный ------------------- -->
 
 
                     </tr>

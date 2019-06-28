@@ -8,8 +8,11 @@ include 'templates/query/pzform.php';
 </div>-->
 
 <!--форма-->
- <span class="glyphicon glyphicon-hand-up" style="color: red;" ></span>&nbsp;&nbsp;
- <span style="color: red;">  Информация доступна за последние <b>3 дня</b>. Для просмотра информации по ЦОУ РОСН - выберите область "г. Минск".</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ <span style="color: green;">  Информация доступна за последние <b>3 дня</b>. Для просмотра информации по ЦОУ РОСН - выберите область "г. Минск".</span><br>
+
+  <span class="glyphicon glyphicon-hand-up" style="color: red;" ></span>&nbsp;&nbsp;
+ <span style="color: red;"> <b>Внимание!</b> Формирование сведений по республике может занимать достаточное количество времени в связи с большими объемами данных (от 2 до 5 мин.).</span>
 <br><br><br>
 <form  role="form" id="formFillCar" method="POST" action="/str/v2/card/builder/basic/inf_ch_cou/<?= $type ?>#result_page">
 

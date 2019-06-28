@@ -1,7 +1,8 @@
 <?php
 //print_r($ill);
 ?>
-<form class="form-inline" role="form" id="formDeleteListFio" method="POST" action="/str/listfio/close_ill/<?= $id_ill ?>">
+
+<form class="form-inline" role="form" id="close_ill" method="POST" action="/str/listfio/close_ill/<?= $id_ill ?>">
 
             <table class="table table-condensed   table-bordered tbl_show_inf" >
                 <!-- строка 1 -->
@@ -26,23 +27,25 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="input-group date" id="date11">
+                                <?= $row['date1'] ?>
+<!--                                <div class="input-group date" id="date11">
                                     <?php
-                                    if ($row['date1'] == '00.00.0000') {
+                                   // if ($row['date1'] == '00.00.0000') {
                                         ?>
                                         <input type="text" class="form-control" name="date1" style="width: auto;" />
                                         <?php
-                                    } else {
+                                    //} else {
                                         ?>
-                                        <input type="text" class="form-control" name="date1" value="<?= $row['date1'] ?>" style="width: auto;"/>
+                                        <input type="text" class="form-control" name="date1" value="<? $row['date1'] ?>" style="width: auto;"/>
                                         <?php
-                                    }
+                                   // }
                                     ?>
                                     <span class="input-group-addon">
                                         <span class="glyphicon glyphicon-calendar"></span>
                                     </span>
 
-                                </div>
+                                </div>-->
+<input type="hidden" class="form-control" name="date1" value="<?= $row['date1'] ?>" >
                             </td>
 
                             <td>
@@ -75,7 +78,7 @@
 
                 </tbody>
             </table>
- 
+
 <center>
         <div class="row">
             <div class="form-group">

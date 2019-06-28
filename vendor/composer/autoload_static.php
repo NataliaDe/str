@@ -20,6 +20,8 @@ class ComposerStaticInite9a52791392e9d196f5a0f8d9913d1a4
             'Psr\\Log\\' => 8,
             'PhpOffice\\PhpWord\\' => 18,
             'PhpOffice\\Common\\' => 17,
+            'ParseCsv\\extensions\\' => 20,
+            'ParseCsv\\' => 9,
         ),
         'M' => 
         array (
@@ -52,6 +54,14 @@ class ComposerStaticInite9a52791392e9d196f5a0f8d9913d1a4
         'PhpOffice\\Common\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoffice/common/src/Common',
+        ),
+        'ParseCsv\\extensions\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/parsecsv/php-parsecsv/src/extensions',
+        ),
+        'ParseCsv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/parsecsv/php-parsecsv/src',
         ),
         'Monolog\\' => 
         array (

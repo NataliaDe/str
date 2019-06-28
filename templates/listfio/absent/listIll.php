@@ -17,7 +17,8 @@ if (isset($is_ill) && !empty($is_ill)) {
 
         <br>
         <!--        <div class="table-responsive"  id="tbl-query-result">-->
-        <br><br>
+          <br>
+        <center> <b>Работники, находящиеся на больничном</b></center>
         <table class="table table-condensed   table-bordered" id="tbl_list_fio">
             <!-- строка 1 -->
             <thead>
@@ -111,7 +112,7 @@ if (isset($is_ill) && !empty($is_ill)) {
 
 
                         </td>
-                        <!--------------- END Закрыть больничный ------------------- -->   
+                        <!--------------- END Закрыть больничный ------------------- -->
 
 
                     </tr>

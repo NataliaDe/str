@@ -93,11 +93,13 @@ class Fluid extends Repository
 	 *
 	 * @return void
 	 */
-	private function modifySchema( OODBBean $bean, $property, $value )
+	private function modifySchema( OODBBean $bean, $property, $value, &$columns = NULL )
 	{
 		$doFKStuff = FALSE;
 		$table   = $bean->getMeta( 'type' );
-		$columns = $this->writer->getColumns( $table );
+		if ($columns === NULL) {
+			$columns = $this->writer->getColumns( $table );
+		}
 		$columnNoQ = $this->writer->esc( $property, TRUE );
 		if ( !$this->oodb->isChilled( $bean->getMeta( 'type' ) ) ) {
 			if ( $bean->getMeta( "cast.$property", -1 ) !== -1 ) { //check for explicitly specified types
@@ -211,10 +213,11 @@ class Fluid extends Repository
 				$bean->setMeta( 'changelist', array() );
 			}
 
+			$columnCache = NULL;
 			foreach ( $bean as $property => $value ) {
 				if ( $partial && !in_array( $property, $mask ) ) continue;
 				if ( $property !== 'id' ) {
-					$this->modifySchema( $bean, $property, $value );
+					$this->modifySchema( $bean, $property, $value, $columnCache );
 				}
 				if ( $property !== 'id' ) {
 					$updateValues[] = array( 'property' => $property, 'value' => $value );
@@ -228,9 +231,21 @@ class Fluid extends Repository
 	}
 
 	/**
-	 * Handles exceptions. Suppresses exceptions caused by missing structures.
+	 * Exception handler.
+	 * Fluid and Frozen mode have different ways of handling
+	 * exceptions. Fluid mode (using the fluid repository) ignores
+	 * exceptions caused by the following:
 	 *
-	 * @param Exception $exception exception
+	 * - missing tables
+	 * - missing column
+	 *
+	 * In these situations, the repository will behave as if
+	 * no beans could be found. This is because in fluid mode
+	 * it might happen to query a table or column that has not been
+	 * created yet. In frozen mode, this is not supposed to happen
+	 * and the corresponding exceptions will be thrown.
+	 *
+	 * @param \Exception $exception exception
 	 *
 	 * @return void
 	 */
@@ -239,7 +254,8 @@ class Fluid extends Repository
 		if ( !$this->writer->sqlStateIn( $exception->getSQLState(),
 			array(
 				QueryWriter::C_SQLSTATE_NO_SUCH_TABLE,
-				QueryWriter::C_SQLSTATE_NO_SUCH_COLUMN ) )
+				QueryWriter::C_SQLSTATE_NO_SUCH_COLUMN ),
+				$exception->getDriverDetails() )
 		) {
 			throw $exception;
 		}
@@ -299,6 +315,7 @@ class Fluid extends Repository
 	 */
 	public function load( $type, $id )
 	{
+		$rows = array();
 		$bean = $this->dispense( $type );
 		if ( isset( $this->stash[$this->nesting][$id] ) ) {
 			$row = $this->stash[$this->nesting][$id];
@@ -306,16 +323,22 @@ class Fluid extends Repository
 			try {
 				$rows = $this->writer->queryRecord( $type, array( 'id' => array( $id ) ) );
 			} catch ( SQLException $exception ) {
-				if ( $this->writer->sqlStateIn( $exception->getSQLState(),
-					array(
-						QueryWriter::C_SQLSTATE_NO_SUCH_COLUMN,
-						QueryWriter::C_SQLSTATE_NO_SUCH_TABLE )
-				)
+				if (
+					$this->writer->sqlStateIn(
+						$exception->getSQLState(),
+						array(
+							QueryWriter::C_SQLSTATE_NO_SUCH_COLUMN,
+							QueryWriter::C_SQLSTATE_NO_SUCH_TABLE
+						),
+						$exception->getDriverDetails()
+					)
 				) {
-					$rows = 0;
+					$rows = array();
+				} else {
+					throw $exception;
 				}
 			}
-			if ( empty( $rows ) ) {
+			if ( !count( $rows ) ) {
 				return $bean;
 			}
 			$row = array_pop( $rows );
