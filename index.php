@@ -10090,12 +10090,30 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
     }
 
 
+
+        $app->get('/error_teh/:id/ch/:change', function ($id, $change) use ($app, $log) {//confirm  проверка соответствия формулам, заполненность вкладок
+
+
+            $today = date("Y-m-d");
+
+            $mas_error['main'] = getErrorMain($today, $id, $change);
+        $mas_error['teh'] = getErrorTeh($today, $id, $change);
+        $mas_error['storage'] = getErrorStorage($today, $id, $change);
+        print_r($mas_error['teh']);
+    });
+
+
+
+
     function getErrorTeh($today, $id, $change) {
         //обновлена ли вкладка техника сегодня
         $own_car = getOwnCar($id, $change, $today); //машины свои
         $car_from_reserve = getCarInReserve($id, $today, $change); //из др пасч
         $k = 0;
         $mas_error['teh']=0;
+
+
+        //print_r($car_from_reserve);
 //        if (!empty($own_car)) {
 //
 //            foreach ($own_car as $value) {
@@ -10123,8 +10141,13 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
                 if (!empty($own_car)) {
 
             foreach ($own_car as $value) {
-                if ($value['dateduty'] != $today)
-                    $k++;
+                if ($value['dateduty'] != $today){
+                    //$k++;
+                    /* future - auto update without k.k=0 */
+                    $car = R::load('car', $value['tehstr_id']);
+                    $car->dateduty=$today;
+                    R::store($car);
+                }
             }
             if ($k != 0)
                 $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
@@ -10133,8 +10156,14 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         }
         if (!empty($car_from_reserve)) {
             foreach ($car_from_reserve as $value) {
-                if ($value['dateduty'] != $today)
-                    $k++;
+                if ($value['dateduty'] != $today) {
+                   // $k++;
+
+                    /* future - auto update */
+                    $car = R::load('car', $value['tehstr_id']);
+                    $car->dateduty = $today;
+                    R::store($car);
+                }
             }
             if ($k != 0)
                    $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
@@ -13190,25 +13219,120 @@ $app->group('/close_update', $is_auth, function () use ($app, $log) {
             $mainstr = R::load('main', $id_main);
             $dateduty = $mainstr->dateduty;
             $id_fio = $mainstr->id_fio;
-            $id_card = $mainstr->id_card;
-            $ch = $mainstr->ch;
+            $id_card=$id = $mainstr->id_card;
+            $ch = $change= $mainstr->ch;
+
+
+
+             $today = date("Y-m-d");
+
+
+
+
+        $data['bread_array'] = getBreadArray($id_main);
+        $data['id_main'] = $id_main;
+        $app->render('layouts/header.php');
+        $app->render('layouts/menu.php');
+        $app->render('bread/breadCloseUpdate.php', $data);
 
             //выполнить подсчет больных на сегодня, т.е. дата1<=дата заступления смены<=дата2
-            $c_ill = getCountIll($id_card, $ch, $dateduty);
-            //выполнить подсчет отпусков на сегодня, т.е. дата1<=дата заступления смены<=дата2
-            $c_hol = getCountHoliday($id_card, $ch, $dateduty);
-            //выполнить подсчет др.причин на сегодня, т.е. дата1<=дата заступления смены<=дата2
-            $c_other = getCountOther($id_card, $ch, $dateduty);
-            //выполнить подсчет командировок на сегодня, т.е. дата1<=дата заступления смены<=дата2
-            $c_trip = getCountTrip($id_card, $ch, $dateduty);
+//            $c_ill = getCountIll($id_card, $ch, $dateduty);
+//            //выполнить подсчет отпусков на сегодня, т.е. дата1<=дата заступления смены<=дата2
+//            $c_hol = getCountHoliday($id_card, $ch, $dateduty);
+//            //выполнить подсчет др.причин на сегодня, т.е. дата1<=дата заступления смены<=дата2
+//            $c_other = getCountOther($id_card, $ch, $dateduty);
+//            //выполнить подсчет командировок на сегодня, т.е. дата1<=дата заступления смены<=дата2
+//            $c_trip = getCountTrip($id_card, $ch, $dateduty);
 
-            //проверить формулу 2: по списку=налицо+больные+командировки+отпуска+др.причины
-$a=1;
- if ($a==1) {
-          //  if ($mainstr->listls == ($mainstr->face + $c_ill + $c_hol + $c_trip + $c_other)) {//формула выполняется
-                //update is_duty=0 у всех смен этой карточки и выбираем cardchstr.id
-                // setDutyCh($id);
-                $cardch = getIdCardCh($id_card, $ch);
+
+            /*  all sheets: car, main,storage */
+
+        $mas_error['main'] = getErrorMain($today, $id, $change);
+        $mas_error['teh'] = getErrorTeh($today, $id, $change);
+        $mas_error['storage'] = getErrorStorage($today, $id, $change);
+
+        if (in_array(1, $mas_error)) {//хоть 1 вкладка не заполнена
+            $msg_m = $mas_error['main'] == 1 ? '<strong>Главная</strong>' : '';
+            $msg_t = $mas_error['teh'] == 1 ? '<strong>Техника</strong>' : '';
+            $msg_s = $mas_error['storage'] == 1 ? '<strong>Склад</strong>' : '';
+//$data['mas_error']=$mas_error;
+            $data['msg'] = 'Не заполнена(обновлена) информация на вкладках: ' . $msg_m . ' ' . $msg_t . ' ' . $msg_s;
+            $app->render('close_update/msg_empty_sheet.php', $data);
+        } else {//все вкладки заполнены
+            //выполнить подсчет больных на сегодня, т.е. дата1<=дата заступления смены<=дата2
+            $c_ill = getCountIll($id, $change, $today);
+            //выполнить подсчет отпусков на сегодня, т.е. дата1<=дата заступления смены<=дата2
+            $c_hol = getCountHoliday($id, $change, $today);
+            //выполнить подсчет др.причин на сегодня, т.е. дата1<=дата заступления смены<=дата2
+            $c_other = getCountOther($id, $change, $today);
+            //выполнить подсчет командировок на сегодня, т.е. дата1<=дата заступления смены<=дата2
+            $c_trip = getCountTrip($id, $change, $today);
+
+            //получить id main
+            $main_id = R::getAssoc("CALL get_main('{$id}','{$change}', '{$today}');");
+            if (!empty($main_id)) {
+                foreach ($main_id as $value) {
+                    $id_main = $value['id'];
+                }
+            }
+
+          //  $mainstr = R::load('main', $id_main);
+
+            /*             * *****************************************************************    проверка формул    ********************************************************************* */
+                        $error_field = array();
+
+            /*   --------------  формула 1: по штату = по штату КУСиС ----------------- */
+               //по штату КУСиС
+              $shtat_KUSiS=  getShtatFromKUSiS($change, $id);
+            if($shtat_KUSiS != $mainstr->countls)
+                  $error_field['shtat'] = 1; //ошибка
+
+
+            /* ----------- формула 2: по списку= кол-ву работников(без ВАКАНТОВ, без ежедневников) из списка смен --------------- */
+            // из списка смены
+            $on_list = getCountOnList($id, $change);
+            if ($on_list != $mainstr->listls)
+                $error_field['on_list'] = 1; //ошибка
+
+            /*-------------- формула3: вакантов=кол-во ВАКАНТОВ из списка смены --------------*/
+         //вакантов из списка смен
+            $count_vacant_from_list= getCountVacantOnList($id, $change);
+                 if ($count_vacant_from_list != $mainstr->vacant)
+                $error_field['vacant'] = 1; //ошибка
+
+                    /* ----------формула 4: налицо($mainstr->face)=список($mainstr->listls)-больной-командировка-отпуск-др.причины+ежедневники+др.ПАСЧ ---------- */
+            //ежедневник
+            $count_everyday_fio = count(getFioById(getListFioEveryday($id, $change, 1, 0, 0,$is_nobody=1), $id, $change));
+            //из др.ПАСЧ
+            $count_reserve_fio = count(getFioById(getListFioReserve($id, $change, 1, 0), $id, $change));
+
+            if ($mainstr->face != ($mainstr->listls - $c_ill - $c_hol - $c_trip - $c_other + $count_everyday_fio + $count_reserve_fio))
+                $error_field['face'] = 1; //ошибка
+
+                /* -------------------------------- формула5: б.р.($mainstr->calc)=кол-ву работников на машинах --------------------------------------- */
+            //  сколько человек на технике
+            $last_data = date("Y-m-d");
+            $count_fio_on_car= getCountCalc($id, $change, $last_data);
+
+            if ($mainstr->calc != $count_fio_on_car)
+                $error_field['calc'] = 1; //ошибка
+
+
+            /* 6: shtat-spisok=vakant */
+            if (($mainstr->countls - $mainstr->listls) != $mainstr->vacant)
+                $error_field['vacant_form_main_table'] = 1; //ошибка
+
+
+                /* 7: br + naryd = face */
+            if (($mainstr->calc + $mainstr->duty) != $mainstr->face)
+                $error_field['br_duty_face_from_main_table'] = 1; //ошибка
+
+            $data['error_field']=$error_field;
+                /*                 * *********************************************************    КОНЕЦ проверки формул   ********************************************************************** */
+
+            if (!in_array(1, $error_field)) {//формулы выполняется
+
+                $cardch = getIdCardCh($id, $change);
                 //выбираем последнюю запись countstr запись этой карточки, смены
                 $last_countstr = R::getCell('SELECT id FROM countstr WHERE id_cardch = :cardch order by dateduty DESC LIMIT 1', ['cardch' => $cardch]);
 
@@ -13219,7 +13343,9 @@ $a=1;
                     $countstr->c_hol = $c_hol;
                     $countstr->c_trip = $c_trip;
                     $countstr->c_other = $c_other;
+                    $countstr->dateduty = date("Y-m-d");
                     $countstr->last_update = date("Y-m-d H:i:s");
+                    $countstr->id_user = $_SESSION['uid'];
                     R::store($countstr);
                 } else {
                     //insert into countstr
@@ -13235,17 +13361,80 @@ $a=1;
                     R::store($countstr);
                 }
 
+                //update is_duty=1 у данной смены
+              //  $mainstr->last_update = date("Y-m-d H:i:s");
+               // $mainstr->id_user = $_SESSION['uid'];
+               // $mainstr->is_duty = 1;
+                //R::store($mainstr);
+
+                //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+                setTripFromReserve($id, $change, $today, $log);
+                //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+               // setReserveToTripCar($id, $change, $today, $log);
+
+
                 $mainstr->last_update = date("Y-m-d H:i:s");
                 $mainstr->open_update = 0;
                 $mainstr->who_open = 0;
                 R::store($mainstr);
                 $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Закрыт доступ на редактирование main - запись с id=' . $id_main . '- Данные:: ' . $mainstr);
                 $app->redirect('/str/general/1');
+
             } else {
-//                $_SESSION['msg'] = 1;
-//                $app->redirect('/str/close_update/' . $id_main);
-                $app->redirect('/str/close_update/close/error/' . $id_main);
+                //$data['error_field']=$error_field;
+                 $app->render('close_update/danger.php', $data);
             }
+        }
+
+
+            $app->render('layouts/footer.php');
+
+
+
+            //проверить формулу 2: по списку=налицо+больные+командировки+отпуска+др.причины
+//$a=1;
+// if ($a==1) {
+//          //  if ($mainstr->listls == ($mainstr->face + $c_ill + $c_hol + $c_trip + $c_other)) {//формула выполняется
+//                //update is_duty=0 у всех смен этой карточки и выбираем cardchstr.id
+//                // setDutyCh($id);
+//                $cardch = getIdCardCh($id_card, $ch);
+//                //выбираем последнюю запись countstr запись этой карточки, смены
+//                $last_countstr = R::getCell('SELECT id FROM countstr WHERE id_cardch = :cardch order by dateduty DESC LIMIT 1', ['cardch' => $cardch]);
+//
+//                if (isset($last_countstr) && !empty($last_countstr)) {//если не храним за месяц
+//                    //update countstr
+//                    $countstr = R::load('countstr', $last_countstr);
+//                    $countstr->c_ill = $c_ill;
+//                    $countstr->c_hol = $c_hol;
+//                    $countstr->c_trip = $c_trip;
+//                    $countstr->c_other = $c_other;
+//                    $countstr->last_update = date("Y-m-d H:i:s");
+//                    R::store($countstr);
+//                } else {
+//                    //insert into countstr
+//                    $countstr = R::dispense('countstr');
+//                    $countstr->id_cardch = $cardch;
+//                    $countstr->c_ill = $c_ill;
+//                    $countstr->c_hol = $c_hol;
+//                    $countstr->c_trip = $c_trip;
+//                    $countstr->c_other = $c_other;
+//                    $countstr->dateduty = date("Y-m-d");
+//                    $countstr->last_update = date("Y-m-d H:i:s");
+//                    $countstr->id_user = $_SESSION['uid'];
+//                    R::store($countstr);
+//                }
+//
+//                $mainstr->last_update = date("Y-m-d H:i:s");
+//                $mainstr->open_update = 0;
+//                $mainstr->who_open = 0;
+//                R::store($mainstr);
+//                $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Закрыт доступ на редактирование main - запись с id=' . $id_main . '- Данные:: ' . $mainstr);
+//                $app->redirect('/str/general/1');
+//            } else {
+////                $_SESSION['msg'] = 1;
+////                $app->redirect('/str/close_update/' . $id_main);
+//                $app->redirect('/str/close_update/close/error/' . $id_main);
+//            }
         } else {//нет права
             $app->redirect('/str/modal');
         }
@@ -19734,7 +19923,7 @@ $others=array();
                 //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
                 setTripFromReserve($id, $change, $today, $log);
                 //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
-                setReserveToTripCar($id, $change, $today, $log);
+               // setReserveToTripCar($id, $change, $today, $log);
 
                 $app->render('card/sheet/confirm/success.php', $data);
             }
@@ -19751,7 +19940,7 @@ $others=array();
                 //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
                 setTripFromReserve($id, $change, $today, $log);
                 //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
-                setReserveToTripCar($id, $change, $today, $log);
+               // setReserveToTripCar($id, $change, $today, $log);
 
                 $app->render('card/sheet/confirm/success.php', $data);
 
@@ -19864,6 +20053,21 @@ $others=array();
     //закрытие доступа
     $app->get('/close_update/close/:id', function ($id) use ($app, $log) {
         if ($_SESSION['is_admin'] == 1) {//есть правао
+
+
+            $today = date("Y-m-d");
+
+            $mainstr = R::load('maincou', $id);
+            $dateduty = $mainstr->dateduty;
+            $id_card = $mainstr->id_card;
+            $change= $mainstr->ch;
+
+            $mas_error['teh'] = getErrorTeh($today, $id_card, $change);// set dateduty = today for cars cou
+
+             //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+             setTripFromReserve($id_card, $change, $today, $log);
+
+
             R::exec('update maincou set open_update = ?, who_open = ?  WHERE is_duty = ? AND id_card = ? AND  dateduty = ? ', array(0, $_SESSION['uid'], 1, $id, date('Y-m-d')));
 
             $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Закрыт доступ на редактирование maincou - для карточки с id_card= ' . $id);
