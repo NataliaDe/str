@@ -12064,7 +12064,7 @@ if($date1 != NULL){
         $app->render('layouts/footer.php');
     });
 
-    $app->post('/:id/ch/:change/car/trip', function ($id, $change) use ($app,$log) {//insert car information
+    $app->post('/:id/ch/:change/car/trip', function ($id, $change) use ($app, $log) {//insert car information
         array($app, 'is_auth'); //авторизован ли пользователь
         $data = bread($id);
         $data['change'] = $change;
@@ -12084,12 +12084,13 @@ if($date1 != NULL){
             $date2 = date("Y-m-d", strtotime($date2));
 
 
-        if(isset($_POST['id_pasp']) && !empty($_POST['id_pasp']))
-        $to_card=$_POST['id_pasp'];//куда откомандирована техника
+        if (isset($_POST['id_pasp']) && !empty($_POST['id_pasp']))
+            $to_card = $_POST['id_pasp']; //куда откомандирована техника
         else
-            $to_card=0;//не указана ПАСЧ
+            $to_card = 0; //не указана ПАСЧ
 
-        // на учете или нет
+
+// на учете или нет
 //        if ((date("Y-m-d") >= $date1) && (date("Y-m-d") <= $date2)) {//да
 //            $deregister = 0;
 //        } else {//нет
@@ -12097,26 +12098,25 @@ if($date1 != NULL){
 //        }
         $deregister = 0;
 
-
-           //куда откомандировали - текстом
-        if($to_card != 0){
-                    $place_arr = R::getAll('select   reg.name as region,(CASE WHEN (org.id = 8) THEN concat(loc.name, " ",org.name) WHEN (org.id = 7) THEN CONCAT(org.name," №",locor.no," ",'
-                        . ' REPLACE(loc.name,"ий","ого")," ",orgg.name) ELSE CONCAT(loc.name," ",org.name) END) AS organ,'
-                        . ' case when(rec.divizion_num=0) then diviz.name else concat(diviz.name,"№ ", rec.divizion_num)  end as pasp'
-
-                        . ' from  ss.records as rec  left join ss.locorg as locor on locor.id=rec.id_loc_org'
-                        . ' left JOIN ss.organs org ON locor.id_organ = org.id left JOIN ss.organs orgg ON locor.oforg = orgg.id'
-                        . ' left JOIN ss.locals loc ON locor.id_local = loc.id left JOIN ss.regions reg ON loc.id_region = reg.id'
-                        . ' LEFT JOIN ss.divizions diviz ON rec.id_divizion = diviz.id WHERE rec.id = :id ', [':id' => $to_card]);
+        $ch_today = duty_ch();
 
 
-                     foreach ($place_arr as $p) {
-            $place=$p['organ'].chr(10).$p['pasp'];
-        }
+        //куда откомандировали - текстом
+        if ($to_card != 0) {
+            $place_arr = R::getAll('select   reg.name as region,(CASE WHEN (org.id = 8) THEN concat(loc.name, " ",org.name) WHEN (org.id = 7) THEN CONCAT(org.name," №",locor.no," ",'
+                    . ' REPLACE(loc.name,"ий","ого")," ",orgg.name) ELSE CONCAT(loc.name," ",org.name) END) AS organ,'
+                    . ' case when(rec.divizion_num=0) then diviz.name else concat(diviz.name,"№ ", rec.divizion_num)  end as pasp'
+                    . ' from  ss.records as rec  left join ss.locorg as locor on locor.id=rec.id_loc_org'
+                    . ' left JOIN ss.organs org ON locor.id_organ = org.id left JOIN ss.organs orgg ON locor.oforg = orgg.id'
+                    . ' left JOIN ss.locals loc ON locor.id_local = loc.id left JOIN ss.regions reg ON loc.id_region = reg.id'
+                    . ' LEFT JOIN ss.divizions diviz ON rec.id_divizion = diviz.id WHERE rec.id = :id ', [':id' => $to_card]);
 
-        }
-        else
-            $place='';
+
+            foreach ($place_arr as $p) {
+                $place = $p['organ'] . chr(10) . $p['pasp'];
+            }
+        } else
+            $place = '';
 
 
 
@@ -12133,55 +12133,59 @@ if($date1 != NULL){
             $teh->deregister = $deregister;
             $teh->ch = $change;
             $teh->id_card = $id;
-            $teh->to_card = $to_card;//куда откомандирована техника
+            $teh->to_card = $to_card; //куда откомандирована техника
             $teh->date_insert = date("Y-m-d H:i:s");
             $teh->last_update = date("Y-m-d H:i:s");
             $teh->id_user = $_SESSION['uid'];
-          $new_id_tripcar=R::store($teh);
+            $new_id_tripcar = R::store($teh);
 
-
-
-            if($to_card != 0){// добавляем в "заступает из др подразделения", если еще не добавлена
-
-
-                    /*         * * определить dateduty ** */
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
-        if (isset($main) && !empty($main)) {
-            foreach ($main as $value) {
-                $dateduty = $value['dateduty'];
+            /* update dateduty for this car (today) */
+            if(isset($new_id_tripcar)){
+                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
             }
-        } else {
-            $dateduty = $today;
-        }
-        $data['dateduty'] = $dateduty;
 
 
-        /*         * * выбор техники в командировке на dateduty ** */
-         $id_reservecar = R::getCell('select id from reservecar  where id_teh = :id_teh and id_card = :id_card and (( :date BETWEEN date1 and date2) or( :date  >= date1 and date2 is NULL)) ', [':id_teh' => $id_teh,':id_card' => $to_card, ':date' => $dateduty]);
+
+            if ($to_card != 0) {// добавляем в "заступает из др подразделения", если еще не добавлена
+
+
+                /*                 * * определить dateduty ** */
+                $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
+                if (isset($main) && !empty($main)) {
+                    foreach ($main as $value) {
+                        $dateduty = $value['dateduty'];
+                    }
+                } else {
+                    $dateduty = $today;
+                }
+                $data['dateduty'] = $dateduty;
+
+
+                /*                 * * выбор техники в командировке на dateduty ** */
+                $id_reservecar = R::getCell('select id from reservecar  where id_teh = :id_teh and id_card = :id_card and (( :date BETWEEN date1 and date2) or( :date  >= date1 and date2 is NULL)) ', [':id_teh' => $id_teh, ':id_card' => $to_card, ':date' => $dateduty]);
 
                 if (empty($id_reservecar)) {//автоматически insert в "заступает из др подразделения"
                     $res = R::dispense('reservecar');
                     $res->id_teh = $id_teh;
-                    $res->date1 = $date1;// = дате, указанной в tripcar
-                    $res->date2 = $date2;// = дате, указанной в tripcar
+                    $res->date1 = $date1; // = дате, указанной в tripcar
+                    $res->date2 = $date2; // = дате, указанной в tripcar
                     $res->place = $place;
-                    $res->prikaz =  $app->request()->post('prikaz');
-                    $res->id_card = $to_card;//куда откомандировали
+                    $res->prikaz = $app->request()->post('prikaz');
+                    $res->id_card = $to_card; //куда откомандировали
                     $res->ch = $change;
                     $res->last_update = date("Y-m-d H:i:s");
                     $res->id_user = $_SESSION['uid'];
                     $res->deregister = 0;
-                    $res->is_auto_create=1;//индикатор того, что создана автоматически
+                    $res->is_auto_create = 1; //индикатор того, что создана автоматически
                     $res->date_insert = date("Y-m-d H:i:s");
-                    $res->id_tripcar=$new_id_tripcar;
-                   $id_reservecar_new= R::store($res);
+                    $res->id_tripcar = $new_id_tripcar;
+                    $id_reservecar_new = R::store($res);
                     $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Создание reservecar(auto) - Данные:: ' . $res);
 
-                    					                   if(isset($id_reservecar_new)){//записать id_reservecar in tripcar
-                        $trip=R::load('tripcar', $new_id_tripcar);
-                        $trip->id_reservecar=$id_reservecar_new;
+                    if (isset($id_reservecar_new)) {//записать id_reservecar in tripcar
+                        $trip = R::load('tripcar', $new_id_tripcar);
+                        $trip->id_reservecar = $id_reservecar_new;
                         R::store($trip);
-
                     }
                 }
             }
@@ -12219,10 +12223,14 @@ if($date1 != NULL){
 //            }
             $deregister = 0;
 
+            $ch_today = duty_ch();
+            $today=date("Y-m-d");
+
             if (($date1 != NULL)) {
                 $id_tripcar = $app->request()->post('id_tripcar' . $i);
                 //insert
                 $teh = R::load('tripcar', $id_tripcar);
+                $id_teh=$teh->id_teh;
                 $teh->date1 = $date1;
                 $teh->date2 = $date2;
                // $teh->place = $app->request()->post('place' . $i);
@@ -12232,6 +12240,10 @@ if($date1 != NULL){
                 $teh->last_update = date("Y-m-d H:i:s");
                 $teh->id_user = $_SESSION['uid'];
                 R::store($teh);
+
+                 /* update dateduty for this car (today) */
+                if(isset($id_teh))
+                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
             }
         }
         $_SESSION['msg'] = 1; //ok
@@ -12399,7 +12411,7 @@ if($date1 != NULL){
         $app->render('layouts/footer.php');
     });
 
-    $app->post('/:id/ch/:change/car/reserve', function ($id, $change) use ($app,$log) {//insert car_reserve information
+    $app->post('/:id/ch/:change/car/reserve', function ($id, $change) use ($app, $log) {//insert car_reserve information
 
         /* id - куда техника приехала
          *  */
@@ -12407,7 +12419,7 @@ if($date1 != NULL){
         $data = bread($id);
         $data['change'] = $change;
         $data['sign'] = 6; //car
-         $today = date("Y-m-d");
+        $today = date("Y-m-d");
 
         $id_teh = $app->request()->post('id_teh');
         $date1 = $app->request()->post('date1');
@@ -12429,24 +12441,25 @@ if($date1 != NULL){
 //        }
         $deregister = 0;
 
-
-          //* куда приехала - текстом */
-        $place='';
-
-                    $place_arr = R::getAll('select   reg.name as region,(CASE WHEN (org.id = 8) THEN concat(loc.name, " ",org.name) WHEN (org.id = 7) THEN CONCAT(org.name," №",locor.no," ",'
-                        . ' REPLACE(loc.name,"ий","ого")," ",orgg.name) ELSE CONCAT(loc.name," ",org.name) END) AS organ,'
-                        . ' case when(rec.divizion_num=0) then diviz.name else concat(diviz.name,"№ ", rec.divizion_num)  end as pasp'
-
-                        . ' from  ss.records as rec  left join ss.locorg as locor on locor.id=rec.id_loc_org'
-                        . ' left JOIN ss.organs org ON locor.id_organ = org.id left JOIN ss.organs orgg ON locor.oforg = orgg.id'
-                        . ' left JOIN ss.locals loc ON locor.id_local = loc.id left JOIN ss.regions reg ON loc.id_region = reg.id'
-                        . ' LEFT JOIN ss.divizions diviz ON rec.id_divizion = diviz.id WHERE rec.id = :id ', [':id' => $id]);
+        $ch_today = duty_ch();
 
 
-                     foreach ($place_arr as $p) {
-            $place=$p['organ'].chr(10).$p['pasp'];
+        //* куда приехала - текстом */
+        $place = '';
+
+        $place_arr = R::getAll('select   reg.name as region,(CASE WHEN (org.id = 8) THEN concat(loc.name, " ",org.name) WHEN (org.id = 7) THEN CONCAT(org.name," №",locor.no," ",'
+                . ' REPLACE(loc.name,"ий","ого")," ",orgg.name) ELSE CONCAT(loc.name," ",org.name) END) AS organ,'
+                . ' case when(rec.divizion_num=0) then diviz.name else concat(diviz.name,"№ ", rec.divizion_num)  end as pasp'
+                . ' from  ss.records as rec  left join ss.locorg as locor on locor.id=rec.id_loc_org'
+                . ' left JOIN ss.organs org ON locor.id_organ = org.id left JOIN ss.organs orgg ON locor.oforg = orgg.id'
+                . ' left JOIN ss.locals loc ON locor.id_local = loc.id left JOIN ss.regions reg ON loc.id_region = reg.id'
+                . ' LEFT JOIN ss.divizions diviz ON rec.id_divizion = diviz.id WHERE rec.id = :id ', [':id' => $id]);
+
+
+        foreach ($place_arr as $p) {
+            $place = $p['organ'] . chr(10) . $p['pasp'];
         }
-          /*  END  куда приехала - текстом   */
+        /*  END  куда приехала - текстом   */
 
 
 
@@ -12461,60 +12474,64 @@ if($date1 != NULL){
             $res->note = $app->request()->post('note');
             $res->deregister = $deregister;
             $res->ch = $change;
-            $res->id_card = $id;//куда  приехала
-            $res->place=$place;//куда  приехала текстом
+            $res->id_card = $id; //куда  приехала
+            $res->place = $place; //куда  приехала текстом
             $res->date_insert = date("Y-m-d H:i:s");
             $res->last_update = date("Y-m-d H:i:s");
             $res->id_user = $_SESSION['uid'];
-            $new_id_reservecar=R::store($res);
+            $new_id_reservecar = R::store($res);
+
+
+            /* update dateduty for this car (today) */
+            if (isset($new_id_reservecar)) {
+                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
+            }
 
 
             //insert into tripcar
-                        /*         * * определить dateduty ** */
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
-        if (isset($main) && !empty($main)) {
-            foreach ($main as $value) {
-                $dateduty = $value['dateduty'];
-            }
-        } else {
-            $dateduty = $today;
-        }
-        $data['dateduty'] = $dateduty;
-
-
-        /*         * * выбор техники в командировке на dateduty ** */
-         $id_tripcar = R::getCell('select id from tripcar  where id_teh = :id_teh and to_card = :to_card and (( :date BETWEEN date1 and date2) or( :date  >= date1 and date2 is NULL)) ', [':id_teh' => $id_teh,':to_card' => $id, ':date' => $dateduty]);
-
-
-
-                if (empty($id_tripcar)) {//автоматически insert в "trip"
-  $teh = R::dispense('tripcar');
-            $teh->id_teh = $id_teh;
-            $teh->date1 = $date1;
-            $teh->date2 = $date2;
-            $teh->place = $place;
-            $teh->prikaz = $app->request()->post('prikaz');
-            $teh->note = $app->request()->post('note');
-            $teh->deregister = $deregister;
-            $teh->ch = $change;
-            $teh->id_card = $app->request()->post('id_pasp');//откуда откомандирована
-            $teh->to_card = $id;//куда откомандирована техника
-            $teh->date_insert = date("Y-m-d H:i:s");
-            $teh->last_update = date("Y-m-d H:i:s");
-            $teh->id_user = $_SESSION['uid'];
-            $teh->is_auto_create = 1;
-            $teh->id_reservecar=$new_id_reservecar;
-           $id_tripcar_new= R::store($teh);
-                    $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Создание tripcar(auto) - Данные:: ' . $teh);
-
-                    if(isset($id_tripcar_new)){//записать id_tripcar in reservecar
-                        $reservecar=R::load('reservecar', $new_id_reservecar);
-                        $reservecar->id_tripcar=$id_tripcar_new;
-                        R::store($reservecar);
-
-                    }
-
+            /*             * * определить dateduty ** */
+            $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
+            if (isset($main) && !empty($main)) {
+                foreach ($main as $value) {
+                    $dateduty = $value['dateduty'];
                 }
+            } else {
+                $dateduty = $today;
+            }
+            $data['dateduty'] = $dateduty;
+
+
+            /*             * * выбор техники в командировке на dateduty ** */
+            $id_tripcar = R::getCell('select id from tripcar  where id_teh = :id_teh and to_card = :to_card and (( :date BETWEEN date1 and date2) or( :date  >= date1 and date2 is NULL)) ', [':id_teh' => $id_teh, ':to_card' => $id, ':date' => $dateduty]);
+
+
+
+            if (empty($id_tripcar)) {//автоматически insert в "trip"
+                $teh = R::dispense('tripcar');
+                $teh->id_teh = $id_teh;
+                $teh->date1 = $date1;
+                $teh->date2 = $date2;
+                $teh->place = $place;
+                $teh->prikaz = $app->request()->post('prikaz');
+                $teh->note = $app->request()->post('note');
+                $teh->deregister = $deregister;
+                $teh->ch = $change;
+                $teh->id_card = $app->request()->post('id_pasp'); //откуда откомандирована
+                $teh->to_card = $id; //куда откомандирована техника
+                $teh->date_insert = date("Y-m-d H:i:s");
+                $teh->last_update = date("Y-m-d H:i:s");
+                $teh->id_user = $_SESSION['uid'];
+                $teh->is_auto_create = 1;
+                $teh->id_reservecar = $new_id_reservecar;
+                $id_tripcar_new = R::store($teh);
+                $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Создание tripcar(auto) - Данные:: ' . $teh);
+
+                if (isset($id_tripcar_new)) {//записать id_tripcar in reservecar
+                    $reservecar = R::load('reservecar', $new_id_reservecar);
+                    $reservecar->id_tripcar = $id_tripcar_new;
+                    R::store($reservecar);
+                }
+            }
         }
 
         $_SESSION['msg'] = 1; //ok
@@ -12546,6 +12563,10 @@ if($date1 != NULL){
             $prikaz= $app->request()->post('prikaz' . $i);
             $note=$app->request()->post('note' . $i);
 
+
+            $ch_today = duty_ch();
+            $today=date("Y-m-d");
+
             if (!empty($id_reserve) && ($date1 != NULL)) {
                 //update
                 $teh = R::load('reservecar', $id_reserve);
@@ -12565,6 +12586,11 @@ if($date1 != NULL){
                 //update tripcar
  R::exec("update tripcar set date1 = ?, date2 = ?, prikaz = ?, note = ?, last_update = ?, id_user = ? "
 ." where id_teh = ? and id_reservecar = ? ", array($date1, $date2,$prikaz,$note,date("Y-m-d H:i:s"), $_SESSION['uid'],$id_teh,$id_reserve));
+
+
+                  /* update dateduty for this car (today) */
+                if(isset($id_teh))
+                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
 
             }
         }
