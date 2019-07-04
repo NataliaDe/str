@@ -6779,7 +6779,7 @@ ELSE 5 END AS is_color "
                     . "  ELSE CONCAT(`loc`.`name`,' ',`org`.`name`) END) AS `organ`,"
                     . "  `org`.`id`         AS `org_id`,"
                     . " (CASE WHEN (`org`.`id` = 8) THEN CONCAT(`org`.`name`,' - ',`loc`.`name`) WHEN (`re`.`divizion_num` = 0) THEN `d`.`name` "
-                    . "ELSE CONCAT(`d`.`name`,'-',`re`.`divizion_num`) END) AS `divizion` "
+                    . "ELSE CONCAT(`d`.`name`,' № ',`re`.`divizion_num`) END) AS `divizion` "
 
                     . "   FROM  str.reservecar AS res "
                     . " left join str.car as c ON c.id_teh=res.id_teh  and c.dateduty= ' " . $date_start . " '"
@@ -6891,7 +6891,7 @@ ELSE 5 END AS is_color "
 
         $teh_from_other_card = R::getAll($sql_teh_from_other_pasp);
 
-
+        //print_r($teh_from_other_card);
 
         $teh_from_other_card_array = array(); //в массив ключ - это ПАСЧ
         foreach ($teh_from_other_card as $value) {
@@ -6916,7 +6916,7 @@ ELSE 5 END AS is_color "
 
         $data['teh_mark_from_other_card_array'] = $teh_mark_from_other_card_array;
 
-
+//print_r($teh_mark_from_other_card_array);exit();
 
         /* ----------------- КОНЕЦ Техника из др подразделения ----------------------- */
 

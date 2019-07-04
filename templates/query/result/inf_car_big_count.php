@@ -1,5 +1,10 @@
 <?php
 /* ------- запрос по технике в цифрах ------- */
+//foreach ($res as $value) {
+//    echo $value['id_pasp'];
+//    echo '<br>';
+//}
+
 
 //print_r($teh_mark_from_other_card_array);
 //print_r($teh_from_other_card_array);
@@ -7,12 +12,47 @@ $id_native_teh = array();
 foreach ($res as $value) {//родная техника записать id техники в массив
     $id_native_teh[] = $value['id_pasp'];
 }
+//print_r($teh_mark_from_other_card_array);
+//print_r($res);
 foreach ($teh_from_other_card_array as $key => $value) {
     if (!in_array($key, $id_native_teh)) {//добавить в массив информацию о подразделении, где есть только чужая техника, а родной нет
-        $res[] = $value;
+      //  $res[] = $value;
+       // print_r($value);
+        $id_gochs=$value['id_grochs'];
+        $k_pos=0;
+        $k_pos_region=0;
+         foreach ($res as $k=>$m) {
+
+             if($m['id_grochs'] == $id_gochs){
+
+                 $k_pos=$k+1;
+             }
+             if($value['region_id'] == $m['region_id'])
+                 $k_pos_region=$k+1;
+
+         }
+
+         if($k_pos != 0){
+            array_splice($res, $k_pos, 0, array($value));
+         }
+         elseif($k_pos_region != 0){
+            array_splice($res, $k_pos_region, 0, array($value));
+         }
+         else{
+             $res[] = $value;
+         }
+
         unset($teh_from_other_card_array[$key]);
     }
 }
+//$price = array_column($res, 'region_id');
+//
+//array_multisort($price, SORT_DESC, $res);
+//
+//$price = array_column($res, 'organ');
+//
+//array_multisort($price, SORT_ASC, $res);
+
 
  $today = new DateTime(date("Y-m-d"));
 $date_start = $today->Format('d-m-Y');
