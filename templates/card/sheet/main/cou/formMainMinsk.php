@@ -1,5 +1,4 @@
-<!--form cou umchs without g. Minsk-->
-
+<!--form cou umchs  g. Minsk-->
 <?php
 //какую дату писать в дате заступления. если смена сег должна заступить - сегодня
 $is_btn_confirm = isset($is_btn_confirm) ? $is_btn_confirm : 0;
@@ -153,14 +152,14 @@ if (empty($past_others_fio)) {
 }
 
 // inspector_inip_fio
-if (empty($past_inspector_inip_fio)) {
-    $p_inspector_inip_fio = array();
+if (empty($past_opg)) {
+    $p_opg = array();
 } else {
-    foreach ($past_inspector_inip_fio as $key => $value) {
-        $p_inspector_inip_fio[] = $value;
+    foreach ($past_opg as $key => $value) {
+        $p_opg[] = $value;
     }
 }
-//print_r($p_inspector_inip_fio);
+//print_r($p_opg);
 // head on garnison
 if (empty($past_garnison_fio)) {
     $p_garnison_fio = array();
@@ -178,7 +177,7 @@ if (empty($past_garnison_fio)) {
 $head_ch = 0;
 $god = 0;
 $zam_head_sch = 0;
-$st_pom_sch = 0;
+//$st_pom_sch = 0;
 $head_sch_fio = 0;
 $trainee = 0;
 $inspector_inip = 0;
@@ -193,7 +192,7 @@ if (isset($main) && !empty($main)) {
 
         $dateduty = $row['dateduty'];
 
-        if (!empty($row['id_fio']) && $row['id_fio'] != 15 && $row['id_fio'] != 20) {
+        if (!empty($row['id_fio'])) {
             $count_all[] = $row['id_fio'];
         }
 
@@ -219,7 +218,7 @@ if (isset($main) && !empty($main)) {
             $zam_head_sch = $row['id_fio'];
 
         elseif ($row['id_pos_duty'] == 22)
-            $st_pom_sch = $row['id_fio'];
+            $st_pom_sch[] = $row['id_fio'];
 
         elseif ($row['id_pos_duty'] == 23)
             $drivers_sch[] = $row['id_fio'];
@@ -268,7 +267,6 @@ if (isset($main) && !empty($main)) {
 <form  role="form" id="formFillMain" method="POST" action="/str/v2/card/<?= $record_id ?>/ch/<?= $change ?>/main">
 
     <?php
-
 //смена деж и доступ на редактирование закрыт
     if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) && ($dateduty == $today) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
 
@@ -332,59 +330,7 @@ if (isset($main) && !empty($main)) {
             </div>
 
 
-            <div class="col-lg-3">
-                <div class="form-group">
-                    <label class="control-label  col-lg-12" for="head_ch">Начальник ЦОУ
-
-                        <?php
-                        /* -----------------  Заступали прошлый раз ----------------- */
-                        if (isset($dateduty) && ($dateduty != $today)) {
-                            //кто заступал начальником смены прошлый раз
-                            // на сегодня начальник смены доступен в списке или нет.если нет - вывод
-
-                            if (isset($past_head_fio) && !empty($past_head_fio)) {
-
-                                ?>
-
-                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
-
-                                            title="Заступал прошлый раз: <?php
-                                            foreach ($past_head_fio as $value) {
-                                                echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                            }
-
-                                            ?> ">
-
-                                </i>
-
-                                <?php
-                            }
-                        }
-                        /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
-
-                        ?>
-
-                    </label>
-                    <select class=" chosen-select-deselect form-control " name="head_ch"  tabindex="2" data-placeholder="Выбрать"  >
-                        <option ></option>
-                        <?php
-                        foreach ($present_head_fio as $present) {
-                            if (in_array($present['id'], $p_h_fio) && ($dateduty != $today)) {
-
-                                printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            } elseif (isset($head_ch) && ($head_ch == $present['id'])) {
-                                printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            } else {
-                                printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            }
-                        }
-
-                        ?>
-
-                    </select>
-                </div>
-
-            </div>
+            <div class="col-lg-3"></div>
 
 
 
@@ -403,12 +349,9 @@ if (isset($main) && !empty($main)) {
         <div class="row">
 
 
-            <div class="col-lg-3">
-                <?php
-                /*  isset only in cou umchs or cou slhs */
-                if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
 
-                    ?>
+            <div class="col-lg-3">
+
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="od">ГОД ЦОУ
 
@@ -425,11 +368,11 @@ if (isset($main) && !empty($main)) {
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступал прошлый раз: <?php
-                                                foreach ($past_god_fio as $value) {
-                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
+                        foreach ($past_god_fio as $value) {
+                            echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                                ?> ">
+                                    ?> ">
 
                                     </i>
 
@@ -459,17 +402,12 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
-                <?php endif; ?>
+
             </div>
 
 
+            <div class="col-lg-3">
 
-             <div class="col-lg-3">
-                <?php
-                /*  isset only in cou umchs or cou slhs */
-                if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
-
-                    ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="z_od">Помощник ГОД центра
 
@@ -484,11 +422,11 @@ if (isset($main) && !empty($main)) {
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступали прошлый раз <?= count($past_pom_god) ?> чел: <?php
-                                                foreach ($past_pom_god as $value) {
-                                                    echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
+                        foreach ($past_pom_god as $value) {
+                            echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                                ?> ">
+                                    ?> ">
 
                                     </i>
 
@@ -518,7 +456,7 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
-<?php endif; ?>
+
             </div>
 
 
@@ -527,7 +465,7 @@ if (isset($main) && !empty($main)) {
             <div class="col-lg-2">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">всего
-                        <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству работников, заступивших на должности (расставлены по полям). Кроме инспектора ОНиП, ответств.по гарнизону, начальника ЦОУ, зам.начальника ЦОУ."></span>
+                        <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству работников, заступивших на должности (расставлены по полям). Кроме ответств.по гарнизону."></span>
                     </label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_all ?>" disabled="" id="on_holiday">
                 </div>
@@ -550,7 +488,7 @@ if (isset($main) && !empty($main)) {
 
 
 
-<div class="col-lg-3">
+            <div class="col-lg-3">
                 <div class="form-group">
                     <label class="control-label  col-lg-12" for="disp">Диспетчера центра
 
@@ -565,11 +503,11 @@ if (isset($main) && !empty($main)) {
                                 &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                             title="Заступали прошлый раз <?= count($past_disp_fio) ?> чел: <?php
-                                            foreach ($past_disp_fio as $value) {
-                                                echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                            }
+                        foreach ($past_disp_fio as $value) {
+                            echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                            ?> ">
+                                ?> ">
 
                                 </i>
 
@@ -604,11 +542,7 @@ if (isset($main) && !empty($main)) {
 
 
             <div class="col-lg-3">
-                <?php
-                /*  isset only in cou umchs or cou slhs */
-                if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
 
-                    ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="driver">Водители  центра
 
@@ -623,11 +557,11 @@ if (isset($main) && !empty($main)) {
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступали прошлый раз <?= count($past_driver_fio) ?> чел: <?php
-                                                foreach ($past_driver_fio as $value) {
-                                                    echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
+                        foreach ($past_driver_fio as $value) {
+                            echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                                ?> ">
+                                    ?> ">
 
                                     </i>
 
@@ -657,7 +591,7 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
-<?php endif; ?>
+
 
             </div>
 
@@ -695,69 +629,7 @@ if (isset($main) && !empty($main)) {
         <div class="row">
 
 
-
-
             <div class="col-lg-3">
-                <div class="form-group">
-                    <label class="control-label  col-lg-12" for="master_connect">Зам.начальника ЦОУ - начальник ШЛЧС
-
-                        <?php
-                        /* -----------------  Заступали прошлый раз ----------------- */
-                        if (isset($dateduty) && ($dateduty != $today)) {
-                            //кто заступал начальником смены прошлый раз
-                            // на сегодня начальник смены доступен в списке или нет.если нет - вывод
-
-                            if (isset($past_head_sch_fio) && !empty($past_head_sch_fio)) {
-
-                                ?>
-
-                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
-
-                                            title="Заступал прошлый раз: <?php
-                                            foreach ($past_head_sch_fio as $value) {
-                                                echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                            }
-
-                                            ?> ">
-
-                                </i>
-
-                                <?php
-                            }
-                        }
-                        /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
-
-                        ?>
-
-                    </label>
-                    <select class=" chosen-select-deselect form-control " name="head_sch"  tabindex="4" data-placeholder="Выбрать"  >
-                        <option ></option>
-                        <?php
-                        foreach ($present_head_fio as $present) {
-                            if (in_array($present['id'], $p_head_sch_fio) && ($dateduty != $today)) {
-
-                                printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            } elseif (isset($head_sch_fio) && ($head_sch_fio == $present['id'])) {
-                                printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            } else {
-                                printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            }
-                        }
-
-                        ?>
-
-                    </select>
-                </div>
-            </div>
-
-
-
-            <div class="col-lg-3">
-                <?php
-                /*  isset only in cou umchs */
-                if ($id_diviz == 8 && $id_organ == 4):
-
-                    ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="eng_tks">Зам. начальника ШЛЧС центра
 
@@ -774,11 +646,11 @@ if (isset($main) && !empty($main)) {
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                                 title="Заступал прошлый раз: <?php
-                                                foreach ($past_zam_head_sch_fio as $value) {
-                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
+                        foreach ($past_zam_head_sch_fio as $value) {
+                            echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                                ?> ">
+                                    ?> ">
 
                                     </i>
 
@@ -808,186 +680,12 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
-                <?php endif; ?>
+
             </div>
 
 
 
-            <div class="col-lg-1">
-                <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">ком.</label>
-                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_trip ?>" disabled="" id="on_holiday">
-                </div>
-            </div>
-
-
-            <div class="col-lg-1">
-                <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">др.прич.</label>
-                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_other ?>" disabled="" id="on_holiday">
-                </div>
-            </div>
-
-
-        </div>
-
-
-        <div class="row">
-
-
-
-
-
-            <div class="col-lg-3">
-                <?php
-                /* isset only in cou umchs */
-                if ($id_diviz == 8 && $id_organ == 4):
-
-                    ?>
-                    <div class="form-group">
-                        <label class="control-label  col-lg-12" for="eng_connect">Ст.помощник начальника ШЛЧС
-
-                            <?php
-                            /* -----------------  Заступали прошлый раз ----------------- */
-                            if (isset($dateduty) && ($dateduty != $today)) {
-                                //кто заступал начальником смены прошлый раз
-                                // на сегодня начальник смены доступен в списке или нет.если нет - вывод
-
-                                if (isset($past_st_pom_sch_fio) && !empty($past_st_pom_sch_fio)) {
-
-                                    ?>
-
-                                    &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
-
-                                                title="Заступал прошлый раз: <?php
-                                                foreach ($past_st_pom_sch_fio as $value) {
-                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
-
-                                                ?> ">
-
-                                    </i>
-
-                                    <?php
-                                }
-                            }
-                            /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
-
-                            ?>
-
-                        </label>
-                        <select class=" chosen-select-deselect form-control " name="st_pom_sch"  tabindex="4" data-placeholder="Выбрать"  >
-                            <option ></option>
-                            <?php
-                            foreach ($present_head_fio as $present) {
-                                if (in_array($present['id'], $p_st_pom_sch_fio) && ($dateduty != $today)) {
-
-                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                } elseif (isset($st_pom_sch) && ($st_pom_sch == $present['id'])) {
-                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                } else {
-                                    printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                }
-                            }
-
-                            ?>
-
-                        </select>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-
-            <div class="col-lg-3">
-                <?php
-                /*  isset only in cou umchs or cou slhs */
-                if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
-
-                    ?>
-                    <div class="form-group">
-                        <label class="control-label  col-lg-12" for="pom_od">Водители ШЛЧС
-
-                            <?php
-                            /* -----------------  Заступали прошлый раз ----------------- */
-                            if (isset($dateduty) && ($dateduty != $today)) {
-
-                                if (isset($past_drivers_sch_fio) && !empty($past_drivers_sch_fio)) {
-
-                                    ?>
-
-                                    &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
-
-                                                title="Заступали прошлый раз <?= count($past_drivers_sch_fio) ?> чел: <?php
-                                                foreach ($past_drivers_sch_fio as $value) {
-                                                    echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
-
-                                                ?> ">
-
-                                    </i>
-
-                                    <?php
-                                }
-                            }
-                            /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
-
-                            ?>
-
-                        </label>
-                        <select class=" chosen-select-deselect form-control " name="drivers_sch[]" multiple tabindex="4" data-placeholder="Выбрать"  >
-                            <option ></option>
-                            <?php
-                            foreach ($present_head_fio as $present) {
-                                if (in_array($present['id'], $p_drivers_sch_fio) && ($dateduty != $today)) {
-
-                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                } elseif (isset($drivers_sch) && !empty($drivers_sch) && in_array($present['id'], $drivers_sch)) {
-                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                } else {
-                                    printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                }
-                            }
-
-                            ?>
-
-                        </select>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-
-            <div class="col-lg-2">
-                <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">вакант
-                        <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству вакантов в текущей смене, берется из списка смен "></span>
-                    </label>
-                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_vacant_from_list ?>" disabled="" >
-                </div>
-            </div>
-
-
-
-
-
-
-        </div>
-
-
-        <div class="row">
-
-
-            <div class="col-lg-6"></div>
-
-
-
-        </div>
-
-
-        <div class="row">
-
-
-
-            <div class="col-lg-3">
+<div class="col-lg-3">
                 <div class="form-group">
                     <label class="control-label  col-lg-12" for="trainee">Стажер
 
@@ -1004,11 +702,11 @@ if (isset($main) && !empty($main)) {
                                 &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                             title="Заступал прошлый раз: <?php
-                                            foreach ($past_trainee_fio as $value) {
-                                                echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                            }
+                        foreach ($past_trainee_fio as $value) {
+                            echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                            ?> ">
+                                ?> ">
 
                                 </i>
 
@@ -1040,6 +738,86 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
+
+
+            <div class="col-lg-1">
+                <div class="form-group">
+                    <label class="control-label col-lg-12" for="face">ком.</label>
+                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_trip ?>" disabled="" id="on_holiday">
+                </div>
+            </div>
+
+
+            <div class="col-lg-1">
+                <div class="form-group">
+                    <label class="control-label col-lg-12" for="face">др.прич.</label>
+                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_other ?>" disabled="" id="on_holiday">
+                </div>
+            </div>
+
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="col-lg-3">
+
+                    <div class="form-group">
+                        <label class="control-label  col-lg-12" for="eng_connect">Ст.помощник начальника штаба ШЛЧС
+
+                            <?php
+                            /* -----------------  Заступали прошлый раз ----------------- */
+                            if (isset($dateduty) && ($dateduty != $today)) {
+                                //кто заступал начальником смены прошлый раз
+                                // на сегодня начальник смены доступен в списке или нет.если нет - вывод
+
+                                if (isset($past_st_pom_sch_fio) && !empty($past_st_pom_sch_fio)) {
+
+                                    ?>
+
+                                    &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+
+                                                title="Заступал прошлый раз: <?php
+                        foreach ($past_st_pom_sch_fio as $value) {
+                            echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
+
+                                    ?> ">
+
+                                    </i>
+
+                                    <?php
+                                }
+                            }
+                            /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
+
+                            ?>
+
+                        </label>
+                        <select class=" chosen-select-deselect form-control " name="st_pom_sch[]" multiple tabindex="4" data-placeholder="Выбрать" >
+                            <option ></option>
+                            <?php
+                            foreach ($present_head_fio as $present) {
+                                if (in_array($present['id'], $p_st_pom_sch_fio) && ($dateduty != $today)) {
+
+                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                } elseif (isset($st_pom_sch) && in_array($present['id'], $st_pom_sch)) {
+                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                } else {
+                                    printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                }
+                            }
+
+                            ?>
+
+                        </select>
+                    </div>
+
+            </div>
+
+
+
             <div class="col-lg-3">
                 <div class="form-group">
                     <label class="control-label  col-lg-12" for="others">Другие
@@ -1055,11 +833,11 @@ if (isset($main) && !empty($main)) {
                                 &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
                                             title="Заступали прошлый раз <?= count($past_others_fio) ?> чел: <?php
-                                            foreach ($past_others_fio as $value) {
-                                                echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                            }
+                        foreach ($past_others_fio as $value) {
+                            echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                        }
 
-                                            ?> ">
+                                ?> ">
 
                                 </i>
 
@@ -1092,6 +870,39 @@ if (isset($main) && !empty($main)) {
             </div>
 
 
+
+
+
+
+
+
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <label class="control-label col-lg-12" for="face">вакант
+                        <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству вакантов в текущей смене, берется из списка смен "></span>
+                    </label>
+                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_vacant_from_list ?>" disabled="" >
+                </div>
+            </div>
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+        <div class="row">
+
+            <div class="col-lg-6"></div>
+
+
+
+
             <div class="col-lg-1">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">еж.</label>
@@ -1114,214 +925,212 @@ if (isset($main) && !empty($main)) {
             <hr>
             <div class="col-lg-6">
                 <div class="form-group">
-                    <label class="control-label  col-lg-12" for="inspector_inip">Дежурный инспектор ОНиП (ФИО, должность, звание)
+                    <label class="control-label  col-lg-12" for="inspector_inip">Оперативная группа
 
 
                         <?php
-                        if (!empty($past_inspector_inip_fio)) {
+                        if (!empty($past_opg)) {
 
                             ?>
-                            <input type="text" class="form-control"  value="<?= $p_inspector_inip_fio[0] ?>"  name="inspector_inip" >
+                            <input type="text" class="form-control"  value="<?= $p_opg[0] ?>"  name="opg" >
                             <?php
                         } else {
 
                             ?>
-                            <input type="text" class="form-control"   name="inspector_inip" >
+                            <input type="text" class="form-control"   name="opg" >
                             <?php
                         }
 
                         ?>
 
 
+                        </div>
+                        </div>
 
+
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <label class="control-label  col-lg-12" for="garnison">Ответственный по гарнизону (ФИО, должность, звание)
+
+                        <?php
+                        if (!empty($past_garnison_fio)) {
+
+                            ?>
+                            <input type="text" class="form-control"  value="<?= $p_garnison_fio[0] ?>"  name="garnison" >
+                            <?php
+                        } else {
+
+                            ?>
+                            <input type="text" class="form-control"   name="garnison" >
+                            <?php
+                        }
+
+                        ?>
 
                         </div>
                         </div>
 
 
-                        <div class="col-lg-6">
-                            <div class="form-group">
-                                <label class="control-label  col-lg-12" for="garnison">Ответственный по гарнизону (ФИО, должность, звание)
 
-                                    <?php
-                                    if (!empty($past_garnison_fio)) {
+
+                        </div>
+
+                        <div class="row">
+                            <hr>
+
+                            <div class="col-lg-3">
+                                <div class="form-group">
+                                    <label class="control-label  col-lg-12" for="everydayfio[]">Заступают ежедневники
+
+                                        <?php
+                                        /* -----------------  Заступали прошлый раз ----------------- */
+                                        if (isset($dateduty) && ($dateduty != $today)) {
+                                            //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
+                                            if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
+
+                                                $cnt_every = 0;
+                                                foreach ($past_everyday_fio as $value) {
+                                                    $cnt_every++;
+                                                }
+
+                                                ?>
+
+                                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+
+                                                            title="Заступали прошлый раз <?= $cnt_every ?> чел: <?php
+                                        foreach ($past_everyday_fio as $value) {
+                                            echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                        }
+
+                                                ?> ">
+
+                                                </i>
+
+                                                <?php
+                                            }
+                                        }
+                                        /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
 
                                         ?>
-                                        <input type="text" class="form-control"  value="<?= $p_garnison_fio[0] ?>"  name="garnison" >
+
+                                    </label>
+                                    <select class=" chosen-select-deselect form-control " name="everydayfio[]"  multiple tabindex="4" data-placeholder="Добавить" >
+                                        <option ></option>
                                         <?php
-                                    } else {
+                                        foreach ($present_everyday_fio as $present) {
+                                            if (in_array($present['id'], $p_e_fio) && ($dateduty == $today)) {
+                                                //если ежедневник выбран как начальник смены-его нельзя удалить, пока он не будет снят
+                                                if (isset($id_fio) && $id_fio == $present['id']) {
+                                                    printf("<p><option value='%s' selected disabled ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
+                                                    $everyday_add = $present['id'];
+                                                } else
+                                                    printf("<p><option value='%s' selected ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
+                                            } else {
+                                                printf("<p><option value='%s'  ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
+                                            }
+                                        }
 
                                         ?>
-                                        <input type="text" class="form-control"   name="garnison" >
+
+                                    </select>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-lg-3">
+                                <div class="form-group">
+                                    <label class="control-label  col-lg-12" for="reserve[]">Заступают из др.подр.(смены)
+
+
                                         <?php
-                                    }
+                                        /* -----------------  Заступали прошлый раз ----------------- */
+                                        if (isset($dateduty) && ($dateduty != $today)) {
+                                            //вывод тех, кто заступал из др пасч прошлый раз
+                                            if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
 
-                                    ?>
+                                                $cnt_other = 0;
+                                                foreach ($past_reserve_fio as $value) {
+                                                    $cnt_other++;
+                                                }
 
+                                                ?>
+
+                                                &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+
+                                                            title="Заступали прошлый раз <?= $cnt_other ?> чел: <?php
+                                        foreach ($past_reserve_fio as $value) {
+                                            echo $value['fio'] . ' ' . $value['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                        }
+
+                                                ?> ">
+
+                                                </i>
+
+                                                <?php
+                                            }
+                                        }
+                                        /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
+
+                                        ?>
+
+                                    </label>
+
+                                    <select class=" chosen-select-deselect form-control " name="reserve[]" multiple tabindex="4" data-placeholder="Добавить">
+                                        <option ></option>
+                                        <?php
+                                        foreach ($present_reserve_fio as $present) {
+                                            if (in_array($present['id'], $p_r_fio) && ($dateduty == $today)) {
+                                                //если работник др ПАСЧ выбран как начальник смены-его нельзя удалить, пока он не будет снят
+                                                if (isset($id_fio) && $id_fio == $present['id']) {
+                                                    printf("<p><option value='%s' selected disabled><label>%s %s %s %s  (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                                    //ежедневник, который выбран как начальник смены
+                                                    $reserve_add = $present['id'];
+                                                } else
+                                                    printf("<p><option value='%s' selected ><label>%s %s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                            } else {
+                                                printf("<p><option value='%s'  ><label>%s %s %s %s  (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                            }
+                                        }
+
+                                        ?>
+
+                                    </select>
+                                </div>
+                            </div>
+
+
+
+
+                        </div>
+
+
+
+                        <div class="col-lg-12 col-lg-offset-1">
+                            <div class="row">
+
+                                <div class="form-group">
+
+                                    <div class="col-sm-offset-4 col-sm-10 col-md-offset-4 col-lg-offset-2">
+                                        <button type="submit" class="btn btn-primary" id="save_main">Сохранить изменения</button>
+                                        <br>    <br>
                                     </div>
-                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-
-
-
-                                    </div>
-
-                                    <div class="row">
-                                        <hr>
-
-                                        <div class="col-lg-3">
-                                            <div class="form-group">
-                                                <label class="control-label  col-lg-12" for="everydayfio[]">Заступают ежедневники
-
-                                                    <?php
-                                                    /* -----------------  Заступали прошлый раз ----------------- */
-                                                    if (isset($dateduty) && ($dateduty != $today)) {
-                                                        //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
-                                                        if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
-
-                                                            $cnt_every = 0;
-                                                            foreach ($past_everyday_fio as $value) {
-                                                                $cnt_every++;
-                                                            }
-
-                                                            ?>
-
-                                                            &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
-
-                                                                        title="Заступали прошлый раз <?= $cnt_every ?> чел: <?php
-                                                                        foreach ($past_everyday_fio as $value) {
-                                                                            echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                                        }
-
-                                                                        ?> ">
-
-                                                            </i>
-
-                                                            <?php
-                                                        }
-                                                    }
-                                                    /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
-
-                                                    ?>
-
-                                                </label>
-                                                <select class=" chosen-select-deselect form-control " name="everydayfio[]"  multiple tabindex="4" data-placeholder="Добавить" >
-                                                    <option ></option>
-                                                    <?php
-                                                    foreach ($present_everyday_fio as $present) {
-                                                        if (in_array($present['id'], $p_e_fio) && ($dateduty == $today)) {
-                                                            //если ежедневник выбран как начальник смены-его нельзя удалить, пока он не будет снят
-                                                            if (isset($id_fio) && $id_fio == $present['id']) {
-                                                                printf("<p><option value='%s' selected disabled ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
-                                                                $everyday_add = $present['id'];
-                                                            } else
-                                                                printf("<p><option value='%s' selected ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
-                                                        } else {
-                                                            printf("<p><option value='%s'  ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
-                                                        }
-                                                    }
-
-                                                    ?>
-
-                                                </select>
-                                            </div>
-                                        </div>
-
-
-
-                                        <div class="col-lg-3">
-                                            <div class="form-group">
-                                                <label class="control-label  col-lg-12" for="reserve[]">Заступают из др.подр.(смены)
-
-
-                                                    <?php
-                                                    /* -----------------  Заступали прошлый раз ----------------- */
-                                                    if (isset($dateduty) && ($dateduty != $today)) {
-                                                        //вывод тех, кто заступал из др пасч прошлый раз
-                                                        if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
-
-                                                            $cnt_other = 0;
-                                                            foreach ($past_reserve_fio as $value) {
-                                                                $cnt_other++;
-                                                            }
-
-                                                            ?>
-
-                                                            &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
-
-                                                                        title="Заступали прошлый раз <?= $cnt_other ?> чел: <?php
-                                                                        foreach ($past_reserve_fio as $value) {
-                                                                            echo $value['fio'] . ' ' . $value['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                                        }
-
-                                                                        ?> ">
-
-                                                            </i>
-
-                                                            <?php
-                                                        }
-                                                    }
-                                                    /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
-
-                                                    ?>
-
-                                                </label>
-
-                                                <select class=" chosen-select-deselect form-control " name="reserve[]" multiple tabindex="4" data-placeholder="Добавить">
-                                                    <option ></option>
-                                                    <?php
-                                                    foreach ($present_reserve_fio as $present) {
-                                                        if (in_array($present['id'], $p_r_fio) && ($dateduty == $today)) {
-                                                            //если работник др ПАСЧ выбран как начальник смены-его нельзя удалить, пока он не будет снят
-                                                            if (isset($id_fio) && $id_fio == $present['id']) {
-                                                                printf("<p><option value='%s' selected disabled><label>%s %s %s %s  (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                                                //ежедневник, который выбран как начальник смены
-                                                                $reserve_add = $present['id'];
-                                                            } else
-                                                                printf("<p><option value='%s' selected ><label>%s %s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                                        } else {
-                                                            printf("<p><option value='%s'  ><label>%s %s %s %s  (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                                                        }
-                                                    }
-
-                                                    ?>
-
-                                                </select>
-                                            </div>
-                                        </div>
-
-
-
-
-                                    </div>
-
-
-
-                                    <div class="col-lg-12 col-lg-offset-1">
-                                        <div class="row">
-
-                                            <div class="form-group">
-
-                                                <div class="col-sm-offset-4 col-sm-10 col-md-offset-4 col-lg-offset-2">
-                                                    <button type="submit" class="btn btn-primary" id="save_main">Сохранить изменения</button>
-                                                    <br>    <br>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <?php
+                        <?php
 //смена деж и доступ на редактирование закрыт
-                                    if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0)) || ($_SESSION['can_edit'] == 0)) {
+                        if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0)) || ($_SESSION['can_edit'] == 0)) {
 
-                                        ?>
-                                        </fieldset>
-                                        <?php
-                                    }
+                            ?>
+                            </fieldset>
+                            <?php
+                        }
 
-                                    ?>
+                        ?>
 
-                                    </form>
+                        </form>
 
 
 

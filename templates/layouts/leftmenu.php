@@ -72,16 +72,16 @@ $id_cp = array(8, 9, 12); //ROSN, EUP, AVIA
                         /*                         * ******************  Меню УМЧС  ********************* */
                         foreach ($_SESSION['reg'] as $id_region => $name_region) {
                             ?>
-                        <li class="menu-li">  <label for="folder4" id="label-checkbox"><?= $name_region ?></label>
+                <li class="menu-li">  <label for="folder4_<?= $id_region?>"  id="label-checkbox"><?= $name_region ?></label>
 
                             <?php
                             if (isset($region_active) && $region_active == $id_region && !in_array($organ_active, $id_cp)) {//область развернута, если РОСН выбран - область не разворачивать-развернуть РОСН
                                 ?>
-                                <input type="checkbox" id="folder4" class="input-li" checked="" />
+                                <input type="checkbox" name="nr<?= $id_region?>" id="folder4_<?= $id_region?>" class="input-li" checked="" />
                                 <?php
                             } else {
                                 ?>
-                                <input type="checkbox" id="folder4" class="input-li" />
+                                <input type="checkbox" name="nr<?= $id_region?>" id="folder4_<?= $id_region?>" class="input-li" />
                                 <?php
                             }
                             ?>
@@ -91,17 +91,17 @@ $id_cp = array(8, 9, 12); //ROSN, EUP, AVIA
                                 <?php
                                 foreach ($_SESSION['loc'][$id_region] as $grochs => $name_grochs) {
                                     ?>
-                                    <li class="menu-li">  <label for="subfolder5" id="label-checkbox"><?= $name_grochs ?></label>
+                                    <li class="menu-li">  <label for="subfolder5_sub_<?= $grochs ?>" id="label-checkbox"><?= $name_grochs ?></label>
 
 
                                         <?php
                                         if (isset($grochs_active) && $grochs_active == $grochs) {//ГРОЧС развернут
                                             ?>
-                                            <input type="checkbox" id="subfolder4"  class="input-li" checked=""/>
+                                            <input type="checkbox" id="subfolder5_sub_<?= $grochs ?>"  class="input-li" checked=""/>
                                             <?php
                                         } else {
                                             ?>
-                                            <input type="checkbox" id="subfolder4"  class="input-li"/>
+                                            <input type="checkbox" id="subfolder5_sub_<?= $grochs ?>"  class="input-li"/>
                                             <?php
                                         }
                                         ?>
@@ -156,17 +156,17 @@ $id_cp = array(8, 9, 12); //ROSN, EUP, AVIA
                         ?>
 
 
-                    <li class="menu-li">  <label for="subfolder5" id="label-checkbox"><?= $name_podr ?></label>
+                    <li class="menu-li">  <label for="subfolder5_<?= $name_podr ?>" id="label-checkbox"><?= $name_podr ?></label>
 
 
                         <?php
                         if (isset($organ_active) && $organ_active == 8) {//развернуть РОСН
                             ?>
-                            <input type="checkbox" id="subfolder4"  class="input-li" checked=""/>
+                            <input type="checkbox" id="subfolder5_<?= $name_podr ?>"  class="input-li" checked=""/>
                             <?php
                         } else {
                             ?>
-                            <input type="checkbox" id="subfolder4"  class="input-li"/>
+                            <input type="checkbox" id="subfolder5_<?= $name_podr ?>"  class="input-li"/>
                             <?php
                         }
                         ?>
@@ -215,18 +215,18 @@ $id_cp = array(8, 9, 12); //ROSN, EUP, AVIA
 
                             foreach ($_SESSION['loc_cp'][$id_region] as $grochs => $name_grochs) {
                                 ?>
-                            <li class="menu-li">  <label for="subfolder5" id="label-checkbox"><?= $name_grochs ?></label>
+                            <li class="menu-li">  <label for="subfolder5_cp_<?= $grochs ?>" id="label-checkbox"><?= $name_grochs ?></label>
 
 
 
                                 <?php
                                 if (isset($grochs_active) && $grochs_active == $grochs) {//ГРОЧС развернут
                                     ?>
-                                    <input type="checkbox" id="subfolder4"  class="input-li" checked=""/>
+                                    <input type="checkbox" id="subfolder5_cp_<?= $grochs ?>"  class="input-li" checked=""/>
                                     <?php
                                 } else {
                                     ?>
-                                    <input type="checkbox" id="subfolder4"  class="input-li"/>
+                                    <input type="checkbox" id="subfolder5_cp_<?= $grochs ?>"  class="input-li"/>
                                     <?php
                                 }
                                 ?>

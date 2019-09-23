@@ -7699,7 +7699,20 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
     $is_nobody= $app->request()->post('is_nobody');
      $phone= $app->request()->post('tel');
 
-           $log_array_old = json_decode(R::load('listfio', $id));//что было до редs
+
+             /* if worker was everyday and he became worker of ch - delete his row from everydayfio */
+//        $fio_prev = R::load('listfio', $id);
+//        $old_cardch = $fio_prev->id_cardch;
+//        $old_ch = R::getCell("select ch from cardch where id= ?", array($old_cardch));
+//        $new_ch = R::getCell("select ch from  cardch where id= ?", array($id_cardch));
+//        if ($old_ch == 0 && $new_ch != 0) {
+//
+//            R::exec('delete from everydayfio  where id_fio = ? ', array($id));
+//        }
+
+
+
+        $log_array_old = json_decode(R::load('listfio', $id));//что было до редs
 
         //vacant select
         if ($is_vacant == 1) {
@@ -7849,7 +7862,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
     });
 
     //закрытие больничного
-    $app->post('/close_ill/:id', function ($id) use ($app) {
+    $app->post('/close_ill/:id', function ($id) use ($app,$log) {
         array($app, 'is_auth');
 
         $date1 = $app->request()->post('date1');
@@ -7881,6 +7894,8 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
                 $ill->last_update = date("Y-m-d H:i:s");
                 R::store($ill);
 
+                $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Отозван работник с больничного - запись ill с id=' . $id );
+
                 if($_SESSION['ulevel'] == 1){
                      $app->redirect('/str/listfio/ill');
                 }
@@ -7903,7 +7918,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         /*----------------------------------- Отозвать из отпуска -----------------------------------*/
 
         //Отозвать из отпуска
-    $app->get('/close_hol/next/:id', function ($id) use ($app) {
+    $app->get('/close_hol/next/:id', function ($id) use ($app, $log) {
         array($app, 'is_auth');
 
         //отпуск закрывается вчерашним днем
@@ -7911,6 +7926,9 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         $hol->date2 = date("Y-m-d", time() - (60 * 60 * 24));
         $hol->last_update = date("Y-m-d H:i:s");
         R::store($hol);
+
+
+        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Отозван работник из отпуска - запись holiday с id=' . $id );
 
        if ($_SESSION['ulevel'] == 1) {
             $app->redirect('/str/listfio/holiday');
@@ -7939,8 +7957,8 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
     /*----------------------------------- close other -----------------------------------*/
 
-        //Отозвать из отпуска
-    $app->get('/close_other/next/:id', function ($id) use ($app) {
+       //close other
+    $app->get('/close_other/next/:id', function ($id) use ($app,$log) {
         array($app, 'is_auth');
 
         //отпуск закрывается вчерашним днем
@@ -7949,13 +7967,15 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         $other->last_update = date("Y-m-d H:i:s");
         R::store($other);
 
+        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Отозван работник из других причин - запись other с id=' . $id );
+
        if ($_SESSION['ulevel'] == 1) {
             $app->redirect('/str/listfio/other');
        }
        else
        $app->redirect('/str/listfio');
     });
-    //форма Отозвать из отпуска
+    //form close other
      $app->get('/close_other/:id', function ($id) use ($app) {
         array($app, 'is_auth'); //авторизован ли пользователь
         $data['id_hol'] = $id;//hol.id
@@ -7979,7 +7999,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
 
     //close trip
-    $app->get('/close_trip/next/:id', function ($id) use ($app) {
+    $app->get('/close_trip/next/:id', function ($id) use ($app,$log) {
         array($app, 'is_auth');
 
         //отпуск закрывается вчерашним днем
@@ -7987,6 +8007,8 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         $trip->date2 = date("Y-m-d", time() - (60 * 60 * 24));
         $trip->last_update = date("Y-m-d H:i:s");
         R::store($trip);
+
+        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Отозван работник из командировки - запись trip с id=' . $id );
 
        if ($_SESSION['ulevel'] == 1) {
             $app->redirect('/str/listfio/trip');
@@ -8012,7 +8034,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
     /*----------------------------------- END close trip -----------------------------------*/
 
-        $app->get('(/:vid_absent)', function ($vid_absent = NULL) use ($app) {// список смен
+    $app->get('(/:vid_absent)', function ($vid_absent = NULL) use ($app) {// список смен
         array($app, 'is_auth');
 
         $data['convex_item']['listfio']=1;// item 'search' is active
@@ -9400,6 +9422,11 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $main->last_update = date("Y-m-d H:i:s");
         $main->id_user = $_SESSION['uid'];
 
+        /* only for PASO without COU */
+        $response_garnison=$app->request()->post('response_garnison');
+        if(isset($response_garnison))
+            $main->response_garnison = $response_garnison;
+
         R::store($main);
 
         if (isset($reserve)) {
@@ -9498,6 +9525,12 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $main->fio_duty = $app->request()->post('fio_duty');
         $main->last_update = date("Y-m-d H:i:s");
         $main->id_user = $_SESSION['uid'];
+
+         /* only for PASO without COU */
+        $response_garnison=$app->request()->post('response_garnison');
+        if(isset($response_garnison))
+            $main->response_garnison = $response_garnison;
+
         R::store($main);
 
 
@@ -9571,6 +9604,11 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
                   }
 
               }
+
+              /* reset duty */
+              $main_is_duty = R::load('main', $id_main);
+              $main_is_duty->is_duty=0;
+              R::store($main_is_duty);
 
         }
 
@@ -12100,6 +12138,7 @@ if($date1 != NULL){
 
         $ch_today = duty_ch();
 
+        echo 'ch= '.$ch_today;        echo '<br>';
 
         //куда откомандировали - текстом
         if ($to_card != 0) {
@@ -12139,12 +12178,6 @@ if($date1 != NULL){
             $teh->id_user = $_SESSION['uid'];
             $new_id_tripcar = R::store($teh);
 
-            /* update dateduty for this car (today) */
-            if(isset($new_id_tripcar)){
-                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
-            }
-
-
 
             if ($to_card != 0) {// добавляем в "заступает из др подразделения", если еще не добавлена
 
@@ -12165,6 +12198,7 @@ if($date1 != NULL){
                 $id_reservecar = R::getCell('select id from reservecar  where id_teh = :id_teh and id_card = :id_card and (( :date BETWEEN date1 and date2) or( :date  >= date1 and date2 is NULL)) ', [':id_teh' => $id_teh, ':id_card' => $to_card, ':date' => $dateduty]);
 
                 if (empty($id_reservecar)) {//автоматически insert в "заступает из др подразделения"
+
                     $res = R::dispense('reservecar');
                     $res->id_teh = $id_teh;
                     $res->date1 = $date1; // = дате, указанной в tripcar
@@ -12189,8 +12223,12 @@ if($date1 != NULL){
                     }
                 }
             }
-        }
 
+                        /* update dateduty for this car (today) */
+            if(isset($new_id_tripcar)){
+              R::exec('update car set dateduty = ?, last_update = ?  WHERE id_teh = ? AND ch = ? ', array($today,date('Y-m-d H:i:s'), $id_teh, $ch_today));
+            }
+        }
 
         $_SESSION['msg'] = 1; //ok
         $app->redirect('/str/v1/card/' . $id . '/ch/' . $change . '/car/trip');
@@ -12243,7 +12281,7 @@ if($date1 != NULL){
 
                  /* update dateduty for this car (today) */
                 if(isset($id_teh))
-                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
+                 R::exec('update car set dateduty = ?, last_update = ?  WHERE id_teh = ? AND ch = ? ', array($today,date('Y-m-d H:i:s'), $id_teh, $ch_today));
             }
         }
         $_SESSION['msg'] = 1; //ok
@@ -12482,12 +12520,6 @@ if($date1 != NULL){
             $new_id_reservecar = R::store($res);
 
 
-            /* update dateduty for this car (today) */
-            if (isset($new_id_reservecar)) {
-                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
-            }
-
-
             //insert into tripcar
             /*             * * определить dateduty ** */
             $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
@@ -12532,6 +12564,13 @@ if($date1 != NULL){
                     R::store($reservecar);
                 }
             }
+
+
+
+            /* update dateduty for this car (today) */
+            if (isset($new_id_reservecar)) {
+                R::exec('update car set dateduty = ?, last_update = ?  WHERE id_teh = ? AND ch = ? ', array($today,date('Y-m-d H:i:s'), $id_teh, $ch_today));
+            }
         }
 
         $_SESSION['msg'] = 1; //ok
@@ -12544,6 +12583,10 @@ if($date1 != NULL){
         $data['change'] = $change;
         $data['sign'] = 6; //car
         $c = $app->request()->post('count');
+
+        $ch_today = duty_ch();
+        $today = date("Y-m-d");
+
         for ($i = 1; $i <= $c; $i++) {
 
             $id_reserve = $app->request()->post('id_reserve' . $i);
@@ -12563,9 +12606,6 @@ if($date1 != NULL){
             $prikaz= $app->request()->post('prikaz' . $i);
             $note=$app->request()->post('note' . $i);
 
-
-            $ch_today = duty_ch();
-            $today=date("Y-m-d");
 
             if (!empty($id_reserve) && ($date1 != NULL)) {
                 //update
@@ -12590,7 +12630,7 @@ if($date1 != NULL){
 
                   /* update dateduty for this car (today) */
                 if(isset($id_teh))
-                R::exec('update car set dateduty = ?  WHERE id_teh = ? AND ch = ? ', array($today, $id_teh, $ch_today));
+                R::exec('update car set dateduty = ?, last_update = ?  WHERE id_teh = ? AND ch = ? ', array($today,date('Y-m-d H:i:s'), $id_teh, $ch_today));
 
             }
         }
@@ -12724,7 +12764,7 @@ if($date1 != NULL){
 
                  /*--- ЦОУ, ШЛЧС---*/
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
-       $main = R::getAll('select * from maincou where id_card = ? and ch = ? limit 1',array($id,$change));
+       $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY  dateduty DESC  limit 1 ',array($id,$change));
         }
         /*--- ЦОУ, ШЛЧС---*/
         else{
@@ -13160,7 +13200,7 @@ $app->group('/open_update', $is_auth, function () use ($app, $log) {
 
     //подразделение, где открываем доступ/закрываем
     function getBreadArray($id_main) {
-        return R::getAll('select * FROM generalstr WHERE id_main=?', array($id_main));
+        return R::getAll('select region, locorg_name, divizion FROM general_table WHERE id=? limit 1', array($id_main));
     }
 
 //проверка, есть ли права на выполнение операции
@@ -17805,7 +17845,10 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
         if (isset($teh_from_other_card) && !empty($teh_from_other_card)) {
             foreach ($teh_from_other_card as $value) {
 
-                $all_teh_arr['all'][$value['vie_id']][$value['id_type']][$value['id_vid']] += $value['co']; //кол-во АБР в б/р осн
+                if (isset($all_teh_arr['all'][$value['vie_id']][$value['id_type']][$value['id_vid']]))
+                    $all_teh_arr['all'][$value['vie_id']][$value['id_type']][$value['id_vid']] += $value['co']; //кол-во АБР в б/р осн
+                else
+                    $all_teh_arr['all'][$value['vie_id']][$value['id_type']][$value['id_vid']] = $value['co']; //кол-во АБР в б/р осн
                 $all_teh_arr['to'][$value['vie_id']][$value['id_to']] += $value['co']; //TO
                 $all_teh_arr['repair'][$value['vie_id']][$value['is_repair']] += $value['co']; //repair
                 //порошок, пенообразователь
@@ -18104,6 +18147,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
         $grochs = $app->request()->post('locorg'); //grochs
         $divizion = $app->request()->post('diviz'); //pasp
 
+        $is_on_fio = $app->request()->post('is_on_fio'); //report by fio
+
         $pos_search = (isset($_POST['position_search']) && !empty($_POST['position_search'])) ? $_POST['position_search'] : 0;
         //print_r($pos_search);
 
@@ -18175,48 +18220,85 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
         /* END request inf */
 
 
-        $sql = "SELECT COUNT(l.`id`) AS cnt, po.`name` AS name_pos , po.`id` "
-            . " FROM  `position` AS po LEFT JOIN listfio AS l ON po.`id`=l.`id_position` "
-            . " LEFT JOIN cardch AS c ON l.`id_cardch`=c.`id` "
-            . " LEFT JOIN  ss.`records` AS rec  ON rec.`id`=c.`id_card`"
-            . " LEFT JOIN ss.`locorg` AS locor ON locor.`id`=rec.`id_loc_org`"
-            . " LEFT JOIN ss.`locals` AS loc ON loc.`id`=locor.`id_local` ";
+        if (isset($is_on_fio) && $is_on_fio == 1) {//by fio
 
-        if (isset($region) && !empty($region)) {
-            $where = 1;
-            $sql = $sql . ' WHERE ';
-            if (isset($divizion) && !empty($divizion)) {//by pasp
-                $sql = $sql . ' rec.`id` =  ' . $divizion;
+             $sql = "SELECT * "
+                . " FROM  `list_of_change` AS l";
 
-            } elseif (isset($grochs) && !empty($grochs)) {//by grochs
-                $sql = $sql . '  locor.`id` =  ' . $grochs;
-
-            } else {//by oblast
-                if (in_array($region, $cp)) {//rosn,ugz,avia
-                    $sql = $sql . ' locor.`id_organ` =  ' . $region;
-
-                } else {// region
-                    $sql = $sql . ' loc.`id_region` =  ' . $region;
-                    $sql = $sql . ' AND locor.`id_organ` NOT IN(8,9,12) '; //without rosn,ugz,avia
-
-                }
-            }
-        } else {
-            $head[] = 'по республике';
-        }
-
-        if ($pos_search != 0) {
-            if ($where == 0) {
+            if (isset($region) && !empty($region)) {
                 $where = 1;
                 $sql = $sql . ' WHERE ';
+                if (isset($divizion) && !empty($divizion)) {//by pasp
+                    $sql = $sql . ' l.`record_id` =  ' . $divizion;
+                } elseif (isset($grochs) && !empty($grochs)) {//by grochs
+                    $sql = $sql . '  l.`id_loc_org` =  ' . $grochs;
+                } else {//by oblast
+                    if (in_array($region, $cp)) {//rosn,ugz,avia
+                        $sql = $sql . ' l.`id_organ` =  ' . $region;
+                    } else {// region
+                        $sql = $sql . ' l.`id_region` =  ' . $region;
+                        $sql = $sql . ' AND l.`id_organ` NOT IN(8,9,12) '; //without rosn,ugz,avia
+                    }
+                }
+                $sql=$sql.' AND l.id_region is not null ';
             } else {
-                $sql = $sql . ' AND ';
+                $head[] = 'по республике';
             }
 
-            $sql = $sql . ' po.id  IN(' . implode(',', $pos_search) . ')';
+            if ($pos_search != 0) {
+                if ($where == 0) {
+                    $where = 1;
+                    $sql = $sql . ' WHERE ';
+                } else {
+                    $sql = $sql . ' AND ';
+                }
+
+                $sql = $sql . ' l.position_id  IN(' . implode(',', $pos_search) . ')';
+            }
+
+            $sql = $sql . "  ORDER BY l.region_name, l.locorg_name, l.divizion, l.position";
+
+        } else {
+            $sql = "SELECT COUNT(l.`id`) AS cnt, po.`name` AS name_pos , po.`id` "
+                . " FROM  `position` AS po LEFT JOIN listfio AS l ON po.`id`=l.`id_position` "
+                . " LEFT JOIN cardch AS c ON l.`id_cardch`=c.`id` "
+                . " LEFT JOIN  ss.`records` AS rec  ON rec.`id`=c.`id_card`"
+                . " LEFT JOIN ss.`locorg` AS locor ON locor.`id`=rec.`id_loc_org`"
+                . " LEFT JOIN ss.`locals` AS loc ON loc.`id`=locor.`id_local` ";
+
+            if (isset($region) && !empty($region)) {
+                $where = 1;
+                $sql = $sql . ' WHERE ';
+                if (isset($divizion) && !empty($divizion)) {//by pasp
+                    $sql = $sql . ' rec.`id` =  ' . $divizion;
+                } elseif (isset($grochs) && !empty($grochs)) {//by grochs
+                    $sql = $sql . '  locor.`id` =  ' . $grochs;
+                } else {//by oblast
+                    if (in_array($region, $cp)) {//rosn,ugz,avia
+                        $sql = $sql . ' locor.`id_organ` =  ' . $region;
+                    } else {// region
+                        $sql = $sql . ' loc.`id_region` =  ' . $region;
+                        $sql = $sql . ' AND locor.`id_organ` NOT IN(8,9,12) '; //without rosn,ugz,avia
+                    }
+                }
+            } else {
+                $head[] = 'по республике';
+            }
+
+            if ($pos_search != 0) {
+                if ($where == 0) {
+                    $where = 1;
+                    $sql = $sql . ' WHERE ';
+                } else {
+                    $sql = $sql . ' AND ';
+                }
+
+                $sql = $sql . ' po.id  IN(' . implode(',', $pos_search) . ')';
+            }
+
+            $sql = $sql . "  group by po.`id`  ORDER BY `po`.`name`";
         }
 
-        $sql = $sql . "  group by po.`id`  ORDER BY `po`.`name`";
 //echo $sql;
 //exit();
         $res = R::getAll($sql);
@@ -18256,12 +18338,24 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
             $app->render('layouts/menu.php');
             $app->render('report/teh_in_trip/bread.php', $data);
             $app->render('report/count_position/form.php', $data);
-            $app->render('report/count_position/result.php', $data);
+
+            if (isset($is_on_fio) && $is_on_fio == 1) {//by fio
+                $app->render('report/count_position/result_by_fio.php', $data);
+            } else {
+                $app->render('report/count_position/result.php', $data);
+            }
+
             $app->render('layouts/footer.php');
         }
         /* show on screen */ else {
             /* export_to_excel */
-            exportToExcelCountPosition($res,$head,$head_pos);
+             if (isset($is_on_fio) && $is_on_fio == 1) {//by fio
+
+             }
+             else{
+                 $is_on_fio=0;
+             }
+            exportToExcelCountPosition($res,$head,$head_pos,$is_on_fio);
         }
     });
 
@@ -19320,13 +19414,16 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
 
          /* id_divizion, id_organ, cou_with_slhs */
-         $param=R::getAll('SELECT rec.id_divizion, l.id_organ, rec.cou_with_slhs FROM ss.records as rec LEFT JOIN ss.locorg as l ON l.id=rec.id_loc_org WHERE rec.id = ?',array($id));
+         $param=R::getAll('SELECT rec.id_divizion, l.id_organ, rec.cou_with_slhs, loc.id_region FROM ss.records as rec LEFT JOIN ss.locorg as l ON l.id=rec.id_loc_org left join ss.locals as loc ON loc.id=l.id_local WHERE rec.id = ?',array($id));
          foreach ($param as $value) {
              $data['id_diviz']=$value['id_divizion'];
              $data['id_organ']=$value['id_organ'];
              $data['cou_with_slhs']=$value['cou_with_slhs'];
+             $data['id_region']=$value['id_region'];
          }
          /* END id_divizion, id_organ, cou_with_slhs */
+
+
 
 
         /*         * **************************  Списки ФИО ************************************ */
@@ -19346,7 +19443,94 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         $data['present_head_fio'] = getPresentHeadFio($id, $change);
 
 
-        /*-------------------- ЗАСТУПАЛИ прошлый раз  ---------------------------*/
+
+
+
+                 /* new cou umchs */
+         if($data['id_organ'] == 4 && $data['id_region'] != 3){//cou umchs without Minsk
+    /*-------------------- ЗАСТУПАЛИ прошлый раз  ---------------------------*/
+
+        // last head cou
+        $data['past_head_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 15), $id, $change);
+        // last god
+        $data['past_god_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 16), $id, $change);
+          // last st pom god
+        $data['past_pom_god_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 17), $id, $change);
+
+
+        // last head sch
+        $data['past_head_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 20), $id, $change);
+
+        // last zam head sch
+        $data['past_zam_head_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 21), $id, $change);
+
+        // last pom sch
+        $data['past_st_pom_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 22), $id, $change);
+
+
+         // trainee
+        $data['past_trainee_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 11), $id, $change);
+        // last inspector onip
+        $data['past_inspector_inip_fio'] = getListFioTextByPosMainCou($id, $change, 1, 0, 13);
+        // last on garnison
+        $data['past_garnison_fio'] =getListFioTextByPosMainCou($id, $change, 1, 0, 14);
+
+
+        /* ----- связь многие ко многим ---- */
+
+        // last disp
+        $data['past_disp_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 6), $id, $change);
+
+        //last drivers
+        $data['past_driver_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 10), $id, $change);
+
+
+        // last drivers sch
+        $data['past_drivers_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 23), $id, $change);
+
+
+        // others
+        $data['past_others_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 12), $id, $change);
+
+
+        /* -------------------- END ЗАСТУПАЛИ прошлый раз  --------------------------- */
+         }
+         elseif($data['id_organ'] == 4 && $data['id_region'] == 3){// Minsk. cou
+
+        // last god
+        $data['past_god_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 16), $id, $change);
+          // last st pom god
+        $data['past_pom_god_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 17), $id, $change);
+
+
+        // last zam head sch
+        $data['past_zam_head_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 21), $id, $change);
+
+        // last pom sch
+        $data['past_st_pom_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 22), $id, $change);
+
+
+         // trainee
+        $data['past_trainee_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 11), $id, $change);
+        // last inspector onip
+        $data['past_opg'] = getListFioTextByPosMainCou($id, $change, 1, 0, 24);
+        // last on garnison
+        $data['past_garnison_fio'] =getListFioTextByPosMainCou($id, $change, 1, 0, 14);
+
+
+        /* ----- связь многие ко многим ---- */
+
+        // last disp
+        $data['past_disp_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 6), $id, $change);
+
+        //last drivers
+        $data['past_driver_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 10), $id, $change);
+
+        // others
+        $data['past_others_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 12), $id, $change);
+         }
+         else{
+    /*-------------------- ЗАСТУПАЛИ прошлый раз  ---------------------------*/
 
         // Заступал ФИО начальника смены
         $data['past_head_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 1), $id, $change);
@@ -19395,6 +19579,10 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         $data['past_others_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 12), $id, $change);
 
         /* -------------------- END ЗАСТУПАЛИ прошлый раз  --------------------------- */
+         }
+
+
+
 
 
   /* ------------------- vacant from list of change  ---------------------- */
@@ -19439,7 +19627,7 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
         /*         * ***************************************** */
         //get main
-        $main = R::getAll('select * from maincou where id_card = ? and ch = ?',array($id,$change));
+        $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty',array($id,$change));
         if (isset($main) && !empty($main)) {//есть запись
             ///выбор последней даты
             foreach ($main as $value) {
@@ -19480,14 +19668,17 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
 
         /* form for cou umchs */
-        if($data['id_organ']==4){
+        if($data['id_organ']==4 && $data['id_region'] != 3){//Minsk cou
             $app->render('card/sheet/main/cou/formMain.php', $data); //view data
         }
-        /* form for cou with slhs */
+        elseif($data['id_organ']==4 && $data['id_region'] == 3){
+            $app->render('card/sheet/main/cou/formMainMinsk.php', $data); //view data
+        }
+        /* form for cou grochs with slhs */
         elseif($data['cou_with_slhs']==1){
              $app->render('card/sheet/main/cou/formMainCouSlhs.php', $data); //view data
         }
-         /* form for cou grochs */
+         /* form for cou grochs without slhs */
         elseif($data['cou_with_slhs']==0){
              $app->render('card/sheet/main/cou/formMainCouGrochs.php', $data); //view data
         }
@@ -19508,10 +19699,15 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 //insert
         $dateduty = $app->request()->post('dateduty');
 
+
+
         if (empty($dateduty))
             $dateduty = NULL;
         else
             $dateduty = date("Y-m-d", strtotime($dateduty));
+
+                    /* reset is duty */
+           reset_is_duty($id,$change,$dateduty);
 
         $reserve = $app->request()->post('reserve');
         if (empty($reserve))
@@ -19522,116 +19718,335 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
             $everydayfio = array();
 
 
-        /* ----- ФИО начальника смены - 1  --- */
-        $head_ch = $app->request()->post('head_ch');
-        // insert or update
-        if(isset($head_ch))
-        saveMainCouOne($id, $change, 1, $dateduty, $head_ch);
-
-
-        /* ---- ОД ЦОУ - 2 ----- */
-        $od = $app->request()->post('od');
-        // insert or update or delete
-         if(isset($od))
-        saveMainCouOne($id, $change, 2, $dateduty, $od);
-
-
-        // Зам ОД ЦОУ - 3
-        $z_od = $app->request()->post('z_od');
-         if(!isset($z_od)){
-             $z_od=array();
+         /* id_divizion, id_organ, cou_with_slhs */
+         $param=R::getAll('SELECT rec.id_divizion, l.id_organ, rec.cou_with_slhs, loc.id_region FROM ss.records as rec LEFT JOIN ss.locorg as l ON l.id=rec.id_loc_org left join ss.locals as loc ON loc.id=l.id_local WHERE rec.id = ?',array($id));
+         foreach ($param as $value) {
+             $data['id_diviz']=$value['id_divizion'];
+             $data['id_organ']=$value['id_organ'];
+             $data['cou_with_slhs']=$value['cou_with_slhs'];
+             $data['id_region']=$value['id_region'];
          }
-        saveMainCouTwo($id, $change, 3, $dateduty, $z_od); //check and insert or update
+         /* END id_divizion, id_organ, cou_with_slhs */
 
 
-        //  Старший помощник ОД ЦОУ - 4
-        $st_pom_od = $app->request()->post('st_pom_od');
-         if(!isset($st_pom_od)){
-             $st_pom_od=array();
-         }
- saveMainCouTwo($id, $change, 4, $dateduty, $st_pom_od); //check and insert or update
+             /* new cou umchs */
+         if($data['id_organ'] == 4 && $data['id_region'] != 3){//cou umchs without Minsk
+
+            /* ----- head cou - 15  --- */
+            $head_ch = $app->request()->post('head_ch');
+            // insert or update
+            if (isset($head_ch))
+                saveMainCouOne($id, $change, 15, $dateduty, $head_ch);
 
 
-        //  помощник ОД ЦОУ - 5
-        $pom_od = $app->request()->post('pom_od');
-         if(!isset($pom_od)){
-           $pom_od=array();
-         }
+            /* ---- god - 16 ----- */
+            $god = $app->request()->post('god');
+            // insert or update or delete
+            if (isset($god))
+                saveMainCouOne($id, $change, 16, $dateduty, $god);
 
-  saveMainCouTwo($id, $change, 5, $dateduty, $pom_od); //check and insert or update
+            /* ---- pom god - 17 ----- */
+            $pom_god = $app->request()->post('pom_god');
+            // insert or update or delete
+            if (isset($pom_god))
+                saveMainCouOne($id, $change, 17, $dateduty, $pom_god);
+
+             //  disp cou - 6
+            $disp = $app->request()->post('disp');
+            if (!isset($disp)) {
+                $disp = array();
+            }
+            saveMainCouTwo($id, $change, 6, $dateduty, $disp); //check and insert or update
 
 
-        //  Диспетчера - 6
-        $disp = $app->request()->post('disp');
-        if (!isset($disp)) {
-            $disp = array();
+            //  drivers - 10
+            $driver = $app->request()->post('driver');
+            if (!isset($driver)) {
+                $driver = array();
+            }
+            saveMainCouTwo($id, $change, 10, $dateduty, $driver); //check and insert or update
+
+
+             /* ----- head sch - 20  --- */
+            $head_sch = $app->request()->post('head_sch');
+            // insert or update
+            if (isset($head_sch))
+                saveMainCouOne($id, $change, 20, $dateduty, $head_sch);
+
+            /* ----- zam head sch - 21  --- */
+            $zam_head_sch = $app->request()->post('zam_head_sch');
+            // insert or update
+            if (isset($zam_head_sch))
+                saveMainCouOne($id, $change, 21, $dateduty, $zam_head_sch);
+
+                        /* ----- zam head sch - 21  --- */
+            $st_pom_sch = $app->request()->post('st_pom_sch');
+            // insert or update
+            if (isset($st_pom_sch))
+                saveMainCouOne($id, $change, 22, $dateduty, $st_pom_sch);
+
+
+             //  drivers sch - 23
+            $drivers_sch = $app->request()->post('drivers_sch');
+            if (!isset($drivers_sch)) {
+                $drivers_sch = array();
+            }
+            saveMainCouTwo($id, $change, 23, $dateduty, $drivers_sch); //check and insert or update
+
+
+
+            /* --------  trainee - 11 -------- */
+            $trainee = $app->request()->post('trainee');
+            if (isset($trainee))
+                saveMainCouOne($id, $change, 11, $dateduty, $trainee); // insert or update
+
+
+            //  others - 12
+            $others = $app->request()->post('others');
+            if (!isset($others)) {
+                $others = array();
+            }
+            saveMainCouTwo($id, $change, 12, $dateduty, $others); //check and insert or update
+
+
+            /* ------ inspector onip - 13 ---- */
+            $inspector_inip = $app->request()->post('inspector_inip');
+            if (isset($inspector_inip))
+                saveMainCouOneText($id, $change, 13, $dateduty, $inspector_inip); // insert or update
+
+
+                /* -----------  on garnison - 14 ----------- */
+            $garnison = $app->request()->post('garnison');
+            if (isset($garnison))
+                saveMainCouOneText($id, $change, 14, $dateduty, $garnison); // insert or update
+
+
+            $id_head_fio_old = array($head_ch, $god, $pom_god,$head_sch,$zam_head_sch,$st_pom_sch, $trainee, $inspector_inip, $garnison);
+            $id_head_fio_new=array();
+            foreach ($id_head_fio_old as $element) {
+                if (!empty($element))
+                    $id_head_fio_new[] = $element;
+            }
+
+
+
+            if (is_array($disp) && !empty($disp)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $disp);
+            }
+
+            if (is_array($driver) && !empty($driver)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $driver);
+            }
+
+            if (is_array($drivers_sch) && !empty($drivers_sch)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $drivers_sch);
+            }
+            if (is_array($others) && !empty($others)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $others);
+            }
+
+
         }
-        saveMainCouTwo($id, $change, 6, $dateduty, $disp); //check and insert or update
+        else  if($data['id_organ'] == 4 && $data['id_region'] == 3){//cou  Minsk
 
 
-        /* ----  Инженер ТКС - 7 --- */
-        $eng_tks = $app->request()->post('eng_tks');
-         if(isset($eng_tks))
-        saveMainCouOne($id, $change, 7, $dateduty, $eng_tks); // insert or update
+            /* ---- god - 16 ----- */
+            $god = $app->request()->post('god');
+            // insert or update or delete
+            if (isset($god))
+                saveMainCouOne($id, $change, 16, $dateduty, $god);
+
+            /* ---- pom god - 17 ----- */
+            $pom_god = $app->request()->post('pom_god');
+            // insert or update or delete
+            if (isset($pom_god))
+                saveMainCouOne($id, $change, 17, $dateduty, $pom_god);
+
+             //  disp cou - 6
+            $disp = $app->request()->post('disp');
+            if (!isset($disp)) {
+                $disp = array();
+            }
+            saveMainCouTwo($id, $change, 6, $dateduty, $disp); //check and insert or update
 
 
-        /* -------  Инженер связи - 8 ----- */
-        $eng_connect = $app->request()->post('eng_connect');
-         if(isset($eng_connect))
-        saveMainCouOne($id, $change, 8, $dateduty, $eng_connect); // insert or update
-
-
-        //  Мастер связи - 9
-        $master_connect = $app->request()->post('master_connect');
-         if(isset($master_connect))
-        saveMainCouOne($id, $change, 9, $dateduty, $master_connect); // insert or update
-
-
-        //  Водители - 10
-        $driver = $app->request()->post('driver');
-         if(!isset($driver)){
-             $driver=array();
-         }
- saveMainCouTwo($id, $change, 10, $dateduty, $driver); //check and insert or update
-
-
-        /* --------  стажер - 11 -------- */
-        $trainee = $app->request()->post('trainee');
-         if(isset($trainee))
-        saveMainCouOne($id, $change, 11, $dateduty, $trainee); // insert or update
-
-
-        //  Другие - 12
-        $others = $app->request()->post('others');
-         if(!isset($others)){
-$others=array();
-         }
- saveMainCouTwo($id, $change, 12, $dateduty, $others); //check and insert or update
-
-
-        /* ------ inspector onip - 13 ---- */
-        $inspector_inip = $app->request()->post('inspector_inip');
-         if(isset($inspector_inip))
-        saveMainCouOneText($id, $change, 13, $dateduty, $inspector_inip); // insert or update
-
-
-        /* -----------  on garnison - 14 ----------- */
-        $garnison = $app->request()->post('garnison');
-         if(isset($garnison))
-        saveMainCouOneText($id, $change, 14, $dateduty, $garnison); // insert or update
+            //  drivers - 10
+            $driver = $app->request()->post('driver');
+            if (!isset($driver)) {
+                $driver = array();
+            }
+            saveMainCouTwo($id, $change, 10, $dateduty, $driver); //check and insert or update
 
 
 
-        //$app->render('layouts/header.php');
 
-        // echo $head_ch;
-        //print_r($reserve);
+            /* ----- zam head sch - 21  --- */
+            $zam_head_sch = $app->request()->post('zam_head_sch');
+            // insert or update
+            if (isset($zam_head_sch))
+                saveMainCouOne($id, $change, 21, $dateduty, $zam_head_sch);
 
-        //   echo $od;
-        //  print_r($everydayfio);
+            /* ----- st pom sch - 22  --- */
+            $st_pom_sch = $app->request()->post('st_pom_sch');
+            // insert or update
+            if (!isset($st_pom_sch)) {
+                $st_pom_sch = array();
+            }
+            saveMainCouTwo($id, $change, 22, $dateduty, $st_pom_sch); //check and insert or update
 
 
-          /* ------------------------------------ КОНЕЦ все ФИО, выбранные на форме в массив ------------------------------------------- */
+            /* --------  trainee - 11 -------- */
+            $trainee = $app->request()->post('trainee');
+            if (isset($trainee))
+                saveMainCouOne($id, $change, 11, $dateduty, $trainee); // insert or update
+
+
+            //  others - 12
+            $others = $app->request()->post('others');
+            if (!isset($others)) {
+                $others = array();
+            }
+            saveMainCouTwo($id, $change, 12, $dateduty, $others); //check and insert or update
+
+
+
+                /* -----------  on garnison - 14 ----------- */
+            $garnison = $app->request()->post('garnison');
+            if (isset($garnison))
+                saveMainCouOneText($id, $change, 14, $dateduty, $garnison); // insert or update
+
+
+             /* ------ opg - 24 ---- */
+            $opg = $app->request()->post('opg');
+            if (isset($opg))
+                saveMainCouOneText($id, $change, 24, $dateduty, $opg); // insert or update
+
+
+            $id_head_fio_old = array( $god, $pom_god,$zam_head_sch, $trainee, $garnison,$opg);
+            $id_head_fio_new=array();
+            foreach ($id_head_fio_old as $element) {
+                if (!empty($element))
+                    $id_head_fio_new[] = $element;
+            }
+
+
+
+            if (is_array($disp) && !empty($disp)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $disp);
+            }
+
+            if (is_array($driver) && !empty($driver)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $driver);
+            }
+
+            if (is_array($st_pom_sch) && !empty($st_pom_sch)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $st_pom_sch);
+            }
+            if (is_array($others) && !empty($others)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $others);
+            }
+
+        }
+        else {
+            /* ----- ФИО начальника смены - 1  --- */
+            $head_ch = $app->request()->post('head_ch');
+            // insert or update
+            if (isset($head_ch))
+                saveMainCouOne($id, $change, 1, $dateduty, $head_ch);
+
+
+            /* ---- ОД ЦОУ - 2 ----- */
+            $od = $app->request()->post('od');
+            // insert or update or delete
+            if (isset($od))
+                saveMainCouOne($id, $change, 2, $dateduty, $od);
+
+
+            // Зам ОД ЦОУ - 3
+            $z_od = $app->request()->post('z_od');
+            if (!isset($z_od)) {
+                $z_od = array();
+            }
+            saveMainCouTwo($id, $change, 3, $dateduty, $z_od); //check and insert or update
+            //  Старший помощник ОД ЦОУ - 4
+            $st_pom_od = $app->request()->post('st_pom_od');
+            if (!isset($st_pom_od)) {
+                $st_pom_od = array();
+            }
+            saveMainCouTwo($id, $change, 4, $dateduty, $st_pom_od); //check and insert or update
+            //  помощник ОД ЦОУ - 5
+            $pom_od = $app->request()->post('pom_od');
+            if (!isset($pom_od)) {
+                $pom_od = array();
+            }
+
+            saveMainCouTwo($id, $change, 5, $dateduty, $pom_od); //check and insert or update
+            //  Диспетчера - 6
+            $disp = $app->request()->post('disp');
+            if (!isset($disp)) {
+                $disp = array();
+            }
+            saveMainCouTwo($id, $change, 6, $dateduty, $disp); //check and insert or update
+
+
+            /* ----  Инженер ТКС - 7 --- */
+            $eng_tks = $app->request()->post('eng_tks');
+            if (isset($eng_tks))
+                saveMainCouOne($id, $change, 7, $dateduty, $eng_tks); // insert or update
+
+
+                /* -------  Инженер связи - 8 ----- */
+            $eng_connect = $app->request()->post('eng_connect');
+            if (isset($eng_connect))
+                saveMainCouOne($id, $change, 8, $dateduty, $eng_connect); // insert or update
+
+
+
+//  Мастер связи - 9
+            $master_connect = $app->request()->post('master_connect');
+            if (isset($master_connect))
+                saveMainCouOne($id, $change, 9, $dateduty, $master_connect); // insert or update
+
+
+
+//  Водители - 10
+            $driver = $app->request()->post('driver');
+            if (!isset($driver)) {
+                $driver = array();
+            }
+            saveMainCouTwo($id, $change, 10, $dateduty, $driver); //check and insert or update
+
+
+            /* --------  стажер - 11 -------- */
+            $trainee = $app->request()->post('trainee');
+            if (isset($trainee))
+                saveMainCouOne($id, $change, 11, $dateduty, $trainee); // insert or update
+
+
+
+//  Другие - 12
+            $others = $app->request()->post('others');
+            if (!isset($others)) {
+                $others = array();
+            }
+            saveMainCouTwo($id, $change, 12, $dateduty, $others); //check and insert or update
+
+
+            /* ------ inspector onip - 13 ---- */
+            $inspector_inip = $app->request()->post('inspector_inip');
+            if (isset($inspector_inip))
+                saveMainCouOneText($id, $change, 13, $dateduty, $inspector_inip); // insert or update
+
+
+                /* -----------  on garnison - 14 ----------- */
+            $garnison = $app->request()->post('garnison');
+            if (isset($garnison))
+                saveMainCouOneText($id, $change, 14, $dateduty, $garnison); // insert or update
+
+
+
+
+
 
             $id_head_fio_old = array($od, $head_ch, $eng_tks, $eng_connect, $trainee, $master_connect, $inspector_inip, $garnison);
             $id_head_fio_new=array();
@@ -19661,8 +20076,16 @@ $others=array();
             if (is_array($others) && !empty($others)) {
                 $id_head_fio_new = array_merge($id_head_fio_new, $others);
             }
+        }
 
-            /* ------------------------------------ КОНЕЦ все ФИО, выбранные на форме в массив ------------------------------------------- */
+
+          /* ------------------------------------ КОНЕЦ все ФИО, выбранные на форме в массив ------------------------------------------- */
+
+
+
+
+
+
 
         if (isset($reserve)) {
              setReserve($reserve, $id, $change, $dateduty, $id_head_fio_new, $log); //заступающие из другич частей
@@ -19816,6 +20239,9 @@ $others=array();
         else
             $dateduty = date("Y-m-d", strtotime($dateduty));
 
+                    /* reset is duty */
+           reset_is_duty($id,$change,$dateduty);
+
         $reserve = $app->request()->post('reserve');
         if (empty($reserve))
             $reserve = array();
@@ -19869,6 +20295,7 @@ $others=array();
             }
 
             /* ------------------------------------ КОНЕЦ все ФИО, выбранные на форме в массив ------------------------------------------- */
+
 
         if (isset($reserve)) {
              setReserve($reserve, $id, $change, $dateduty, $id_head_fio_new, $log); //заступающие из другич частей
@@ -19944,12 +20371,17 @@ $others=array();
 
                 //update is_duty=1 у данной смены
                 R::exec('update maincou set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ? and dateduty = ? ', array(1, date("Y-m-d H:i:s"), $_SESSION['uid'], $id, $change, $today));
+                //R::exec('update maincou set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ?  ', array(1, date("Y-m-d H:i:s"), $_SESSION['uid'], $id, $change));
 
 
                 //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
                 setTripFromReserve($id, $change, $today, $log);
                 //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
                // setReserveToTripCar($id, $change, $today, $log);
+
+                //delete rows og ch with dateduty != today
+                R::exec('delete from  maincou  WHERE id_card = ? AND  ch = ? and dateduty <> ? ', array($id, $change, $today));
+
 
                 $app->render('card/sheet/confirm/success.php', $data);
             }
@@ -19961,12 +20393,16 @@ $others=array();
 
                 //update is_duty=1 у данной смены
                    R::exec('update maincou set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ? and dateduty = ? ', array(1,  date("Y-m-d H:i:s"),$_SESSION['uid'], $id, $change,$today));
+                  //R::exec('update maincou set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ?  ', array(1, date("Y-m-d H:i:s"), $_SESSION['uid'], $id, $change));
 
 
                 //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
                 setTripFromReserve($id, $change, $today, $log);
                 //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
                // setReserveToTripCar($id, $change, $today, $log);
+
+                 //delete rows og ch with dateduty != today
+                R::exec('delete from  maincou  WHERE id_card = ? AND  ch = ? and dateduty <> ? ', array($id, $change, $today));
 
                 $app->render('card/sheet/confirm/success.php', $data);
 
@@ -20018,7 +20454,7 @@ $others=array();
 
 //проверка, есть ли права на выполнение операции
     $app->get('/open_update/:id', function ($id) use ($app) {
-        $data['bread_array'] = R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=?', array($id));
+        $data['bread_array'] = R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=? limit 1', array($id));
         $data['id'] = $id;
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php');
@@ -20057,7 +20493,7 @@ $others=array();
     //предупреждение
     $app->get('/close_update/:id', function ($id) use ($app, $log) {
 
-        $data['bread_array'] =  R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=?', array($id));
+        $data['bread_array'] =  R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=? limit 1', array($id));
         $data['id'] = $id;
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php');
@@ -20582,6 +21018,15 @@ $divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = 
     });
 });
 
+
+/* reset is_duty */
+function reset_is_duty($id,$change,$dateduty){
+    $old_dateduty=R::getCell('select dateduty from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
+
+     if($dateduty != $old_dateduty)
+            R::exec('update maincou set is_duty = ?  WHERE id_card = ? and ch = ?', array(0,$id, $change));
+}
+
 /*-------------- сохранить данные в main_cou связи 1 к 1 ----------------*/
 
 function saveMainCouOne($id, $change, $id_pos_duty, $dateduty, $id_fio) {
@@ -20796,6 +21241,7 @@ function exportToExcelInfChCou($main, $shtat, $absent, $count_fio_on_car,$head) 
     $itogo = 0;
     foreach ($main as $key => $value) {
 
+         if($key != 'Оперативная группа'){
         $sheet->setCellValue('A' . $r, $key);
 
         $itogo+=count($value);
@@ -20816,6 +21262,7 @@ function exportToExcelInfChCou($main, $shtat, $absent, $count_fio_on_car,$head) 
 
         $sheet->setCellValue('C' . $r, count($value));
         $r++;
+         }
     }
 
     /* ---------------  КОНЕЦ все должности и ФИО на этих должностях------------ */
@@ -21279,11 +21726,18 @@ $r++;
 
 
       /*---------- export to Excel count position ------------*/
-    function exportToExcelCountPosition($result,$head,$head_pos) {
+    function exportToExcelCountPosition($result,$head,$head_pos,$is_on_fio=null) {
 
     $objPHPExcel = new PHPExcel();
     $objReader = PHPExcel_IOFactory::createReader("Excel2007");
-    $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/count_position.xlsx');
+
+    if($is_on_fio == 1){
+        $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/report_position_on_fio.xlsx');
+    }
+    else{
+       $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/count_position.xlsx');
+    }
+
 //activate worksheet number 1
     $objPHPExcel->setActiveSheetIndex(0);
     $sheet = $objPHPExcel->getActiveSheet();
@@ -21314,26 +21768,53 @@ $r++;
     $sheet->setCellValue('A2', implode(', ', $head));
     $sheet->setCellValue('A3', 'Должности: '.implode(', ', $head_pos));
 
-    foreach ($result as  $value) {
-$k++;
+    if($is_on_fio == 1){
+
+    foreach ($result as $value) {
+        $k++;
         $sheet->setCellValue('A' . $r, $k);
 
-        $itogo+=$value['cnt'];
+        $sheet->setCellValue('B' . $r, $value['position']);
+        $sheet->setCellValue('C' . $r, $value['fio']);
+        $sheet->setCellValue('D' . $r, $value['region_name']);
+        $sheet->setCellValue('E' . $r, $value['locorg_name']);
+        $sheet->setCellValue('F' . $r, $value['divizion']);
+
+        $r++;
+    }
+    $r--;
+
+    }
+    else{
+            foreach ($result as $value) {
+        $k++;
+        $sheet->setCellValue('A' . $r, $k);
+
+        $itogo += $value['cnt'];
 
         $sheet->setCellValue('B' . $r, $value['name_pos']);
-         $sheet->setCellValue('C' . $r, $value['cnt']);
+        $sheet->setCellValue('C' . $r, $value['cnt']);
 
         $r++;
     }
 
-$sheet->setCellValue('A' . $r, 'ИТОГО');
-$sheet->setCellValue('C' . $r, $itogo);
+    $sheet->setCellValue('A' . $r, 'ИТОГО');
+    $sheet->setCellValue('C' . $r, $itogo);
 
-   $sheet->getStyleByColumnAndRow(0, 9, 2, $r)->applyFromArray($style_all);
+    }
+
+
+    $sheet->getStyleByColumnAndRow(0, 9, 5, $r)->applyFromArray($style_all);
 
     // save in file */
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="count_position.xlsx"');
+    if($is_on_fio == 1){
+      header('Content-Disposition: attachment;filename="Отчет должностей по фамилиям.xlsx"');
+    }
+    else{
+        header('Content-Disposition: attachment;filename="Отчет по количеству должностей.xlsx"');
+    }
+
     header('Cache-Control: max-age=0');
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save('php://output');

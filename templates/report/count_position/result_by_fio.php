@@ -24,13 +24,16 @@ if (isset($res) && !empty($res)) {
 
     ?>
 <center>
-    <table class="table table-condensed   table-bordered tbl_show_inf" id="tbl_count_position" >
+    <table class="table table-condensed   table-bordered tbl_show_inf" id="tbl_report_position_by_fio" >
         <!--   строка 1 -->
         <thead>
             <tr >
                 <th >№ п/п</th>
                 <th >Должность</th>
-                <th>Количество</th>
+                <th>ФИО</th>
+                <th>Область</th>
+                <th>Г(Р)ОЧС</th>
+                <th>Часть</th>
             </tr>
 
         </thead>
@@ -39,7 +42,10 @@ if (isset($res) && !empty($res)) {
             <tr >
                 <th >№ п/п</th>
                 <th >Должность</th>
-                <th>Количество</th>
+                <th>ФИО</th>
+                <th>Область</th>
+                <th>Г(Р)ОЧС</th>
+                <th>Часть</th>
             </tr>
 
         </tfoot>
@@ -50,21 +56,21 @@ if (isset($res) && !empty($res)) {
 
             foreach ($res as $row) {
                 $k++;
-                $all += $row['cnt'];
 
                 ?>
                 <tr>
                     <td><?= $k ?></td>
-                    <td><?= $row['name_pos'] ?></td>
-                    <td><?= $row['cnt'] ?></td>
+                    <td><?= $row['position'] ?></td>
+                    <td><?= $row['fio'] ?></td>
+                    <td><?= $row['region_name'] ?></td>
+                    <td><?= $row['locorg_name'] ?></td>
+                    <td><?= $row['divizion'] ?></td>
                 </tr>
                 <?php
             }
 
             ?>
-        <td>ИТОГО</td>
-        <td></td>
-        <td><?= $all ?></td>
+
     </tbody>
     </table>
     </center>

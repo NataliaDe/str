@@ -1,12 +1,15 @@
 <p style="text-align:  -webkit-right;"><a href="/str/v1/card/<?= $record_id ?>/ch/<?= $change ?>/car/1" data-toggle="tooltip" data-placement="left" title="Отсортировать по состоянию 'боевая' " style="text-transform: uppercase"> <button type="button" class="btn btn-default" style="background-color:#ccc"><i class="fa fa-level-up" aria-hidden="true"></i></button></a></p>
 <?php
 // print_r($car);
+$today = date("Y-m-d");
 if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($car_in_reserve)) || (isset($own_car_in_trip) && !empty($own_car_in_trip))) {
     ?>
 
     <form  role="form" id="formFillCar" method="POST" action="/str/v1/card/<?= $record_id ?>/ch/<?= $change ?>/car">
         <?php
-        if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($is_btn_confirm == 1 && ($dateduty != date("Y-m-d"))) || ($_SESSION['can_edit'] == 0)) {
+
+        if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0)  ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($is_btn_confirm == 1 && ($dateduty != date("Y-m-d"))) || ($_SESSION['can_edit'] == 0)) {
+
             ?>
             <fieldset disabled>
                 <?php

@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3">
+        <div class="col-lg-2">
             <div class="form-group">
                 <label for="locorg">Подразделение</label>
                 <select class="form-control" name="locorg" id="locorg" >
@@ -95,7 +95,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-3">
                                 <div class="form-group">
                                     <label  for="position_search[]">Должность</label>
 
@@ -126,6 +126,33 @@
                                     </select>
                                 </div>
                             </div>
+
+
+        <div class="col-lg-2">
+
+
+            <div class="form-group">
+                <div class="checkbox checkbox-success" style="margin-top: 30px;">
+                    <?php
+                    if (isset($_POST['is_on_fio']) && $_POST['is_on_fio'] == 1) {
+
+                        ?>
+                        <input id="checkbox2" type="checkbox" name="is_on_fio" value="1" checked=""  >
+                        <?php
+                    } else {
+
+                        ?>
+                        <input id="checkbox2" type="checkbox" name="is_on_fio" value="1"  >
+                        <?php
+                    }
+
+                    ?>
+                    <label for="checkbox2">
+                        По фамилиям
+                    </label>
+                </div>
+            </div>
+        </div>
 
 
     </div>

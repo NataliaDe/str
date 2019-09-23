@@ -55,7 +55,7 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
             <ul class="nav navbar-nav navbar-right">
 
 <!--                search by fio-->
- <li class="<?php echo (isset($convex_item['search_by_fio'])) ? 'convex' : ''?>"><a href="/str/search_by_fio" class="item-menu">
+ <li class="<?php echo (isset($convex_item['search_by_fio'])) ? 'convex' : ''?>"><a href="/str/search_by_fio" class="item-menu" style="padding-bottom: 10px;">
 
             <span class="fa-stack " aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Поиск работника по ФИО" target="_blank">
   <i class="fa fa-user fa-stack-1x"></i>
@@ -246,6 +246,9 @@ $locorg_umchs=array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//oumchs i
 
                             <li class="dropdown-submenu <?php echo (isset($convex_item['close_other_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
                                 <a tabindex="-1" href="/str/listfio/other" class="caret-spr_inf" target="_blank">Др.причины</a>
+                            </li>
+                                                        <li class="dropdown-submenu <?php echo (isset($convex_item['close_trip_sub'])) ? 'active-li-dropdown-submenu' : ''?>">
+                                <a tabindex="-1" href="/str/listfio/trip" class="caret-spr_inf" target="_blank">Командировки</a>
                             </li>
 
                                 <li class="dropdown-submenu <?php echo (isset($convex_item['all_listfio_sub'])) ? 'active-li-dropdown-submenu' : ''?>">

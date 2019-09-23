@@ -264,9 +264,8 @@ if (isset($main) && !empty($main)) {
 <form  role="form" id="formFillMain" method="POST" action="/str/v2/card/<?= $record_id ?>/ch/<?= $change ?>/main">
 
     <?php
-
 //смена деж и доступ на редактирование закрыт
-    if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) && ($dateduty==$today)) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
+    if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) && ($dateduty==$today) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
 
         ?>
         <fieldset disabled>
@@ -274,8 +273,10 @@ if (isset($main) && !empty($main)) {
         }
 
         ?>
-            <div class="row">
-                 <div class="col-lg-3">
+
+        <div class="row">
+
+            <div class="col-lg-3">
                 <div class="form-group">
                     <label for="date_start" >Дата заступления</label>
                     <div class="input-group input-append date" id="dateduty" >
@@ -325,25 +326,15 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
-                <div class="col-lg-3"></div>
 
-                            <div class="col-lg-2">
-                <div class="form-group">
-                    <label class="control-label col-lg-12" for="face">штат ЦОУ
-                    <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству всего л/с ЦОУ вместе с ежедневниками и с вакантами (все смены), введенными в списке смен"></span>
-                    </label>
-                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_shtat ?>" disabled="" >
-                </div>
-            </div>
-            </div>
-
-
+        </div>
 
         <div class="row">
-             <div class="col-lg-3">
 
+
+                <div class="col-lg-3">
                     <div class="form-group">
-                        <label class="control-label  col-lg-12" for="head_ch">Начальник смены (ПАСО, РОСН)
+                        <label class="control-label  col-lg-12" for="head_ch">Начальник смены
 
                             <?php
                             /* -----------------  Заступали прошлый раз ----------------- */
@@ -396,7 +387,88 @@ if (isset($main) && !empty($main)) {
                 </div>
 
 
-            <div class="col-lg-3">
+                <div class="col-lg-3">
+                                <?php
+            /*  isset only in cou umchs */
+            if ($id_diviz == 8 && $id_organ == 4):
+
+                ?>
+                    <div class="form-group">
+                        <label class="control-label  col-lg-12" for="eng_tks">Инженер ТКС
+
+                            <?php
+
+                            /* -----------------  Заступали прошлый раз ----------------- */
+                            if (isset($dateduty) && ($dateduty != $today)) {
+                                //кто заступал начальником смены прошлый раз
+                                // на сегодня начальник смены доступен в списке или нет.если нет - вывод
+
+                                if (isset($past_eng_tks_fio) && !empty($past_eng_tks_fio)) {
+
+                                    ?>
+
+                                    &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+
+                                                title="Заступал прошлый раз: <?php
+                                                foreach ($past_eng_tks_fio as $value) {
+                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                                }
+
+                                                ?> ">
+
+                                    </i>
+
+                                    <?php
+                                }
+                            }
+                            /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
+
+                            ?>
+
+                        </label>
+                        <select class=" chosen-select-deselect form-control " name="eng_tks"  tabindex="4" data-placeholder="Выбрать"  >
+                            <option ></option>
+                            <?php
+                            foreach ($present_head_fio as $present) {
+                                if (in_array($present['id'], $p_eng_tks_fio) && ($dateduty != $today)) {
+
+                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                } elseif (isset($eng_tks) && ($eng_tks == $present['id'])) {
+                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                } else {
+                                    printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                }
+                            }
+
+                            ?>
+
+                        </select>
+                    </div>
+                     <?php endif; ?>
+                </div>
+
+
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <label class="control-label col-lg-12" for="face">штат ЦОУ
+                    <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству всего л/с ЦОУ вместе с ежедневниками и с вакантами (все смены), введенными в списке смен"></span>
+                    </label>
+                    <input type="text" class="form-control"  placeholder="0" value="<?= $count_shtat ?>" disabled="" >
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <div class="row">
+
+                <div class="col-lg-3">
+                      <?php
+            /*  isset only in cou umchs or cou slhs */
+            if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
+
+                ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="od">Оперативный дежурный ЦОУ
 
@@ -447,9 +519,72 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
+                       <?php endif; ?>
                 </div>
 
-  <div class="col-lg-2">
+
+                <div class="col-lg-3">
+                                <?php
+            /* isset only in cou umchs */
+            if ($id_diviz == 8 && $id_organ == 4):
+
+                ?>
+                    <div class="form-group">
+                        <label class="control-label  col-lg-12" for="eng_connect">Инженер связи
+
+                            <?php
+                            /* -----------------  Заступали прошлый раз ----------------- */
+                            if (isset($dateduty) && ($dateduty != $today)) {
+                                //кто заступал начальником смены прошлый раз
+                                // на сегодня начальник смены доступен в списке или нет.если нет - вывод
+
+                                if (isset($past_eng_connect_fio) && !empty($past_eng_connect_fio)) {
+
+                                    ?>
+
+                                    &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+
+                                                title="Заступал прошлый раз: <?php
+                                                foreach ($past_eng_connect_fio as $value) {
+                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                                }
+
+                                                ?> ">
+
+                                    </i>
+
+                                    <?php
+                                }
+                            }
+                            /* -----------------  КОНЕЦ Заступали прошлый раз ----------------- */
+
+                            ?>
+
+                        </label>
+                        <select class=" chosen-select-deselect form-control " name="eng_connect"  tabindex="4" data-placeholder="Выбрать"  >
+                            <option ></option>
+                            <?php
+                            foreach ($present_head_fio as $present) {
+                                if (in_array($present['id'], $p_eng_connect_fio) && ($dateduty != $today)) {
+
+                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                } elseif (isset($eng_connect) && ($eng_connect == $present['id'])) {
+                                    printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                } else {
+                                    printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
+                                }
+                            }
+
+                            ?>
+
+                        </select>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+
+
+            <div class="col-lg-2">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">всего
                     <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству работников, заступивших на должности (расставлены по полям). Кроме инспектора ОНиП и ответств.по гарнизону"></span>
@@ -458,22 +593,25 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
-<div class="col-lg-1">
+            <div class="col-lg-1">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">б/р</label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_fio_on_car ?>" disabled="" >
                 </div>
             </div>
 
+
         </div>
-
-
 
 
 
         <div class="row">
 
                 <div class="col-lg-3">
+                                <?php
+            /*  isset only in cou umchs or cou slhs */
+            if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
+                ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="z_od">Заместитель ОД
 
@@ -522,6 +660,7 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
+    <?php endif; ?>
                 </div>
 
 
@@ -578,9 +717,7 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
-
-
-<div class="col-lg-1">
+            <div class="col-lg-1">
                 <div class="form-group">
                     <label class="control-label  col-lg-12" for="">больн.</label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_ill ?>" disabled="" id="on_ill">
@@ -595,13 +732,17 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
-
         </div>
 
 
         <div class="row">
 
                 <div class="col-lg-3">
+                                <?php
+            /*  isset only in cou umchs or cou slhs */
+            if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
+
+                ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="st_pom_od">Старший помощник ОД
 
@@ -612,13 +753,11 @@ if (isset($main) && !empty($main)) {
 
                                 if (isset($past_st_pom_od_fio) && !empty($past_st_pom_od_fio)) {
 
-
-
                                     ?>
 
                                     &nbsp;   <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз <?= count($past_st_pom_od_fio)?> чел: <?php
+                                                title="Заступали прошлый раз  <?= count($past_st_pom_od_fio)?> чел: <?php
                                                 foreach ($past_st_pom_od_fio as $value) {
                                                     echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
                                                 }
@@ -653,6 +792,7 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
+                              <?php endif; ?>
                 </div>
 
 
@@ -710,7 +850,7 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
-<div class="col-lg-1">
+            <div class="col-lg-1">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">ком.</label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_trip ?>" disabled="" id="on_holiday">
@@ -726,12 +866,18 @@ if (isset($main) && !empty($main)) {
             </div>
 
 
+
         </div>
 
 
         <div class="row">
 
                 <div class="col-lg-3">
+                                <?php
+            /*  isset only in cou umchs or cou slhs */
+            if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
+
+                ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="pom_od">Помощник ОД
 
@@ -780,11 +926,17 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
+                      <?php endif; ?>
                 </div>
 
 
 
                 <div class="col-lg-3">
+                                <?php
+            /*  isset only in cou umchs or cou slhs */
+            if ($id_diviz == 8 && ($id_organ == 4 || $cou_with_slhs == 1 )):
+
+                ?>
                     <div class="form-group">
                         <label class="control-label  col-lg-12" for="driver">Водитель
 
@@ -833,12 +985,14 @@ if (isset($main) && !empty($main)) {
 
                         </select>
                     </div>
+                          <?php endif; ?>
                 </div>
 
-                                    <div class="col-lg-2">
+
+            <div class="col-lg-2">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">вакант
-                     <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству вакантов в текущей смене, берется из списка смен "></span>
+                    <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="top" title="Соответствует количеству вакантов в текущей смене, берется из списка смен "></span>
                     </label>
                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_vacant_from_list ?>" disabled="" >
                 </div>
@@ -955,7 +1109,8 @@ if (isset($main) && !empty($main)) {
                 </div>
             </div>
 
-<div class="col-lg-1">
+
+            <div class="col-lg-1">
                 <div class="form-group">
                     <label class="control-label col-lg-12" for="face">еж.</label>
                     <input type="text" class="form-control" style="background-color:  #d4e062 !important;" placeholder="0" value="<?= $count_everyday ?>" disabled="" id="on_every">
@@ -968,7 +1123,6 @@ if (isset($main) && !empty($main)) {
                     <input type="text" class="form-control" style="background-color:  #d4e062 !important;" placeholder="0" value="<?= $count_past_reserve_fio ?>" disabled="" id="on_reserve">
                 </div>
             </div>
-
 
         </div>
 
@@ -1044,8 +1198,8 @@ if (isset($main) && !empty($main)) {
                                                         if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
 
                                                             $cnt_every=0;
-                                                            foreach ($past_everyday_fio as $value) {
-                                                                          $cnt_every++;
+                                                               foreach ($past_everyday_fio as $value) {
+                                                                           $cnt_every++;
                                                                         }
 
                                                             ?>
@@ -1154,16 +1308,10 @@ if (isset($main) && !empty($main)) {
                                             </div>
                                         </div>
 
+
+
+
                                     </div>
-
-
-
-
-
-
-
-
-
 
 
 

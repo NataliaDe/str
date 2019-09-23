@@ -106,6 +106,21 @@ if (isset($result) && !empty($result)) {
 
             ?>
 
+
+            <?php
+                    if(!empty($row['phone'])){
+                            ?>
+                            <i class="fa fa-phone fa-lg" aria-hidden="true"></i>&nbsp;
+
+                             <span style="font-size: 14px;">
+                             <?=$row['phone']  ?>
+                              </span>
+                              <br>
+                            <?php
+
+                    }
+            ?>
+
             <i class="fa fa-home fa-lg" aria-hidden="true"></i>&nbsp;
             <span style="font-size: 14px;">
                 <?php

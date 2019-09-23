@@ -1559,8 +1559,9 @@ ol.tree
    // width:  90%;
 }
 #sel11,#sel12{
-    width: 122px;
+    width: 95px;
 }
+
 
 
 /*---- открыть доступ на ред списка смен ----*/
@@ -1577,3 +1578,23 @@ ol.tree
 .active-li-dropdown-submenu{
         background-color: #bbd1aa;
 }
+
+/* report position by fio */
+
+#inpt_tbl_report_position_by_fio0{
+    width:50px;
+}
+
+#inpt_tbl_report_position_by_fio5{
+    width: 130px;
+}
+
+#inpt_tbl_report_position_by_fio1{
+        width: 153px;
+}
+
+#tbl_report_position_by_fio_wrapper{
+    width: 74%
+}
+
+/* END report position by fio */

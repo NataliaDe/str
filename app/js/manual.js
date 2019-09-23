@@ -739,6 +739,43 @@ $('#formListFio')
 
     } );
 
+
+
+
+    /* table position by fio */
+
+    $('#tbl_report_position_by_fio').DataTable({
+        "lengthMenu": [[-1,10, 25, 50], ["Все",10, 25, 50]],
+            language: {
+                "processing": "Подождите...",
+                "search": "Поиск:",
+                "lengthMenu": "Показать _MENU_ записей",
+                "info": "Записи с _START_ до _END_ из _TOTAL_ записей",
+                "infoEmpty": "Записи с 0 до 0 из 0 записей",
+                "infoFiltered": "(отфильтровано из _MAX_ записей)",
+                "infoPostFix": "",
+                "loadingRecords": "Загрузка записей...",
+                "zeroRecords": "Записи отсутствуют.",
+                "emptyTable": "В таблице отсутствуют данные",
+                "paginate": {
+                    "first": "Первая",
+                    "previous": "Предыдущая",
+                    "next": "Следующая",
+                    "last": "Последняя"
+                },
+                "aria": {
+                    "sortAscending": ": активировать для сортировки столбца по возрастанию",
+                    "sortDescending": ": активировать для сортировки столбца по убыванию"
+                }
+            },
+                "order": [],
+                "aoColumnDefs": [
+                    { "bSortable": false, "aTargets": [ 0,1,2 ] }
+                ]
+        });
+
+   /* END table position by fio */
+
     });
 
 
@@ -1108,6 +1145,50 @@ $("#tbl_count_position tfoot input").on( 'keyup change', function () {
             .draw();
 });
 /*-------------- END report table count position  ----------------*/
+
+
+
+/*--------------------- report table position by fio -------------------------*/
+$('#tbl_report_position_by_fio tfoot th').each( function (i) {
+     var table = $('#tbl_report_position_by_fio').DataTable();
+
+    if(i == 3 ){
+     //выпадающий список
+      var y = 'tbl_report_position_by_fio';
+      var select = $('<select class="' + i + '  noprint"  id="sel_' + y + i + '"><option value=""></option></select>')
+                        .appendTo($(this).empty())
+                        .on('change', function () {
+
+                            var val = $(this).val();
+
+                            table.column(i) //Only the first column
+                                    .search(val ? '^' + $(this).val() + '$' : val, true, false)
+                                    .draw();
+                        });
+                table.column(i).data().unique().sort().each(function (d, j) {
+                    select.append('<option value="' + d + '">' + d + '</option>');
+                });
+        }
+        else{
+
+        var title = $('#tbl_report_position_by_fio tfoot th').eq( $(this).index() ).text();
+        var x = $('#tbl_report_position_by_fio tfoot th').index($(this));
+        var y = 'tbl_report_position_by_fio';
+        //$(this).html( '<input type="text" placeholder="Поиск '+title+'" />' );
+        $(this).html('<input type="text" class="noprint" id="inpt_' + y + x + '" placeholder="Поиск"  />');
+       // document.getElementById("inpt11").html('placeholder="<i class="fa fa-search" aria-hidden="true"></i>"');
+        //}
+        }
+
+});
+$("#tbl_report_position_by_fio tfoot input").on( 'keyup change', function () {
+       var table = $('#tbl_report_position_by_fio').DataTable();
+        table
+            .column( $(this).parent().index()+':visible' )
+            .search( this.value )
+            .draw();
+});
+/*-------------- END report table position by fio  ----------------*/
 
 
 });

@@ -66,6 +66,7 @@ if (isset($main) && !empty($main)) {
         $fio_duty = $row['fio_duty'];
         $is_open_update = $row['open_update']; //доступ на ред.дежурной смены
         $idmain = $row['id'];
+        $response_garnison=$row['response_garnison'];
     }
     $date_d = new DateTime($dateduty);
     $dateduty_for_calendar = $date_d->Format('d-m-Y');
@@ -134,6 +135,9 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
     $error_face = 0;
 }
 
+
+
+$paso_without_cou=array(598,604,605);
 ?>
 <div class="container">
     <div class="row">
@@ -141,7 +145,8 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
             <form class="form-horizontal" role="form" id="formFillMain" method="POST" action="/str/v1/card/<?= $record_id ?>/ch/<?= $change ?>/main">
                 <?php
 //смена деж и доступ на редактирование закрыт
-                if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
+
+                if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) && ($dateduty==$today) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
                     ?>
                     <fieldset disabled>
                         <?php
@@ -789,6 +794,40 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
                         </div>
                     </div>
+
+
+                    <?php
+                    if (in_array($record_id, $paso_without_cou)) {
+                        ?>
+                    <div class="row">
+
+                            <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="response_garnison">Ответственный по гарнизону</label>
+                            <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
+                                <div class="form-group">
+                                    <?php
+                                    if (isset($response_garnison)) {
+
+                                        ?>
+                                        <input type="text" class="form-control" placeholder="ФИО" name="response_garnison"  value="<?= $response_garnison ?>">
+                                        <?php
+                                    } else {
+
+                                        ?>
+                                        <input type="text" class="form-control"  placeholder="ФИО" name="response_garnison" >
+                                        <?php
+                                    }
+
+                                    ?>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <?php
+                    }
+
+                    ?>
 
 
 
