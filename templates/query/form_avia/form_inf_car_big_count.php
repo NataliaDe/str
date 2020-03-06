@@ -39,7 +39,7 @@ include 'templates/query/pzform.php';
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-2">
             <div class="form-group">
                 <label for="region">Область</label>
@@ -54,7 +54,7 @@ include 'templates/query/pzform.php';
                                 }
                             }
                             ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                             <?php
                         } else {
                             ?>
@@ -89,7 +89,7 @@ include 'templates/query/pzform.php';
                                 }
                             }
                             ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                             <?php
                         } else {
                             ?>
@@ -125,7 +125,7 @@ include 'templates/query/pzform.php';
                                 }
                             }
                             ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                             <?php
                         } else {
                             ?>
@@ -159,7 +159,7 @@ include 'templates/query/pzform.php';
                             }
                         }
                         ?>
-                        <option value="">все</option>    
+                        <option value="">все</option>
                         <?php
                     } else {
                         ?>
@@ -175,15 +175,15 @@ include 'templates/query/pzform.php';
                 </select>
             </div>
         </div>
-        
+
 <div class="col-lg-2">
             <div class="form-group">
                 <label for="type">Состояние техники</label>
                 <select class="form-control" name="state_teh"   >
 
                     <?php
-                    $state_teh=array(1=>'б/р',2=>'резерв',3=>'ТО',4=>'ремонт');
-                 
+                    $state_teh=array(1=>'б/р',2=>'резерв',3=>'ТО', 5=>'ТО-1', 6=>'ТО-2',4=>'ремонт');
+
                        if (isset($_POST['state_teh']) && !empty($_POST['state_teh'])) {
                           foreach ($state_teh as $key => $name) {
                             if ($_POST['state_teh'] == $key) {
@@ -191,7 +191,7 @@ include 'templates/query/pzform.php';
                             }
                         }
                         ?>
-                            <option value="">все</option>    
+                            <option value="">все</option>
                         <?php
                     } else {
                         ?>
@@ -202,15 +202,15 @@ include 'templates/query/pzform.php';
                           foreach ($state_teh as $key => $name) {
                                 printf("<p><option value='%s' ><label>%s</label></option></p>", $key, $name);
                             }
-                    
+
                     ?>
                 </select>
             </div>
         </div>
-        
+
     </div>
-    
-        
+
+
     <div class="row">
        <label class="control-label  col-sm-12 col-lg-8 col-xs-4" for="technic_name">Наименование</label>
         <div class="col-sm-6 col-lg-5 col-md-7 col-xs-7">
@@ -230,7 +230,7 @@ include 'templates/query/pzform.php';
 
             </div>
         </div>
-        
+
     </div>
 
     <center>
@@ -240,7 +240,7 @@ include 'templates/query/pzform.php';
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-warning" name="export_to_excel">Экспорт в Excel</button>
-            </div>  
+            </div>
         </div>
 
     </center>

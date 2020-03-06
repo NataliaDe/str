@@ -67,7 +67,7 @@
 
                         <td>
                             <div class="form-group">
-                                <textarea cols="25" rows="7" class="form-control" placeholder="№ приказа, дата"  id="prikaz<?= $i ?>" name="prikaz<?= $i ?>">приказ начальника <?= $organ_type_for_prikaz ?> РОЧС от <?= date("d.m.Y") ?> № </textarea>
+                                <textarea cols="25" rows="7" class="form-control" placeholder="№ приказа, дата"  id="prikaz<?= $i ?>" name="prikaz<?= $i ?>">приказ начальника <?= $organ_type_for_prikaz ?> <?=($organ_active==5)? '' :'РОЧС' ?> от <?= date("d.m.Y") ?> № </textarea>
 
                             </div>
                         </td>

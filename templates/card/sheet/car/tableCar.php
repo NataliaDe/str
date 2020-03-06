@@ -248,7 +248,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                                             </div>
                                                         </div>-->
 
-                            <div class="col-lg-2">
+                            <div class="col-lg-2" id="div-reason_repaire<?= $i ?>" style="display: <?= ($active_type == 1 || $active_type == 2) ? 'none': ''?>">
                                 <div class="form-group">
                                     <label for="reason_repaire">Причина неиспр.</label>
                                     <select class="form-control" name="reason_repaire<?= $i ?>" id="reason_repaire<?= $i ?>"   >
@@ -302,7 +302,7 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
 
 
 
-                            <div class="col-lg-2">
+                            <div class="col-lg-2" id="div-date-start<?= $i ?>" style="display: <?= ($active_type == 1 || $active_type == 2) ? 'none': ''?>">
                                 <div class="form-group">
                                     <label for="type">Дата неисправности</label>
                                     <div class="input-group date" id="date1<?= $i ?>" >
@@ -310,13 +310,13 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                                         <?php
                                         if ($row['start_repaire'] == NULL) {
                                             ?>
-                                            <input type="text" class="form-control"  name="date1<?= $i ?>"style="width: 125px;"  />
+                                            <input type="text" class="form-control start_repaire"  name="date1<?= $i ?>"style="width: 125px;"  />
                                             <?php
                                         } else {
                                             $dat1 = new DateTime($row['start_repaire']);
                                             $d1 = $dat1->Format('d-m-Y');
                                             ?>
-                                            <input type="text" class="form-control"  name="date1<?= $i ?>"style="width: 125px;"  value="<?= $d1 ?>" />
+                                            <input type="text" class="form-control start_repaire"  name="date1<?= $i ?>"style="width: 125px;"  value="<?= $d1 ?>" />
 
                                             <?php
                                         }
@@ -329,20 +329,20 @@ if ((isset($own_car) && !empty($own_car)) || (isset($car_in_reserve) && !empty($
                             </div>
 
 
-                            <div class="col-lg-2">
+                            <div class="col-lg-2" id="div-date-end<?= $i ?>" style="display: <?= ($active_type == 1 || $active_type == 2) ? 'none': ''?>">
                                 <div class="form-group">
                                     <label for="type">Дата устранения</label>
                                     <div class="input-group date" id="date2<?= $i ?>">
                                         <?php
                                         if ($row['end_repaire'] == NULL) {
                                             ?>
-                                            <input type="text" class="form-control" name="date2<?= $i ?>" style="width: 125px;" />
+                                            <input type="text" class="form-control end_repaire" name="date2<?= $i ?>" style="width: 125px;" />
                                             <?php
                                         } else {
                                             $dat2 = new DateTime($row['end_repaire']);
                                             $d2 = $dat2->Format('d-m-Y');
                                             ?>
-                                            <input type="text" class="form-control" name="date2<?= $i ?>" style="width: 125px;"  value="<?= $d2 ?>" />
+                                            <input type="text" class="form-control end_repaire" name="date2<?= $i ?>" style="width: 125px;"  value="<?= $d2 ?>" />
 
 
                                             <?php
@@ -887,7 +887,7 @@ $cnt++;
 
                         <div class="row">
 
-                            <div class="col-lg-2">
+                            <div class="col-lg-2" id="div-reason_repaire<?= $i ?>" style="display: <?= ($active_type == 1 || $active_type == 2) ? 'none': ''?>">
                                 <div class="form-group">
                                     <label for="reason_repaire">Причина неиспр.</label>
                                     <select class="form-control" name="reason_repaire<?= $i ?>" id="reason_repaire<?= $i ?>"   >
@@ -941,7 +941,7 @@ $cnt++;
 
 
 
-                            <div class="col-lg-2">
+                            <div class="col-lg-2" id="div-date-start<?= $i ?>" style="display: <?= ($active_type == 1 || $active_type == 2) ? 'none': ''?>">
                                 <div class="form-group">
                                     <label for="type">Дата неисправности</label>
                                     <div class="input-group date" id="date1<?= $i ?>" >
@@ -949,13 +949,13 @@ $cnt++;
                                         <?php
                                         if ($row['start_repaire'] == NULL) {
                                             ?>
-                                            <input type="text" class="form-control"  name="date1<?= $i ?>"style="width: 125px;"  />
+                                            <input type="text" class="form-control start_repaire"  name="date1<?= $i ?>"style="width: 125px;"  />
                                             <?php
                                         } else {
                                             $dat1 = new DateTime($row['start_repaire']);
                                             $d1 = $dat1->Format('d-m-Y');
                                             ?>
-                                            <input type="text" class="form-control"  name="date1<?= $i ?>"style="width: 125px;"  value="<?= $d1 ?>" />
+                                            <input type="text" class="form-control start_repaire"  name="date1<?= $i ?>"style="width: 125px;"  value="<?= $d1 ?>" />
 
                                             <?php
                                         }
@@ -968,20 +968,20 @@ $cnt++;
                             </div>
 
 
-                            <div class="col-lg-2">
+                            <div class="col-lg-2" id="div-date-end<?= $i ?>" style="display: <?= ($active_type == 1 || $active_type == 2) ? 'none': ''?>">
                                 <div class="form-group">
                                     <label for="type">Дата устранения</label>
                                     <div class="input-group date" id="date2<?= $i ?>">
                                         <?php
                                         if ($row['end_repaire'] == NULL) {
                                             ?>
-                                            <input type="text" class="form-control" name="date2<?= $i ?>" style="width: 125px;" />
+                                            <input type="text" class="form-control end_repaire" name="date2<?= $i ?>" style="width: 125px;" />
                                             <?php
                                         } else {
                                             $dat2 = new DateTime($row['end_repaire']);
                                             $d2 = $dat2->Format('d-m-Y');
                                             ?>
-                                            <input type="text" class="form-control" name="date2<?= $i ?>" style="width: 125px;"  value="<?= $d2 ?>" />
+                                            <input type="text" class="form-control end_repaire" name="date2<?= $i ?>" style="width: 125px;"  value="<?= $d2 ?>" />
 
 
                                             <?php
@@ -1300,6 +1300,11 @@ function getBadgeCntFio(){
         alert(selected);
     //});
 }
+
+
+
+
+
     </script>
 
 

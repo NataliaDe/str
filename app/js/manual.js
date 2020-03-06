@@ -1334,7 +1334,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1345,7 +1345,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1356,7 +1356,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1367,7 +1367,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1378,7 +1378,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1389,7 +1389,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1400,7 +1400,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1411,7 +1411,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1422,7 +1422,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1433,7 +1433,7 @@ $('#formFillTrip')
                             message: 'Выберите дату '
                         },
                         date: {
-                            format: 'YYYY-MM-DD',
+                            format: 'DD-MM-YYYY',
                             message: 'Неправильный формат'
                         }
                     }
@@ -1604,3 +1604,159 @@ $('#show_detail_by_fio').on({
 //            }
 //
 //         });
+
+
+
+$("#modal-get-rcu-str").on("show.bs.modal", function (e) {
+
+    var u = '/str/getModalStrRcu';
+
+    $.ajax({
+        type: 'POST',
+        url: u,
+        // dataType: 'json',
+        success: function (response) {
+            //console.log(response);
+            $('#modal-get-rcu-str').find('.modal-content').html(response);
+
+        },
+        error: function (response) {
+            console.log('error');
+            // $(this).find('#modalcontent-edit-group').html('99999');
+        }
+
+    });
+
+});
+
+
+$("form#formFillCar").find("[name^='type']").change(function (e) {
+    var d = $(this).val();
+
+    var n = $(this).attr('name');
+    var n = n.replace('type', '');
+
+
+    if (parseInt(d) === 3 || parseInt(d) === 4 || parseInt(d) === 5) {
+        $("form#formFillCar").find('#div-reason_repaire' + n).show();
+        $("form#formFillCar").find('#div-date-start' + n).show();
+        $("form#formFillCar").find('#div-date-end' + n).show();
+    } else {
+        $("form#formFillCar").find('#div-reason_repaire' + n).hide();
+        $("form#formFillCar").find('#div-date-start' + n).hide();
+        $("form#formFillCar").find('#div-date-end' + n).hide();
+    }
+
+
+    if (parseInt(d) === 3) {
+        toastr.info('Период ТО-1 не может превышать 2-х дней', 'Внимание:', {timeOut: 5000, "progressBar": true});
+
+        $("form#formFillCar").find('#date1' + n).css('border', '1px solid #d9534f');
+        $("form#formFillCar").find('#date2' + n).css('border', '1px solid #d9534f');
+        //alert(n);
+    } else {
+        $("form#formFillCar").find('#date1' + n).css('border', 'none');
+        $("form#formFillCar").find('#date2' + n).css('border', 'none');
+    }
+
+});
+
+
+
+
+
+/* notifications */
+$('body').on('click', '.new-notif', function () {
+    var id = $(this).attr("id");
+    var element = $(this);
+    $.ajax({
+        type: 'POST',
+        url: '/str/readNotify',
+      //  dataType: 'json',
+        data: {id: id},
+        success: function (data) {
+            if (typeof (data.error) != "undefined") {
+                alert('error');
+            } else {
+                toastr.info( 'Уведомление прочитано', 'Уведомление', {timeOut: 5000,"progressBar": true});
+                element.removeClass('new-notif');
+                element.removeAttr('id');
+
+               var last_numb= parseInt($("#number_notif").text());
+               if(last_numb>0){
+                   var new_numb=last_numb-1;
+
+                   if(new_numb > 0){
+                       $("#number_notif").text(new_numb);
+                       $("#ajax-notifications-div").html(data);
+
+                    }
+
+                       else{
+                           $("#number_notif").remove();
+                           removeAllNotifications();
+                       }
+               }
+
+            }
+
+        }
+    })
+
+});
+
+$(document).on('click', "#read_all_notify_button", function () {
+
+    var link = $(this).attr('data-link');
+
+    var id = $(this).attr("id");
+    var element = $(this);
+
+    $.ajax({
+        type: 'POST',
+        url: link,
+        dataType: 'json',
+        data: {id: id},
+        success: function (data) {
+            if (typeof (data.error) != "undefined") {
+                alert('error');
+            } else {
+                removeAllNotifications();
+               // $("#message_counter").text('');
+            }
+
+        }
+    });
+});
+
+function removeAllNotifications() {
+    $(".notification_list").remove();
+    $("#number_notif").text('');
+    $("#show-after-read-all-notif").show();
+    $("#read_all_notify_button").remove();
+
+    if (!$('#notif-div').children('i').hasClass('open-notif')) {
+        $('#notif-div').children('i').removeClass('fa-envelope-open-o');
+        $('#notif-div').children('i').addClass('fa-envelope-o');
+
+    }
+}
+
+
+$("#notif-div").click(function (e) {
+
+
+    if (!$(this).children('i').hasClass('open-notif')) {
+
+        if ($(this).children('i').hasClass('fa-envelope-o')) {
+            $(this).children('i').removeClass('fa-envelope-o');
+            $(this).children('i').addClass('fa-envelope-open-o');
+        } else  if ($(this).children('i').hasClass('fa-envelope-open-o')) {
+            $(this).children('i').removeClass('fa-envelope-open-o');
+            $(this).children('i').addClass('fa-envelope-o');
+
+        }
+
+
+    }
+});

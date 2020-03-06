@@ -14,7 +14,7 @@ if (isset($main) && !empty($main)) {
 <!--    <div class="table-responsive" id="tbl-query-result">-->
         <?php
         if (isset($date_start) && isset($date_end)) {
-            echo '<b><center>С ' . $date_start . ' по ' . $date_end . '</center></b>';
+            echo '<b><center>С ' . date('d.m.Y', strtotime($date_start)) . ' по ' . date('d.m.Y', strtotime($date_end)) . '</center></b>';
         }
                   if (isset($ch) ) {
             echo '<b><center>смена ' . $ch.'</center></b>';
@@ -35,7 +35,7 @@ if (isset($main) && !empty($main)) {
                     <th>Приказ</th>
                 </tr>
             </thead>
-            
+
             <tfoot>
                 <tr >
                     <th >Область</th>
@@ -64,7 +64,7 @@ if (isset($main) && !empty($main)) {
                               /*  if ($last_id_grochs != $row['id_grochs'] && $last_id_grochs != 0) {
                                     ?>
                                     <tr class="info">
-                                        <td><b>ИТОГО по Г(Р)ОЧС:</b></td>  
+                                        <td><b>ИТОГО по Г(Р)ОЧС:</b></td>
                                         <td><b><?= $all_g ?></b></td>
                                         <td></td>
                                         <td></td>
@@ -81,7 +81,7 @@ if (isset($main) && !empty($main)) {
                                /* if ($last_id_region != $row['region_id'] && $last_id_region != 0) {
                                     ?>
                                     <tr class="warning">
-                                        <td><b>ИТОГО по области:</b></td>  
+                                        <td><b>ИТОГО по области:</b></td>
                                         <td><b><?= $all_r ?></b></td>
                                         <td></td>
                                         <td></td>
@@ -96,7 +96,7 @@ if (isset($main) && !empty($main)) {
 
                                                             $all_g+=1;
                             $all_r+=1;
-                          
+
 
                             $last_id_grochs = $row['id_grochs'];
                             $last_id_region = $row['region_id'];
@@ -109,16 +109,16 @@ if (isset($main) && !empty($main)) {
                                 <td><?= $row['name_div'] ?></td>
                                 <td><?= $row['fio'] ?></td>
                                  <td> <?php
-                                
+
                                 if($row['ch'] == 0)
                                     echo 'еж.';
                                 else
                                     echo  $row['ch'];
-                                
+
                                 ?></td>
                                 <td><?= $row['position'] ?></td>
-                                <td><?= $row['date1'] ?></td>
-                                <td><?= $row['date2'] ?></td>
+                                <td><?= date('d.m.Y', strtotime($row['date1'])) ?></td>
+                                <td><?= ($row['date2'] !== null)? date('d.m.Y', strtotime($row['date2'])): '' ?></td>
                                 <td><?= $row['prikaz'] ?></td>
                             </tr>
                             <?php
@@ -134,7 +134,7 @@ if (isset($main) && !empty($main)) {
                    /* if ($last_id_grochs && $last_id_grochs != 0) {
                         ?>
                         <tr class="info">
-                            <td><b>ИТОГО по Г(Р)ОЧС:</b></td>  
+                            <td><b>ИТОГО по Г(Р)ОЧС:</b></td>
                             <td><b><?= $all_g ?></b></td>
                             <td></td>
                             <td></td>
@@ -151,7 +151,7 @@ if (isset($main) && !empty($main)) {
                   /*  if ($last_id_region && $last_id_region != 0) {
                         ?>
                         <tr class="warning">
-                            <td><b>ИТОГО по области:</b></td>  
+                            <td><b>ИТОГО по области:</b></td>
                             <td><b><?= $all_r ?></b></td>
                             <td></td>
                             <td></td>
@@ -168,7 +168,7 @@ if (isset($main) && !empty($main)) {
                /* if ($k != 0) {
                     ?>
                     <tr class="success">
-                        <td><b>ИТОГО:</b></td>  
+                        <td><b>ИТОГО:</b></td>
                         <td><b><?= $k ?></b></td>
                         <td></td>
                         <td></td>

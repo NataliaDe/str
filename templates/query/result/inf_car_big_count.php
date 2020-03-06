@@ -55,7 +55,7 @@ foreach ($teh_from_other_card_array as $key => $value) {
 
 
  $today = new DateTime(date("Y-m-d"));
-$date_start = $today->Format('d-m-Y');
+$date_start = $today->Format('d.m.Y');
 //print_r($res);
 //exit();
 //print_r($teh_from_other_card_array);
@@ -69,7 +69,7 @@ $date_start = $today->Format('d-m-Y');
 <center>
 
     <b>
-        РЕЗУЛЬТАТ запроса за <?= (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : $date_start ?><br>
+        РЕЗУЛЬТАТ запроса за <?= (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? date('d.m.Y', strtotime($_POST['date_start'])) : $date_start ?><br>
         наименование техники: <?= (!empty($query_name_teh)) ? $query_name_teh : 'все' ?>
         , вид техники: <?= (!empty($query_vid_teh)) ? $query_vid_teh : 'все' ?>, состояние техники: <?= (!empty($query_name_state_teh)) ? $query_name_state_teh : 'все' ?></b>
 </center>
@@ -101,7 +101,9 @@ $date_start = $today->Format('d-m-Y');
         <td> - ремонт</td>
     </tr>
 </table>-->
-
+<?php
+//print_r($res_mark_array);
+?>
 <center>
 
     <table class="table table-condensed   table-bordered tbl_show_inf" style="width: 64% !important;" >
@@ -177,7 +179,7 @@ $date_start = $today->Format('d-m-Y');
                     <tr>
                         <td><?= $i ?></td>
                         <td><?= $value['region_name'] ?> </td>
-                        <td><?= $value['organ'] ?>,  <?= $value['divizion'] ?></td>
+                        <td> <?= $value['divizion'] ?>, <?= $value['organ'] ?> </td>
                         <td><?php
             if (isset($res_mark_array[$value['id_pasp']])) {//марка родной техники
                // print_r($res_mark_array[$value['id_pasp']] );

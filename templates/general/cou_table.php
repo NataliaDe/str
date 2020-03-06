@@ -17,12 +17,12 @@ if (isset($duty_ch) && !empty($duty_ch)) {
 
             if(date(" H:i:s")< '00:00:00'){
                 ?>
-             <center> <u><b>Строевая записка ЦОУ, ШЛЧС c 08:00 <?= date("Y-m-d") ?> до 08:00  <?= date("Y-m-d", time()+(60*60*24)) ?>  </b></u></center>
+             <center> <u><b>Строевая записка ЦОУ, ШЛЧС c 08:00 <?= date("d.m.Y") ?> до 08:00  <?= date("d.m.Y", time() + (60 * 60 * 24)) ?>  </b></u></center>
             <?php
             }
             else{
                 ?>
-               <center> <u><b>Строевая записка  ЦОУ, ШЛЧС c 08:00 <?= date("Y-m-d", time()-(60*60*24)) ?> до 08:00  <?= date("Y-m-d") ?>  </b></u></center>
+               <center> <u><b>Строевая записка  ЦОУ, ШЛЧС c 08:00 <?= date("d.m.Y", time() - (60 * 60 * 24)) ?> до 08:00  <?= date("d.m.Y") ?>  </b></u></center>
              <?php
             }
             ?>
@@ -43,7 +43,10 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                         <?php
                         if ((($_SESSION['ulevel'] == 1) || ($_SESSION['ulevel'] == 2) || ($_SESSION['ulevel'] == 3)) && ($_SESSION['is_admin'])) {//РЦУ может открыть доступ на ред.заступившей смене либо область
                             ?>
-                            <th>Открыть/закрыть<br>доступ</th>
+                            <th>Открыть/закрыть<br>доступ<br>
+                                (доступно до <?= date('H:i', strtotime($time_allow_open))?>)
+
+                            </th>
 <!--                            <th>Доступ открыл</th>-->
                             <?php
                         }
@@ -103,7 +106,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                             <td><a href="/str/v1/card/<?= $row['id_record'] ?>/ch/<?= $duty_ch ?>/main" data-toggle="tooltip" data-placement="left" title="Просмотр" target="_blank"><?= $row['divizion'] ?></a></td>
                             <td><?= $row['stat'] ?></td>
                             <td><?= $row['ch'] ?></td>
-                            <td><?= $row['dateduty'] ?></td>
+                            <td><?= date('d.m.Y', strtotime($row['dateduty'])) ?></td>
 
 
                             <?php
@@ -117,7 +120,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                         //можно открыть доступ только той смене, которая сегодня заступила до 11:00:00 (время храним в БД)
                                        // if ($row['dateduty'] == date("Y-m-d") && ($time_now<$time_allow_open)) {
                                        //echo $row['is_duty'];
-                                        if ($row['dateduty'] == date("Y-m-d") && $row['is_duty']==1) {
+                                        if (date('Y-m-d', strtotime($row['dateduty'])) == date("Y-m-d") && ($time_now < $time_allow_open) && $row['is_duty']==1) {
                                             ?>
                                             <a href="/str/v2/card/open_update/<?= $row['id_record'] ?>" target="_blank"><button type="button" class="btn btn-xs btn-danger"  data-toggle="tooltip" data-placement="bottom" title="Доступ закрыт" ><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span></button></a>
                                             <?php
@@ -126,7 +129,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
 
                                         <?php
                                     } else {//доступ открыт-можно закрыть
-                                        if ($row['dateduty'] == date("Y-m-d") ) {
+                                        if (date('Y-m-d', strtotime($row['dateduty'])) == date("Y-m-d") && $time_now <$time_allow_open ) {
 
                                                 ?>
                                                 <a href="/str/v2/card/close_update/<?= $row['id_record']?>" target="_blank"><button type="button" class="btn btn-xs btn-success"  data-toggle="tooltip" data-placement="bottom" title="Доступ открыт"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button></a>

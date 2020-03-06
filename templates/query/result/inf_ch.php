@@ -2,13 +2,13 @@
 //print_r($main['itogo_rb']);
 
 if (isset($main) && !empty($main)) {
-    
+
          foreach ($main as $key => $value) {
     $date=$value['duty_date1'];//дата, на которую выбраны даты
          break;
-     } 
+     }
 
-    
+
     if (isset($main['itogo']))
         $itogo_grochs = $main['itogo'];
     if (isset($main['itogo_obl']))
@@ -24,7 +24,7 @@ $last_id_region = 0;
     ?>
 <p> <a name="result_page"></a></p>
 <br><br><br>
-<center><b>Информация за <?= $date ?></b></center>
+<center><b>Информация за <?= date('d.m.Y', strtotime($date)) ?></b></center>
 <!--    <div class="table-responsive" id="tbl-query-result">-->
         <table class="table table-condensed   table-bordered tbl_show_inf" >
             <!--   строка 1 -->
@@ -105,7 +105,7 @@ $last_id_region = 0;
                         <td><?=  $itogo_obl[$last_id_region]['duty'] ?></td>
 
                         <td><?= $itogo_obl[$last_id_region]['other']?></td>
-                        <td><?=  $itogo_obl[$last_id_region]['gas'] ?></td> 
+                        <td><?=  $itogo_obl[$last_id_region]['gas'] ?></td>
                 </tr>
                         <?php
                                 }
@@ -137,9 +137,9 @@ $last_id_region = 0;
                       $last_id_grochs = $value['id_grochs'];
                             $last_id_region = $value['region_id'];
                     }
-                       
+
                 }
-                
+
                   if ($type == 1) {//кроме РОСН/UGZ
                     /* ++++ Итого по ГРОЧС ++++ */
                     if ($last_id_grochs && $last_id_grochs != 0) {
@@ -164,7 +164,7 @@ $last_id_region = 0;
                         <td><?=  $itogo_grochs[$value['id_grochs']]['gas'] ?></td>
                 </tr>
                     <?php
-                        
+
                     }
                         /* ++++ Итого по области ++++ */
                     if ($last_id_region && $last_id_region != 0) {
@@ -186,7 +186,7 @@ $last_id_region = 0;
                         <td><?=  $itogo_obl[$value['region_id']]['duty'] ?></td>
 
                         <td><?= $itogo_obl[$value['region_id']]['other']?></td>
-                        <td><?=  $itogo_obl[$value['region_id']]['gas'] ?></td> 
+                        <td><?=  $itogo_obl[$value['region_id']]['gas'] ?></td>
                 </tr>
                 <?php
                     }
@@ -209,9 +209,9 @@ $last_id_region = 0;
                         <td><?=  $itogo_rb['duty'] ?></td>
 
                         <td><?= $itogo_rb['other']?></td>
-                        <td><?=  $itogo_rb['gas'] ?></td> 
+                        <td><?=  $itogo_rb['gas'] ?></td>
                 </tr>
-                    
+
 
             </tbody>
         </table>
@@ -221,7 +221,7 @@ $last_id_region = 0;
 
 <div class="noprint" id="conttabl">
     <b> Выберите столбец, чтобы скрыть/отобразить:</b>
-  
+
     <a class="toggle-vis" style="color: #b5031a;" data-column="8">Вид травмы</a> -
     <a class="toggle-vis" style="color: #b5031a;" data-column="9">Диагноз</a>  -
     <a class="toggle-vis" data-column="10" style="color: green;">Приказ</a> -
@@ -265,7 +265,7 @@ $last_id_region = 0;
                 <th></th>
             </tr>
         </tfoot>
-       
+
         <tbody>
  <?php
         foreach ($main as $key => $value) {
@@ -298,11 +298,11 @@ $last_id_region = 0;
                 <?php
             }
         }
-        
-        
+
+
             /*---------------------- отпуск --------------*/
             if (!empty($main[$key]['holiday_inf'])) {
-                
+
                       foreach ($main[$key]['holiday_inf'] as $holiday_inf) {
                     ?>
                     <tr class="success">
@@ -323,15 +323,15 @@ $last_id_region = 0;
 
                 <?php
             }
-                
+
             }
-            
+
                /*--------------------- больные -------------*/
             if (!empty($main[$key]['ill_inf'])) {
- 
+
                 foreach ($main[$key]['ill_inf'] as $ill_inf) {
                     ?>
-                    
+
                     <tr class="danger">
                         <td><?= $value['region_name'] ?></td>
                         <td><?= $value['divizion_name'] ?></td>
@@ -347,12 +347,12 @@ $last_id_region = 0;
                         <td>-</td>
                         <td>-</td>
                     </tr>
-   
+
                     <?php
                 }
             }
-            
-            
+
+
             /*------------------- вывод работников в наряде ---------- */
             if (!empty($main[$key]['duty_inf'])) {
                 ?>
@@ -377,10 +377,10 @@ $last_id_region = 0;
                         <td>-</td>
                         <td>-</td>
                     </tr>
-                    <?php 
+                    <?php
             }
-            
-            
+
+
             /*-------------- др причины ------------*/
             if (!empty($main[$key]['other_inf'])) {
                 foreach ($main[$key]['other_inf'] as $other_inf) {
@@ -405,12 +405,12 @@ $last_id_region = 0;
                               <?php
                 }
             }
-            
+
                    /*-------------- ваканты ------------*/
             if (!empty($main[$key]['vacant_inf'])) {
-               
+
                 foreach ($main[$key]['vacant_inf'] as $vacant_inf) {
-                  
+
                     ?>
                     <tr style="background-color: khaki  !important;">
                         <td><?= $value['region_name'] ?></td>

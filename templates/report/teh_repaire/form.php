@@ -8,14 +8,14 @@
 
  <br><br>
 <form  role="form"  method="POST" action="/str/v1/report/teh_repaire">
-    
+
      <div class="row">
         <div class="col-lg-2">
             <!--                         Инициализация виджета "Bootstrap datetimepicker" -->
             <div class="form-group">
 
                 <label for="date11">    Дата:</label>
-                <div class="input-group date" id="date_start">
+                <div class="input-group date" id="date_single_report">
                       <?php
 				 if (isset($_POST['date_start']) && !empty($_POST['date_start'])) {
 					 ?>
@@ -27,16 +27,16 @@
 					  <input type="text" class="form-control"  name="date_start" />
 					 <?php
 				 }
-				
+
 				?>
-                  
+
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div>
             </div>
         </div>
-         
+
                 <label class="control-label col-sm-12 col-lg-8 col-xs-4" for="technic_name">Наименование техники</label>
         <div class="col-sm-6 col-lg-5 col-md-7 col-xs-7">
             <div class="form-group">
@@ -55,7 +55,7 @@
 
             </div>
         </div>
-          
+
      </div>
     <br><br>
     <center>
@@ -63,9 +63,9 @@
 
             <div class="form-group">
                 <button type="submit" class="btn btn-info" name="export_to_excel">Экспорт в Excel</button>
-            </div>  
+            </div>
         </div>
-        
+
     </center>
 
 </form>

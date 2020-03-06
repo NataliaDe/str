@@ -13,6 +13,24 @@
             </center>
 <br><br><br><br>-->
 
+
+
+ <span style="color: #a94442; font-size: 15px; float: left;"> <i><b> Дата публикации 30.09.2018</b></i></span><br><br>
+
+
+             <div class="container">
+                <div class="alert alert-success">
+                    <strong>
+                      По предложениям областных и Минского городского УМЧС разработаны типовые схемы замены дежурными сутками как в пределах одного подразделения, так и в пределах разных подразделений. <br>
+Ознакомиться со всеми возможными вариантами можно по ссылке:  <a href="/str/templates/instruct_trip_other/index.html" target="blank">Замена дежурными сутками</a>. <br>
+Дополнительно в справочном руководстве создан новый раздел.
+
+                    </strong>
+
+                </div>
+            </div>
+
+
             <span style="color: #a94442; font-size: 15px; float: left;"> <i><b> Дата публикации 19.12.2018</b></i></span><br><br>
 
 

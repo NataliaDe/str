@@ -75,10 +75,10 @@ $c_spec_obl=0;
 if (isset($main) && !empty($main)) {
  foreach ($main as $key => $value) {
      $dateduty=$value['dateduty'];//дата, на которую сформирован отчет
-     
+
       $date_d = new DateTime($dateduty);
         $date_result = $date_d->Format('d-m-Y');
-     
+
      continue;
  }
 }
@@ -89,7 +89,7 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
     ?>
     <p> <a name="result_page"></a></p>
     <br><br><br>
-    <center><b> Результат на <?= $date_result ?></b></center>
+    <center><b> Результат на <?= date('d.m.Y', strtotime($date_result)) ?></b></center>
 <!--    <div class="table-responsive" id="tbl-query-result">-->
         <table class="table table-condensed   table-bordered tbl_show_inf" >
             <!--               строка 1 -->
@@ -126,10 +126,10 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
 
                      <th>марка</th>
                     <th>кол-во</th>
-                    
+
                      <th>марка</th>
                     <th>кол-во</th>
-                    
+
                     <th>основн.</th>
                     <th>спец.</th>
 
@@ -182,7 +182,7 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
                             <td><b><?= $powder_g ?></b></td>
                             <td><b><?= $foam_g ?></b></td>
                             <td></td>
-                          
+
                         </tr>
                         <?php
                         /*                         * * ИТОГО  по ГРОЧС обнулить** */
@@ -203,13 +203,13 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
                         $asv_g = 0;
                         $powder_g = 0;
                         $foam_g = 0;
-                        
+
                         $c_osn_grochs = 0;
                         $c_spec_grochs = 0;
 
 
                                     }
-                    
+
                      if ($last_id_region != $value['region_id'] && $last_id_region != 0) {
 
                         /* ++++ Итого по области ++++ */
@@ -265,7 +265,7 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
 
                     }
                     }
-                    
+
                     ?>
                     <tr>
                         <td><?= $i ?></td>
@@ -368,7 +368,7 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
                     $foam_g+=str_replace(",", ".", $value['foam']);
                     $c_osn_grochs+=$c_osn;
                     $c_spec_grochs+=$c_spec;
-                    
+
                     /*                     * ******* ИТОГО по области подсчет ************ */
                     $shtat_r+=$value['shtat'];
                     $face_r+=$value['face'];
@@ -445,14 +445,14 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
                     $asv_g = 0;
                     $powder_g = 0;
                     $foam_g = 0;
-                    
+
                     $c_osn_grochs=0;
                     $c_spec_grochs=0;
                 }
-                
+
                    /* ++++ Итого по области ++++ */
                   if ($last_id_region  && $last_id_region != 0) {
-                     
+
                         ?>
                         <tr class="warning">
                             <td></td>
@@ -500,13 +500,13 @@ if (isset($main) && !empty($main) && isset($dateduty) && !empty($dateduty)) {
                         $asv_r = 0;
                         $powder_r = 0;
                         $foam_r = 0;
-                        
+
                         $c_osn_obl=0;
                         $c_spec_obl=0;
 
                     }
                        }
-              
+
                 ?>
                 <tr class="success">
                     <td></td>

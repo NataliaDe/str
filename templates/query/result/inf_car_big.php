@@ -2,7 +2,7 @@
 //print_r($main);
 ?>
 <center><b>
-        РЕЗУЛЬТАТ запроса <?= ($date_start == 0) ? 'за последнюю заполненную смену' : (' на '.$_POST['date_start']) ?><br>
+        РЕЗУЛЬТАТ запроса <?= ($date_start == 0) ? 'за последнюю заполненную смену' : (' на '.date('d.m.Y', strtotime($_POST['date_start']))) ?><br>
         наименование техники: <?= (!empty($query_name_teh)) ? $query_name_teh : 'все' ?>
         , вид техники: <?= (!empty($query_vid_teh)) ? $query_vid_teh : 'все' ?></b>
 </center>
@@ -99,7 +99,7 @@
                         <td></td>
                         <td><?= $grochs_absent ?></td>
                         <td><?= $grochs_vsego-$grochs_absent ?></td>
-                    </tr>   
+                    </tr>
                     <?php
                     $grochs_br = 0; //обнулить
                     $grochs_res = 0; //обнулить
@@ -143,7 +143,7 @@
             ?>
             <!--  ------------------------------------------- END ИТОГО ------------------------------------------------------------------------------>
             <?php
-            
+
             if (!empty($value['region_name'])) {
                 ?>
                 <tr>
@@ -252,7 +252,7 @@
                             $value['to2_count'] + $value['additional_car']['to2_count'] + $value['repair_count'] + $value['additional_car']['repair_count'];
                     ?>
                     <td class="success"><?= $vsego ?></td>
-                </tr>   
+                </tr>
                 <?php
             }
             ?>
@@ -319,7 +319,7 @@
                     <td></td>
                     <td><?= $grochs_absent ?></td>
                     <td><?= $grochs_vsego-$grochs_absent ?></td>
-                </tr>   
+                </tr>
         <?php
         $grochs_br = 0; //обнулить
         $grochs_res = 0; //обнулить
@@ -381,12 +381,12 @@ if($type != 1){//кроме УМЧСы
             <td></td>
             <td><?= $rb_absent ?></td>
             <td><?= $rb_vsego-$rb_absent ?></td>
-        </tr> 
+        </tr>
 <?php
 }
-?>  
+?>
         <!---------------------------------------- END ИТОГО--------------------------------------------------------------->
-    
+
 
     </tbody>
 </table>

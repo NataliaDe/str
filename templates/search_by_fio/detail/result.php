@@ -124,7 +124,7 @@ if (isset($result) && !empty($result)) {
             <i class="fa fa-home fa-lg" aria-hidden="true"></i>&nbsp;
             <span style="font-size: 14px;">
                 <?php
-                echo (($row['ch'] == 0) ? 'ежедневник, ' : ('  работник ' . $row['ch'] . ' смены, ' )) . $row['locorg_name'] . ', ' . $row['divizion'] . ', ' . $name_oblast;
+                echo (($row['ch'] == 0 && $row['is_swing'] == 0) ? 'ежедневник, ' : (($row['ch'] == 0 && $row['is_swing'] == 1) ?'подменный, ': ('  работник ' . $row['ch'] . ' смены, ' ))  ) . $row['locorg_name'] . ', ' . $row['divizion'] . ', ' . $name_oblast;
  echo (!empty($row['phone'] ))? ('<br>'.'тел: '.$row['phone']) : '' ;
                 ?>
             </span>
@@ -389,6 +389,10 @@ if (isset($everyday) && !empty($everyday)) {
             default : $name_oblast = 'область';
         }
 
+        if($value['divizion_id'] == 10){//rcu
+          $pasp = $value['ch'] . ' смену, ' . $value['divizion'] ;
+        }
+         else
         $pasp = $value['ch'] . ' смену, ' . $value['locorg_name'] . ', ' . $value['divizion'] . ', ' . $name_oblast;
     }
 
@@ -396,7 +400,7 @@ if (isset($everyday) && !empty($everyday)) {
 
     <span style="    font-size: 15px;  ">
         <i class="fa fa-calendar-check-o fa-lg" aria-hidden="true"  style="color:blue"></i>&nbsp;&nbsp;
-        Заступил <span style="color: blue;  ">ежедневником</span>
+        Заступил <span style="color: blue;  "><?=($value['is_swing'] == 0) ? 'ежедневником':'подменным' ?></span>
                     <?php
             if ($value['ch'] == 2)
                 echo 'во';

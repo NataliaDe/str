@@ -1598,3 +1598,106 @@ ol.tree
 }
 
 /* END report position by fio */
+
+
+             /*--------------- линиия с пояняющим текстом ----------------*/
+        .line {
+            font-size: 12px;
+
+            text-align: center;
+            position: relative;
+        }
+        .line span {
+            background-color: #d2d6da;
+            position: relative;
+            z-index: 1;
+            padding: 0px 25px;
+
+            font-style: italic;
+            color: #222d32;
+            font-weight: 600;
+        }
+        .line:after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 1px;
+            background-color:  #a3b1b7;
+            position: absolute;
+            top: 50%;
+            margin-top: -1px;
+            z-index: 0;
+        }
+         /*--------------- КОНЕЦ линиия с пояняющим текстом ----------------*/
+
+
+/*-------------- notifications -----------------*/
+         .dropdown-menu-notif{
+             border: none;
+             min-width: 500px;
+             max-width: 500px;
+             background-color: #f4ffeb;
+             border-radius: 7px;
+             padding: 20px;
+         }
+         .unseen-notification .btn-success {
+             float: right;
+         }
+
+
+         ul#header-list .dropdown-menu-notif a.btn.btn-success {
+             background-image: url(../images/view_white.svg);
+         }
+         ul#header-list .dropdown-menu-notif a.btn {
+             height: 45px;
+             padding: 5px;
+             padding-left: 44px;
+             background-repeat: no-repeat;
+             width: 140px;
+             display: inline-block;
+             font-size: 13px;
+             line-height: inherit;
+             background-position-x: 12px;
+             background-position-y: center;
+             background-size: 23px;
+         }
+
+         ul#header-list .dropdown-menu-notif a.btn.btn-cancel {
+             background-image: url(../images/check2.svg);
+             border: 1px solid #4f5866 !important;
+
+         }
+
+
+         .notifications-page .notif-block {
+    background: #e9eee6;
+    border-radius: 5px;
+    display: block;
+    width: 100%;
+    min-height: 112px;
+    height: auto;
+    border: 1px solid #dfe4ec;
+    color: #3e4858;
+    text-decoration: none;
+    padding: 20px;
+    margin-bottom: 15px;
+    position: relative;
+
+    box-shadow: 0px 0px 12px 0px rgba(170, 184, 206, 0.2);
+
+}
+.notifications-page .notif-block {
+    text-align: left;
+    line-height: 1.4;
+}
+.notif-block .date-notif {
+    margin-bottom: 13px;
+    color: #808ea3;
+}
+
+.notifications-page .notif-block.new-notif {
+    border-left: 5px solid;
+    border-left-color: #4f73d9;
+    padding-left: 15px;
+    cursor: pointer !important;
+}

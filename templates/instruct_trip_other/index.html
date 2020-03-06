@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<title>Замена дежурными сутками</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="jquery-3.2.1.js"></script>
+	<link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+	<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body>
+
+    <div class="main" style="    margin-left: 11%;">
+    <center><h2>Замена дежурными <strong>сутками</strong></h2></center>
+
+	<div class="panel" >
+		<div class="panel-heading">
+			<a href="#"><i class="fa fa-shopping-cart"></i>Между разными подразделениями в полуавтоматическом режиме (рекомендуемый)</a>
+		</div>
+		<div class="panel-collapse">
+			<div class="panel-body">
+				<img src="pic01.jpg">
+
+			</div>
+		</div>
+	</div>
+
+
+	<div class="panel">
+		<div class="panel-heading">
+			<a href="#"><i class="fa fa-shopping-cart"></i>Между разными подразделениями в ручном режиме</a>
+		</div>
+		<div class="panel-collapse">
+			<div class="panel-body">
+				<img src="pic02.jpg">
+			</div>
+		</div>
+	</div>
+	<div class="panel">
+		<div class="panel-heading">
+			<a href="#"><i class="fa fa-shopping-cart"></i>В пределах одного подразделения</a>
+		</div>
+		<div class="panel-collapse">
+			<div class="panel-body">
+				<img src="pic03.jpg">
+			</div>
+		</div>
+	</div>
+
+
+
+	<div class="panel">
+		<div class="panel-heading">
+			<a href="#"><i class="fa fa-trophy"></i>Временный перевод работника в другую смену</a>
+		</div>
+		<div class="panel-collapse">
+			<div class="panel-body">
+				<img src="pic04.jpg">
+			</div>
+
+		</div>
+	</div>
+	<div class="panel">
+		<div class="panel-heading">
+			<a href="#"><i class="fa fa-server"></i>Перевод в другую смену на постоянной основе</a>
+		</div>
+		<div class="panel-collapse">
+			<div class="panel-body">
+				<img src="pic05.jpg">
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$(document).ready(function () {
+
+		$('.panel-heading').click(function () {
+			$(this).toggleClass('in').next().slideToggle();
+			$('.panel-heading').not(this).removeClass('in').next().slideUp();
+        });
+
+    });
+</script>
+</body>
+</html>

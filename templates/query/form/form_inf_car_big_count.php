@@ -192,7 +192,7 @@ include 'templates/query/pzform.php';
                 <select class="form-control" name="state_teh"   >
 
                     <?php
-                    $state_teh=array(1=>'б/р',2=>'резерв',3=>'ТО',4=>'ремонт');
+                    $state_teh=array(1=>'б/р',2=>'резерв',3=>'ТО', 5=>'ТО-1', 6=>'ТО-2',4=>'ремонт');
 
                        if (isset($_POST['state_teh']) && !empty($_POST['state_teh'])) {
                           foreach ($state_teh as $key => $name) {

@@ -22,7 +22,7 @@ $itogo_no_rb=0;
             <div class="table-responsive" id="div_tbl_general">
 
                 <table class="table table-condensed   table-bordered" id="small_table">
-                      <caption style="color: #0d420c">  <u><b>Строевая записка ОПЧС на <?= date("d-m-Y") ?></b></u></caption>
+                      <caption style="color: #0d420c">  <u><b>Строевая записка ОПЧС на <?= date("d.m.Y") ?></b></u></caption>
                     <thead>
                         <tr>
                             <th>Область</th>
@@ -120,7 +120,7 @@ $itogo_no_rb=0;
 <!--            <center>-->
                 <div class="table-responsive" id="div_tbl_general">
                     <table class="table table-condensed   table-bordered" id="small_table">
-                        <caption style="color: #0d420c">  <u><b>Строевая записка ЦОУ на <?= date("d-m-Y") ?></b></u></caption>
+                        <caption style="color: #0d420c">  <u><b>Строевая записка ЦОУ на <?= date("d.m.Y") ?></b></u></caption>
                         <thead>
                             <tr>
                                 <th>Область</th>

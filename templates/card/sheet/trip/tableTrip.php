@@ -170,7 +170,7 @@
                             <div class="form-group">
 
                                 от  <div class="input-group date" id="prikaz_date<?= $i ?>"  >
-                                    <input type="text" class="form-control"  name="prikaz_date<?= $i ?>" style="width: 100px;" value="<?= $row['prikaz_date'] ?>" />
+                                    <input type="text" class="form-control"  name="prikaz_date<?= $i ?>" style="width: 100px;" value="<?= date('d-m-Y',strtotime($row['prikaz_date'])) ?>" />
                                     <span class="input-group-addon">
                                         <span class="glyphicon glyphicon-calendar" onclick="getPrikazDate(<?= $i ?>);"></span>
                                     </span>

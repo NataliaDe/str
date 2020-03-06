@@ -9,7 +9,7 @@ function getPrikazDate(j) {
         language: 'ru',
         pickTime: false,
         defaultDate: new Date(),
-        format: 'YYYY-MM-DD'
+        format: 'DD-MM-YYYY'
     });
 
 }
@@ -40,6 +40,18 @@ $(function () {
         /*доступна только сег.дата+3day
 	'maxDate':  moment(new Date()).add(2, 'days').startOf('day') */
     });
+
+
+    $('#date_single_report').datetimepicker({
+        language: 'ru',
+        pickTime: false,
+         autoclose: true,
+          format: 'DD-MM-YYYY',
+        'minDate': moment(new Date()).add(-2, 'days').startOf('day'),
+	'maxDate':  new Date()
+                //moment(new Date()).add(2, 'days').startOf('day')
+    });
+
 
    /* дата в запроснике - диапазон дат */
        $('#date_start').datetimepicker({

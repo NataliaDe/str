@@ -76,11 +76,17 @@ if(isset($result) && !empty($result)){
                             <td><?= $row['position'] ?></td>
                             <td><?= $row['divizion'] ?></td>
                             <?php
-                            if ($row['ch'] == 0) {
+                            if ($row['ch'] == 0 && $row['is_swing'] == 0) {
                                 ?>
                                 <td>ежедневник</td>
                                 <?php
-                            } else {
+                            }
+                            elseif($row['ch'] == 0 && $row['is_swing'] == 1) {
+                                ?>
+                                <td>подменный</td>
+                                <?php
+                            }
+                            else {
                                 ?>
                                 <td><?= $row['ch'] ?></td>
                                 <?php

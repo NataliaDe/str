@@ -6,12 +6,19 @@ require_once dirname(__FILE__) . '/bootstrap.php';
 use \RedBeanPHP\Facade as R;
 use \Slim\Middleware;
 
-
+define('BASE_URL', '/str');
 /************************ CONSTANT ******************************/
 define(ROSN, 8);//id_organ ROSN
 define(UGZ, 9);//id_organ UGZ
 define(AVIA, 12);//id_organ AVIACIA
+define(RCU, 5);//rcu
+
+define(RCUIDCARD, 152);//rcu locorg
 const locorg_umchs= array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//id of umchs. declare else in topmenu.php !!!!!
+
+define(VER, '3.2');
+define(NEWS_DATE, '30.09.2019');
+define(TIME_ALLOW_OPEN_UPDATE,'17:00:00');
 /************************  END CONSTANT ******************************/
 
 
@@ -470,7 +477,7 @@ $app->get('/', function () use ($app) {
 });
 
 /* ------------ инф.о заполненности строевой записки по подразделениям, недочеты, новости --------------*/
-$app->group('/general', $is_auth, function () use ($app) {
+$app->group('/general', function () use ($app) {
 
     //выбор списка подразделений в зависимости от авторизованного пользоавтеля
     function getGeneralTable($id_card_with_error=NULL) {
@@ -601,6 +608,9 @@ $app->group('/general', $is_auth, function () use ($app) {
     $app->get('/:tab', function ($tab) use ($app) {
 
         if (isset($_SESSION['uid'])) {
+
+            $data['unseen_notifications']=getUnseenNotificationsByUser();
+
             //$data['delay'] = 60;   //установить время автоматического обновления страницы - 60сек
 
             $data['tab'] = $tab;
@@ -981,13 +991,18 @@ $_SESSION['past_user']= $_SESSION['uid'] ;
 /* user can auth as spectator */
 $app->get('/login_as_spectator/:id_user', function ($id_user) use ($app, $log) {
 
-unset($_SESSION['reg_cp']);
+    if (!isset($_SESSION['uid']) || empty($_SESSION['uid'])) {
+        $app->redirect('login');
+        exit();
+    }
+
+    unset($_SESSION['reg_cp']);
     unset($_SESSION['loc_cp']);
-   unset( $_SESSION['pasp_cp']);
-   unset( $_SESSION['menurosn'] );
+    unset($_SESSION['pasp_cp']);
+    unset($_SESSION['menurosn']);
 
 
- $user = R::findOne('user', 'id = ? ', [$id_user]);
+    $user = R::findOne('user', 'id = ? ', [$id_user]);
 
     if ($user) {
 
@@ -1117,6 +1132,8 @@ $app->group('/search_by_fio',$is_auth, function () use ($app) {
 
         $data['convex_item']['search_by_fio']=1;// item 'search' is active
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         $app->render('layouts/header.php', $data);
         $app->render('layouts/menu.php');
         $app->render('bread/bread.php', $data);
@@ -1160,6 +1177,8 @@ $app->group('/search_by_fio',$is_auth, function () use ($app) {
 
         $data['bread'][] = 'Поиск работника по фамилии';
         $data['convex_item']['search_by_fio']=1;// item 'search' is active
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $data['id']=$id;//if of fio
 
@@ -1403,6 +1422,17 @@ function prepareMenu($menu) {
     $_SESSION['loc'] = $region_local;
     $_SESSION['pasp'] = $locals;
     // $_SESSION['level1'] = $level1;
+
+
+
+    /* rcu folder */
+    $menu_rcu = R::getAll('SELECT * FROM menu WHERE organ_id = ?',array(RCU));
+
+    if(!empty($menu_rcu))
+        $_SESSION['menu_rcu'] = $menu_rcu;
+
+
+
 }
 
 //меню ЦП без РОСН
@@ -1459,6 +1489,8 @@ $app->group('/builder',$is_auth, function () use ($app) {
 
          $data['convex_item']['query']=1;// item 'search' is active
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         $data['title_name']='Запросы/Инф.по сменам';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1499,6 +1531,8 @@ $data['active']= 'ch';
 
          $data['convex_item']['query']=1;// item 'search' is active
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
          $data['title_name']='Запросы/Больничные';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1538,6 +1572,8 @@ $data['active']= 'ill';
 
          $data['convex_item']['query']=1;// item 'search' is active
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
          $data['title_name']='Запросы/Отпуска';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1575,6 +1611,8 @@ $data['active']= 'holiday';
         array($app, 'is_auth');
 
          $data['convex_item']['query']=1;// item 'search' is active
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
 
          $data['title_name']='Запросы/Командировки';
         $app->render('layouts/header.php',$data);
@@ -1614,6 +1652,8 @@ $data['active']= 'trip';
 
          $data['convex_item']['query']=1;// item 'search' is active
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
          $data['title_name']='Запросы/Др.причины';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1650,6 +1690,8 @@ $data['active']= 'other';
         array($app, 'is_auth');
 
          $data['convex_item']['query']=1;// item 'search' is active
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
 
          $data['title_name']='Запросы/Инф.по СЗ';
         $app->render('layouts/header.php',$data);
@@ -1689,6 +1731,7 @@ $data['active']= 'car';
 
          $data['convex_item']['query']=1;// item 'search' is active
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
          $data['title_name']='Запросы/Техника';
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php');
@@ -1730,6 +1773,8 @@ $data['active']= 'car';
         array($app, 'is_auth');
 
          $data['convex_item']['query']=1;// item 'search' is active
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
 
          $data['title_name']='Запросы/Техника';
         $app->render('layouts/header.php',$data);
@@ -1773,6 +1818,8 @@ $data['active']= 'car';
 
          $data['convex_item']['query']=1;// item 'search' is active
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         $data['title_name'] = 'Запросы/Инф.по сменам ЦОУ, ШЛЧС';
         $app->render('layouts/header.php', $data);
         $app->render('layouts/menu.php');
@@ -1810,6 +1857,8 @@ $data['active']= 'car';
              array($app, 'is_auth');
 
               $data['convex_item']['query']=1;// item 'search' is active
+
+              $data['unseen_notifications']=getUnseenNotificationsByUser();
 
            $data['title_name']='Запросы/Инф.по сменам';
         $app->render('layouts/header.php',$data);
@@ -2663,8 +2712,8 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
                                 $sheet->setCellValue('E' . $r, $trip_inf['fio']);
                                 $sheet->setCellValue('F' . $r, $trip_inf['position']);
                                 $sheet->setCellValue('G' . $r, 'командировка');
-                                $sheet->setCellValue('H' . $r, $trip_inf['date1']);
-                                $sheet->setCellValue('I' . $r, (($trip_inf['date2']) != NULL) ? $trip_inf['date2'] : '-');
+                                $sheet->setCellValue('H' . $r, date('d.m.Y',strtotime($trip_inf['date1'])));
+                                $sheet->setCellValue('I' . $r, (($trip_inf['date2']) != NULL) ? date('d.m.Y',strtotime($trip_inf['date2'])) : '-');
                                 $sheet->setCellValue('J' . $r, '-');
                                 $sheet->setCellValue('K' . $r, '-');
                                 $sheet->setCellValue('L' . $r, (($trip_inf['prikaz']) != NULL) ? $trip_inf['prikaz'] : 'не указано');
@@ -2687,8 +2736,8 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
                                 $sheet->setCellValue('E' . $r, $holiday_inf['fio']);
                                 $sheet->setCellValue('F' . $r, $holiday_inf['position']);
                                 $sheet->setCellValue('G' . $r, 'отпуск');
-                                $sheet->setCellValue('H' . $r, $holiday_inf['date1']);
-                                $sheet->setCellValue('I' . $r, (($holiday_inf['date2']) != NULL) ? $holiday_inf['date2'] : '-');
+                                $sheet->setCellValue('H' . $r, date('d.m.Y',strtotime($holiday_inf['date1'])));
+                                $sheet->setCellValue('I' . $r, (($holiday_inf['date2']) != NULL) ? date('d.m.Y',strtotime($holiday_inf['date2'])) : '-');
                                 $sheet->setCellValue('J' . $r, '-');
                                 $sheet->setCellValue('K' . $r, '-');
                                 $sheet->setCellValue('L' . $r, (($holiday_inf['prikaz']) != NULL) ? $holiday_inf['prikaz'] : 'не указано');
@@ -2711,8 +2760,8 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
                                 $sheet->setCellValue('E' . $r, $ill_inf['fio']);
                                 $sheet->setCellValue('F' . $r, $ill_inf['position']);
                                 $sheet->setCellValue('G' . $r, 'больничный');
-                                $sheet->setCellValue('H' . $r, $ill_inf['date1']);
-                                $sheet->setCellValue('I' . $r, (($ill_inf['date2']) != NULL) ? $ill_inf['date2'] : '-');
+                                $sheet->setCellValue('H' . $r, date('d.m.Y',strtotime($ill_inf['date1'])));
+                                $sheet->setCellValue('I' . $r, (($ill_inf['date2']) != NULL) ? date('d.m.Y',strtotime($ill_inf['date2'])) : '-');
                                 $sheet->setCellValue('J' . $r, $ill_inf['maim']);
                                 $sheet->setCellValue('K' . $r, (($ill_inf['diagnosis']) != NULL) ? $ill_inf['diagnosis'] : 'не указано');
                                 $sheet->setCellValue('L' . $r, '-');
@@ -2754,8 +2803,8 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
                                 $sheet->setCellValue('E' . $r, $other_inf['fio']);
                                 $sheet->setCellValue('F' . $r, $other_inf['position']);
                                 $sheet->setCellValue('G' . $r, 'др.причины');
-                                $sheet->setCellValue('H' . $r, $other_inf['date1']);
-                                $sheet->setCellValue('I' . $r, (($other_inf['date2']) != NULL) ? $other_inf['date2'] : 'не указано');
+                                $sheet->setCellValue('H' . $r, date('d.m.Y',strtotime($other_inf['date1'])));
+                                $sheet->setCellValue('I' . $r, (($other_inf['date2']) != NULL) ? date('d.m.Y',strtotime($other_inf['date2'])) : 'не указано');
                                 $sheet->setCellValue('J' . $r, '-');
                                 $sheet->setCellValue('K' . $r, '-');
                                 $sheet->setCellValue('L' . $r, '-');
@@ -2784,6 +2833,7 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
 
 
              $data['convex_item']['query']=1;// item 'search' is active
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
 
            $data['title_name']='Запросы/Больничные';
         $app->render('layouts/header.php',$data);
@@ -3228,8 +3278,8 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
                     $sheet->setCellValue('D' . $r, $row['name_div']);
                     $sheet->setCellValue('E' . $r, $row['fio']);
                     $sheet->setCellValue('F' . $r, $row['position']);
-                    $sheet->setCellValue('G' . $r, $row['date1']);
-                    $sheet->setCellValue('H' . $r, $row['date2']);
+                    $sheet->setCellValue('G' . $r, date('d.m.Y', strtotime($row['date1'])));
+                    $sheet->setCellValue('H' . $r, (($row['date2'] !== null)? date('d.m.Y', strtotime($row['date2'])): '') );
                     $sheet->setCellValue('I' . $r, $row['maim']);
                     $sheet->setCellValue('J' . $r, $row['diagnosis']);
                     $r++;
@@ -3306,6 +3356,7 @@ $main[$value['id_pasp']] ['vacant'] = R::getCell('SELECT count(l.id)  FROM  list
             array($app, 'is_auth');
 
              $data['convex_item']['query']=1;// item 'search' is active
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
 
            $data['title_name']='Запросы/Отпуска';
         $app->render('layouts/header.php',$data);
@@ -3717,8 +3768,8 @@ $k = 0; //кол-во отпусков
                     $sheet->setCellValue('D' . $r, $row['name_div']);
                     $sheet->setCellValue('E' . $r, $row['fio']);
                     $sheet->setCellValue('F' . $r, $row['position']);
-                    $sheet->setCellValue('G' . $r, $row['date1']);
-                    $sheet->setCellValue('H' . $r, $row['date2']);
+                    $sheet->setCellValue('G' . $r, date('d.m.Y', strtotime($row['date1'])));
+                    $sheet->setCellValue('H' . $r, ($row['date2'] !== null)? date('d.m.Y', strtotime($row['date2'])): '');
                     $sheet->setCellValue('I' . $r, $row['prikaz']);
                     $r++;
 
@@ -3789,6 +3840,7 @@ $k = 0; //кол-во отпусков
             array($app, 'is_auth');
 
              $data['convex_item']['query']=1;// item 'search' is active
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
 
            $data['title_name']='Запросы/Командировки';
         $app->render('layouts/header.php',$data);
@@ -4211,8 +4263,8 @@ $k = 0; //кол-во отпусков
                     $sheet->setCellValue('D' . $r, $row['name_div']);
                     $sheet->setCellValue('E' . $r, $row['fio']);
                     $sheet->setCellValue('F' . $r, $row['position']);
-                    $sheet->setCellValue('G' . $r, $row['date1']);
-                    $sheet->setCellValue('H' . $r, $row['date2']);
+                    $sheet->setCellValue('G' . $r, date('d.m.Y', strtotime($row['date1'])));
+                    $sheet->setCellValue('H' . $r, (($row['date2'] !== null)? date('d.m.Y', strtotime($row['date2'])): ''));
                     $sheet->setCellValue('I' . $r, $row['type_trip']);
                     $sheet->setCellValue('J' . $r, $row['place']);
                     $sheet->setCellValue('K' . $r, $row['prikaz']);
@@ -4302,6 +4354,8 @@ $k = 0; //кол-во отпусков
         array($app, 'is_auth');
 
          $data['convex_item']['query']=1;// item 'search' is active
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $data['title_name']='Запросы/Др.причины';
         $app->render('layouts/header.php',$data);
@@ -4713,8 +4767,8 @@ $data['main'] =$main;
                     $sheet->setCellValue('D' . $r, $row['name_div']);
                     $sheet->setCellValue('E' . $r, $row['fio']);
                     $sheet->setCellValue('F' . $r, $row['position']);
-                    $sheet->setCellValue('G' . $r, $row['date1']);
-                    $sheet->setCellValue('H' . $r, $row['date2']);
+                    $sheet->setCellValue('G' . $r, date('d.m.Y', strtotime($row['date1'])));
+                    $sheet->setCellValue('H' . $r, (($row['date2'] !== null)? date('d.m.Y', strtotime($row['date2'])): ''));
                     $sheet->setCellValue('I' . $r, $row['reason']);
                     $r++;
 
@@ -4791,6 +4845,8 @@ $data['main'] =$main;
              array($app, 'is_auth');
 
               $data['convex_item']['query']=1;// item 'search' is active
+
+              $data['unseen_notifications']=getUnseenNotificationsByUser();
 
              $data['title_name']='Запросы/Инф.по СЗ';
         $app->render('layouts/header.php',$data);
@@ -5553,6 +5609,8 @@ $c_spec_obl=0;
             array($app, 'is_auth');
 
              $data['convex_item']['query']=1;// item 'search' is active
+
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
 
             $data['title_name']='Запросы/Техника';
         $app->render('layouts/header.php',$data);
@@ -6463,9 +6521,13 @@ return $main;
         $app->post('/basic/inf_car_big_count/:type', function ($type) use ($app) {
 
         if (!isset($_POST['export_to_excel'])) {
+
+
             array($app, 'is_auth');
 
              $data['convex_item']['query']=1;// item 'search' is active
+
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
 
             $data['title_name'] = 'Запросы/Техника (количество)';
             $app->render('layouts/header.php', $data);
@@ -6549,6 +6611,10 @@ return $main;
                 $query_name_state_teh = 'ТО';
             elseif ($state_teh == 4)
                 $query_name_state_teh = 'ремонт';
+            elseif ($state_teh == 5)
+                $query_name_state_teh = 'ТО-1';
+            elseif ($state_teh == 6)
+                $query_name_state_teh = 'ТО-2';
         }
 
         $data['query_name_teh'] = $query_name_teh; //АЦ
@@ -6584,7 +6650,7 @@ return $main;
        // result for umchs with cou !!!!
 
         /*----------------------------- только родная техника - та, которая уехала в командировку - та, которая приехала из др.ПАСЧ ------------------------------------*/
-            $sql = " SELECT   count(c.id_teh) as co, "
+            $sql = " SELECT   count(distinct c.id_teh) as co, "
             . "     `reg`.`name`        AS `region_name`,"
             . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`,"
             . " `re`.`id`         AS `id_pasp`,"
@@ -6614,11 +6680,12 @@ return $main;
             . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
         //   . " and d.id not in (8,9)";
         //марка техники
-                      $sql_mark = " SELECT   t.mark as mark, `re`.`id` AS `id_pasp`,"
+                      $sql_mark = " SELECT distinct t.id as teh_id,   t.mark as mark, `re`.`id` AS `id_pasp`,"
                           . "CASE WHEN(c.id_type=1) THEN CONCAT(' (Бр)')
 WHEN(c.id_type=2) THEN CONCAT(' (Рез)')
  WHEN(c.is_repair=1) THEN CONCAT(' (Рем)')
- WHEN(c.id_to<>3) THEN  CONCAT(' (ТО)')
+ WHEN(c.id_to<>3 and c.id_to=1) THEN  CONCAT(' (ТО-1)')
+  WHEN(c.id_to<>3 and c.id_to=2) THEN  CONCAT(' (ТО-2)')
 ELSE CONCAT('') END AS is_br, "
                           . "CASE WHEN(c.id_type=1) THEN 1
 WHEN(c.id_type=2) THEN 2
@@ -6694,6 +6761,17 @@ ELSE 5 END AS is_color "
                 $sql_mark = $sql_mark.$state_rep;
             }
 
+                        elseif ($state_teh == 5) {//to1
+                $state_id = array(1);
+                $state_to = ' and c.id_to IN ( ' . implode(',', $state_id) . ')';
+                $sql = $sql . $state_to;
+                $sql_mark = $sql_mark . $state_to;
+            } elseif ($state_teh == 6) {//to2
+                $state_id = array(2);
+                $state_to = ' and c.id_to IN ( ' . implode(',', $state_id) . ')';
+                $sql = $sql . $state_to;
+                $sql_mark = $sql_mark . $state_to;
+            }
         }
 
                 /* ---------- END наименование и вид техники - если выбраны на форме ------------- */
@@ -6740,6 +6818,7 @@ ELSE 5 END AS is_color "
         $data['res']=$res;
 
         $sql_mark = $sql_mark . "   ORDER BY `reg`.`name`,`locor`.`id`,`loc`.`name`,`re`.`divizion_num`";
+
         $res_mark = R::getAll($sql_mark);
 
 
@@ -6771,7 +6850,7 @@ ELSE 5 END AS is_color "
         /*----------------------------- КОНЕЦ только родная техника - та, которая уехала в командировку - та, которая приехала из др.ПАСЧ ------------------------------------*/
 
         /* ------------------------------------------------ Техника из др подразделения ------------------------------------------------------------- */
-            $sql_teh_from_other_pasp = " SELECT  res.id_card as id_pasp, count(res.`id_teh` ) as co, "
+            $sql_teh_from_other_pasp = " SELECT distinct c.id_teh as teh_id,  res.id_card as id_pasp, count(res.`id_teh` ) as co, "
                       . "     `reg`.`name`        AS `region_name`,"
                     . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`,"
 
@@ -6798,11 +6877,12 @@ ELSE 5 END AS is_color "
 
 
             //марка техники из др.подразделения
-               $sql_teh_mark_from_other_pasp = " SELECT  res.id_card as id_pasp, t.mark as mark, "
+               $sql_teh_mark_from_other_pasp = " SELECT distinct c.id_teh as teh_id,  res.id_card as id_pasp, t.mark as mark, "
                           . "CASE WHEN(c.id_type=1) THEN CONCAT(' (Бр)')
 WHEN(c.id_type=2) THEN CONCAT(' (Рез)')
  WHEN(c.is_repair=1) THEN CONCAT(' (Рем)')
- WHEN(c.id_to<>3) THEN  CONCAT(' (ТО)')
+ WHEN(c.id_to<>3 and c.id_to=1) THEN  CONCAT(' (ТО-1)')
+  WHEN(c.id_to<>3 and c.id_to=2) THEN  CONCAT(' (ТО-2)')
 ELSE CONCAT('') END AS is_br, "
                           . "CASE WHEN(c.id_type=1) THEN 1
 WHEN(c.id_type=2) THEN 2
@@ -7028,7 +7108,7 @@ ELSE 5 END AS is_color "
         $state_teh = (!empty($query_name_state_teh)) ? $query_name_state_teh : 'все';
 
         $date = new DateTime($data['date_start']);
-        $date_start = $date->Format('d-m-Y');
+        $date_start = $date->Format('d.m.Y');
 
         $sheet->setCellValue('A' . 1, 'Результат запроса за ' . $date_start);
         $sheet->setCellValue('A' . 2, 'наименование техники: ' . $name_teh . ', вид техники: ' . $vid_teh . ', состояние техники:' . $state_teh);
@@ -7078,7 +7158,7 @@ ELSE 5 END AS is_color "
 
                 $sheet->setCellValue('A' . $r, $i); //№ п/п
                 $sheet->setCellValue('B' . $r, $value['region_name']);
-                $sheet->setCellValue('C' . $r, $value['organ'] . ', ' . $value['divizion']);
+                $sheet->setCellValue('C' . $r,  $value['divizion']. ', ' . $value['organ']);
 
                 $all_teh_arr = array(); //массив марок
                 if (isset($data['res_mark_array'][$value['id_pasp']])) {//марка родной техники
@@ -7274,6 +7354,7 @@ $app->group('/user',$is_auth, function () use ($app) {
         array($app, 'is_auth');
 
         $data['convex_item']['query']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $list_user = R::getAll('SELECT * FROM listuser where uid !=? ', array(1)
         );
@@ -7295,6 +7376,7 @@ $app->group('/user',$is_auth, function () use ($app) {
         $data['sub'] = $sub;
 
         $data['convex_item']['query']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $data['type_query'] = 0; //post
         $app->render('layouts/header.php',$data);
@@ -7359,6 +7441,7 @@ $app->group('/user',$is_auth, function () use ($app) {
         $data['type_query'] = 1; //put
 
         $data['convex_item']['query']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
@@ -7447,6 +7530,7 @@ $app->group('/user',$is_auth, function () use ($app) {
         $data['id'] = $id;
 
         $data['convex_item']['query']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
@@ -7542,6 +7626,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         array($app, 'is_auth');
 
          $data['convex_item']['listfio']=1;// item 'search' is active
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
          //
 //список ПАСЧ
         $data['pasp'] = getNamePasp();
@@ -7559,6 +7644,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         array($app, 'is_auth');
 
         $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $id_record = $app->request()->post('id_record'); //pasp
         $id_cardch = $app->request()->post('id_cardch'); //cardch
@@ -7665,6 +7751,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         array($app, 'is_auth');
 
         $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
         //
 //инф по работнику
         $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody,l.phone, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
@@ -7711,8 +7798,24 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 //        }
 
 
+        /* delete fio from car of old card */
+        $today = date('Y-m-d');
 
-        $log_array_old = json_decode(R::load('listfio', $id));//что было до редs
+        $old_listfio = R::load('listfio', $id); //old data fio
+        $log_array_old = json_decode($old_listfio); //что было до редs
+
+        if ($id_cardch != $old_listfio->id_cardch) {// delete fio from car of old card
+            $old_cardch_id = $old_listfio->id_cardch;
+
+            $old_listfio = R::load('cardch', $old_cardch_id);
+
+            $fiocar = R::getAssoc("CALL delete_fio_from_cars_after_update_listfio('{$old_listfio->id_card}','{$today}', '{$id}','{$old_listfio->ch}');");
+            $ids_for_delete = array_column($fiocar, 'id');
+
+            if (isset($ids_for_delete) && !empty($ids_for_delete))
+                R::exec('delete from fiocar  where id IN ( ' . implode(',', $ids_for_delete) . ')');
+        }
+        /* END delete fio from car of old card */
 
         //vacant select
         if ($is_vacant == 1) {
@@ -7768,6 +7871,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
     $app->get('/delete/:id', function ($id) use ($app) {
 
         $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         array($app, 'is_auth'); //авторизован ли пользователь
         $data['id_empl'] = $id;
@@ -7845,6 +7949,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 
         $data['convex_item']['listfio']=1;// item 'search' is active
         $data['convex_item']['close_ill_sub']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
 
         $data['id_ill'] = $id;//ill.id
@@ -7944,6 +8049,8 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         $data['convex_item']['listfio']=1;// item 'search' is active
         $data['convex_item']['close_hol_sub']=1;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadListFio.php');
@@ -7982,6 +8089,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
         $data['convex_item']['listfio']=1;// item 'search' is active
         $data['convex_item']['close_other_sub']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
@@ -8023,6 +8131,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
 
         $data['convex_item']['listfio']=1;// item 'search' is active
         $data['convex_item']['close_trip_sub']=1;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $app->render('layouts/header.php',$data);
         $app->render('layouts/menu.php', $data);
@@ -8038,6 +8147,7 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
         array($app, 'is_auth');
 
         $data['convex_item']['listfio']=1;// item 'search' is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $data['locorg_umchs']=locorg_umchs;//для ЦоУ. Видит другое сообщение, если доступ на ред смен закрыт.
 
@@ -8257,6 +8367,8 @@ $data['ill']=R::getAll('select l.fio, p.name as position, date_format(i.date1,"%
                  $data['convex_item']['listfio']=1;// item 'search' is active
                  $data['convex_item']['open_listfio_sub']=1;
 
+                 $data['unseen_notifications']=getUnseenNotificationsByUser();
+
 if(in_array($_SESSION['ulocorg'], locorg_umchs))  {//Если авторизован ЦОУ области - может открыть доступ только себе
     $data['user']=R::getAll('select id, name, is_deny from user where regions_id = ? and note is null  '
         . ' and can_edit = ? AND id = ?', array($_SESSION['uregions'],1,$_SESSION['uid']));
@@ -8320,6 +8432,381 @@ $app->render('listfio/open/table.php',$data);
 });
 
 
+/* listfio of rcu str */
+$app->group('/listfio_rcu', $is_auth, function () use ($app, $log) {
+
+
+    function getNamePaspByIdLocorg($id_locorg)
+    {
+        return R::getAll('SELECT r.id, case when(r.divizion_num=0) then d.name else concat(d.name, " № ", r.divizion_num) end as divizion_name from ss.records as r
+            left join ss.divizions as d ON r.id_divizion=d.id  where r.id_loc_org = ? order by d.name, r.divizion_num ', array($id_locorg)
+        );
+    }
+
+    function getCardChByIdLocorg($id_locorg)
+    {
+        return R::getAll('SELECT c.id, c.id_card, c.ch from cardch as c left join ss.records as r ON c.id_card=r.id'
+                . '  where r.id_loc_org = ? order by c.ch ', array($id_locorg));
+    }
+//form  add worker
+    $app->get('/add', function () use ($app) {
+        array($app, 'is_auth');
+
+        $data['convex_item']['listfio_rcu'] = 1; // item  is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+//list pasp
+        $data['pasp'] = getNamePaspByIdLocorg(RCUIDCARD);
+
+//ch+record.id
+        $data['cardch'] = getCardChByIdLocorg(RCUIDCARD);
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+        $app->render('listfio/rcu/addForm.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+//form 2 add worker
+    $app->post('/add', function () use ($app) {
+        array($app, 'is_auth');
+
+        $data['convex_item']['listfio_rcu'] = 1; // item  is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        $id_record = $app->request()->post('id_record'); //pasp
+        $id_cardch = $app->request()->post('id_cardch'); //cardch
+        $count_empl = $app->request()->post('count_empl'); //cardch
+        $data['count_empl'] = $count_empl;
+        $data['id_cardch'] = $id_cardch;
+// name ПАСЧ
+        $data['pasp'] = R::getCell('SELECT (CASE WHEN (d.id = ?) then concat(d.name," - ", loc.name) '
+                . ' WHEN (r.divizion_num = 0) THEN d.name   ELSE CONCAT(d.name," № ",r.divizion_num) END)  as divizion_name '
+                . ' from ss.records as r left join ss.divizions as d ON r.id_divizion=d.id left join ss.locorg as locor on locor.id=r.id_loc_org'
+                . ' left join ss.locals as loc on loc.id=locor.id_local  where r.id = ? ', array(4, $id_record));
+
+        $data['ch'] = R::getCell('SELECT c.ch from cardch as c '
+                . '  where c.id = ? ', array($id_cardch)
+        );
+
+        if ($data['ch'] == 0) {//ежедневников не контролировать
+        } else {
+            /* ------ по штату из КУСиС ------- */
+            $data['on_shtat'] = getShtatFromKUSiS($data['ch'], $id_record);
+
+            /* -------- по списку смены из списка смены без ежедневников  --------- */
+            $data['on_list'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                    . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? and c.ch = ? ', array($id_record, $data['ch']));
+        }
+
+        $data['rank'] = getListRank();
+        $data['position'] = getListPosition();
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+        $app->render('listfio/rcu/formListFio.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+//add worker
+    $app->post('/', function () use ($app) {
+        array($app, 'is_auth');
+
+        //
+//список ПАСЧ
+        $id_cardch = $app->request()->post('id_cardch'); //cardch
+        $count_empl = $app->request()->post('count_empl');
+
+        for ($i = 0; $i < $count_empl; $i++) {
+
+            $fio = $app->request()->post('fio' . $i);
+            $id_rank = $app->request()->post('id_rank' . $i);
+            $id_position = $app->request()->post('id_position' . $i);
+            $is_vacant = $app->request()->post('is_vacant' . $i);
+            $is_nobody = $app->request()->post('is_nobody' . $i);
+            $is_swing = $app->request()->post('is_swing' . $i);
+
+            $phone = $app->request()->post('tel' . $i);
+
+
+            //vacant select
+            if ($is_vacant == 1) {
+                $listfio = R::dispense('listfio');
+                $listfio->fio = 'ВАКАНТ';
+                $listfio->is_vacant = 1;
+                $listfio->id_rank = $id_rank;
+                $listfio->id_position = $id_position;
+                $listfio->id_cardch = $id_cardch;
+                $id_empl=R::store($listfio);
+            } elseif ($is_nobody == 1) {//нет работников
+                if (R::getCell('select ch from cardch where id=?', array($id_cardch)) != 0) {//должен быть ежедневником
+                    $id_card_for_nobody = R::getCell('select id_card from cardch where id=?', array($id_cardch));
+                    $id_cardch_for_nobody = R::getCell('select id from cardch where id_card = ? and ch = ?', array($id_card_for_nobody, 0));
+                } else
+                    $id_cardch_for_nobody = $id_cardch;
+
+                if (!isset($id_cardch_for_nobody) || empty($id_cardch_for_nobody))
+                    $id_cardch_for_nobody = $id_cardch;
+
+                $listfio = R::dispense('listfio');
+                $listfio->fio = 'НЕТ РАБОТНИКОВ';
+                $listfio->is_vacant = 0;
+                $listfio->is_nobody = 1;
+                $listfio->id_rank = $id_rank;
+                $listfio->id_position = $id_position;
+                $listfio->id_cardch = $id_cardch_for_nobody;
+                $id_empl=R::store($listfio);
+            }
+
+            else {
+                if (isset($fio) && !empty($fio)) {
+                    $listfio = R::dispense('listfio');
+                    $listfio->fio = $fio;
+                    $listfio->is_vacant = 0;
+                    $listfio->id_rank = $id_rank;
+                    $listfio->id_position = $id_position;
+                    $listfio->id_cardch = $id_cardch;
+                    $listfio->phone = $phone;
+                    $id_empl=R::store($listfio);
+                }
+            }
+
+            if ($is_swing == 1) {//podmennie
+                $listfio = R::load('listfio', $id_empl);
+                $listfio->is_swing = 1;
+                R::store($listfio);
+            }
+        }
+        $app->redirect('/str/listfio_rcu');
+    });
+
+//edit form worker
+    $app->get('/edit/:id', function ($id) use ($app) {
+        array($app, 'is_auth');
+
+        $data['convex_item']['listfio'] = 1; // item 'search' is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+        //
+//инф по работнику
+        $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody,l.phone,l.is_swing, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
+                . ' left join str.rank AS ra ON l.id_rank=ra.id left join str.position AS pos ON l.id_position=pos.id where l.id = ? ', array($id)
+        );
+
+        $data['id_empl'] = $id;
+
+        //list pasp
+        $data['pasp'] = getNamePaspByIdLocorg(RCUIDCARD);
+
+//ch+record.id
+        $data['cardch'] = getCardChByIdLocorg(RCUIDCARD);
+
+        $data['rank'] = getListRank();
+        $data['position'] = getListPosition();
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+        $app->render('listfio/rcu/editForm.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+//edit worker
+    $app->put('/:id', function ($id) use ($app, $log) {
+        array($app, 'is_auth');
+
+        //
+//список ПАСЧ
+        $id_cardch = $app->request()->post('id_cardch'); //cardch
+        $fio = $app->request()->post('fio');
+        $id_rank = $app->request()->post('id_rank');
+        $id_position = $app->request()->post('id_position');
+        $is_vacant = $app->request()->post('is_vacant');
+        $is_nobody = $app->request()->post('is_nobody');
+        $phone = $app->request()->post('tel');
+
+        $is_swing = $app->request()->post('is_swing');
+
+
+        /* if worker was everyday and he became worker of ch - delete his row from everydayfio */
+//        $fio_prev = R::load('listfio', $id);
+//        $old_cardch = $fio_prev->id_cardch;
+//        $old_ch = R::getCell("select ch from cardch where id= ?", array($old_cardch));
+//        $new_ch = R::getCell("select ch from  cardch where id= ?", array($id_cardch));
+//        if ($old_ch == 0 && $new_ch != 0) {
+//
+//            R::exec('delete from everydayfio  where id_fio = ? ', array($id));
+//        }
+
+
+
+        $log_array_old = json_decode(R::load('listfio', $id)); //что было до редs
+        //vacant select
+        if ($is_vacant == 1) {
+            $listfio = R::load('listfio', $id);
+            $listfio->fio = 'ВАКАНТ';
+            $listfio->is_vacant = 1;
+            $listfio->id_rank = $id_rank;
+            $listfio->id_position = $id_position;
+            $listfio->id_cardch = $id_cardch;
+            R::store($listfio);
+        } elseif ($is_nobody == 1) {//нет работников
+            if (R::getCell('select ch from cardch where id=?', array($id_cardch)) != 0) {//должен быть ежедневником
+                $id_card_for_nobody = R::getCell('select id_card from cardch where id=?', array($id_cardch));
+                $id_cardch_for_nobody = R::getCell('select id from cardch where id_card = ? and ch = ?', array($id_card_for_nobody, 0));
+            } else
+                $id_cardch_for_nobody = $id_cardch;
+
+            if (!isset($id_cardch_for_nobody) || empty($id_cardch_for_nobody))
+                $id_cardch_for_nobody = $id_cardch;
+
+
+            $listfio = R::load('listfio', $id);
+            $listfio->fio = 'НЕТ РАБОТНИКОВ';
+            $listfio->is_vacant = 0;
+            $listfio->is_nobody = 1;
+            $listfio->id_rank = $id_rank;
+            $listfio->id_position = $id_position;
+            $listfio->id_cardch = $id_cardch_for_nobody;
+            R::store($listfio);
+        }
+ else {
+            if (isset($fio) && !empty($fio)) {
+                $listfio = R::load('listfio', $id);
+                $listfio->fio = $fio;
+                $listfio->is_vacant = 0;
+                $listfio->is_nobody = 0;
+                $listfio->id_rank = $id_rank;
+                $listfio->id_position = $id_position;
+                $listfio->id_cardch = $id_cardch;
+                $listfio->phone = $phone;
+                R::store($listfio);
+            }
+        }
+
+
+           if ($is_swing == 1) {//podmennie
+            $listfio = R::load('listfio', $id);
+            $listfio->is_swing = 1;
+            R::store($listfio);
+        }
+
+        $log_array = json_decode(R::load('listfio', $id)); //что стало после рад
+        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Редактирование listfiostr - запись с id=' . $id . '- Новые данные:: ' . json_encode($log_array, JSON_UNESCAPED_UNICODE) . '- Старые данные:: ' . json_encode($log_array_old, JSON_UNESCAPED_UNICODE));
+        $app->redirect('/str/listfio_rcu');
+    });
+
+    //warning msg about delete worker
+    $app->get('/delete/:id', function ($id) use ($app) {
+
+        $data['convex_item']['listfio_rcu'] = 1; // item  is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        array($app, 'is_auth'); //авторизован ли пользователь
+        $data['id_empl'] = $id;
+        $today = date("Y-m-d");
+        $yesterday = date("Y-m-d", time() - (60 * 60 * 24));
+        $time = date("H:i:s");
+        $warning = array();
+
+        /* --------- Проверить числится ли человек где-ниб ---------- */
+
+        /* +++ больничные +++ */
+        $is_ill = R::getCell('SELECT id FROM ill WHERE id_fio = ? AND (( ? BETWEEN date1 and date2) or( ? >= date1 and date2 is NULL)) ', array($id, $today, $today));
+        if (!empty($is_ill)) {
+            $warning[] = 'на больничном';
+        }
+        /* +++ КОНЕЦ больничные +++ */
+
+        /* +++ Отпуска +++ */
+        $is_hol = R::getCell('SELECT id FROM holiday WHERE id_fio = ? AND (( ? BETWEEN date1 and date2) or( ? >= date1 and date2 is NULL)) ', array($id, $today, $today));
+        if (!empty($is_hol)) {
+            $warning[] = 'в отпуске';
+        }
+        /* +++ КОНЕЦ Отпуска +++ */
+
+        /* +++ Командировка +++ */
+        $is_trip = R::getCell('SELECT id FROM trip WHERE id_fio = ? AND (( ? BETWEEN date1 and date2) or( ? >= date1 and date2 is NULL)) ', array($id, $today, $today));
+        if (!empty($is_trip)) {
+            $warning[] = 'в командировке';
+        }
+        /* +++ КОНЕЦ Командировка +++ */
+
+        /* +++ Др.причины +++ */
+        $is_other = R::getCell('SELECT id FROM other WHERE id_fio = ? AND (( ? BETWEEN date1 and date2) or( ? >= date1 and date2 is NULL)) ', array($id, $today, $today));
+        if (!empty($is_other)) {
+            $warning[] = 'отсутствует по другой причине';
+        }
+        /* +++ КОНЕЦ Др.причины +++ */
+
+        /* +++ Боевой расчет (после 12 ночи и до 08 утра считать что смена дежурная ) +++ */
+        $is_br = R::getCell('SELECT fc.id FROM fiocar as fc left join car as c on c.id=fc.id_tehstr WHERE'
+                . ' id_fio = ? AND (c.dateduty = ? OR (c.dateduty = ? and ? < ? )) ', array($id, $today, $yesterday, $time, '08:00:00'));
+        if (!empty($is_br)) {
+            $warning[] = 'в боевом расчете';
+        }
+
+        /* +++ КОНЕЦ Боевой расчет+++ */
+        $data['warning'] = $warning;
+        /* --------- END Проверить числится ли человек где-ниб ---------- */
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+        $app->render('listfio/msg/delete.php', $data); //delete ?
+        $app->render('listfio/rcu/delete.php', $data);
+        $app->render('listfio/back.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+    //delete worker
+    $app->delete('/delete/:id', function ($id) use ($app, $log) {//msg delete ill by id
+        array($app, 'is_auth'); //авторизован ли пользователь
+
+        $listfio = R::load('listfio', $id);
+        $log_array = json_decode($listfio);
+
+        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Удаление listfiostr - запись с id=' . $id . '- Данные:: ' . json_encode($log_array, JSON_UNESCAPED_UNICODE));
+        R::trash($listfio); ///delete from DB
+        $app->redirect('/str/listfio_rcu');
+    });
+
+
+
+//listfio RCU
+    $app->get('/', function () use ($app) {// список смен
+        array($app, 'is_auth');
+
+        $data['convex_item']['listfio_rcu'] = 1; // item 'search' is active
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        $data['locorg_umchs'] = locorg_umchs; //для ЦоУ. Видит другое сообщение, если доступ на ред смен закрыт.
+
+        /* ------- ФИО, кто сегодня на больничном-им можно закрыть больничный --------- */
+        $today = date("Y-m-d");
+
+        $listfio = array();
+
+        $listfio = R::getAll('SELECT * from list_of_change where id_organ = ? ', array(RCU));
+        $data['list_fio'] = $listfio;
+
+        //редактировать работника, если он заступил начальником смены нельзя
+        $data['not_edit'] = R::getAll('SELECT id_fio from main'
+                // . '  where is_duty = ? ', array(1)
+        );
+
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadListFio.php');
+
+        $app->render('listfio/listFioRcu.php', $data);
+
+        $app->render('layouts/footer.php');
+    });
+});
+
+
+
 /* ----------------------------------------------------------------------------------------------------------------------  v1.0 ----------------------------------------------------------------------------------------------------------------------- */
 
 /* * ***************  Сообщение о том, какая смена сегодня дежурит, кто внес информацию ******************* */
@@ -8356,6 +8843,9 @@ function bread($id) {//bread crumb
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
              $inf = R::getAll("select * from maincou where id_card = ? and ch = ? and dateduty = ? limit 1",array($id,$i,$today));
         }
+        elseif(getIdDivizion($id) == 10){//rcu
+             $inf = R::getAll("select * from mainrcu where id_card = ? and ch = ? and dateduty = ? limit 1",array($id,$i,$today));
+        }
         /*--- ЦОУ, ШЛЧС---*/
         else{
              $inf = R::getAssoc("CALL get_main('{$id}','{$i}', '{$today}');");
@@ -8370,6 +8860,10 @@ function bread($id) {//bread crumb
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
 
             $who_insert = R::getAll('SELECT u.name, m.last_update  FROM maincou as m inner join user as u on u.id=m.id_user WHERE m.id= :m_id limit 1', [':m_id' => $value['id']]);
+        }
+        elseif(getIdDivizion($id) == 10){
+
+            $who_insert = R::getAll('SELECT u.name, m.last_update  FROM mainrcu as m inner join user as u on u.id=m.id_user WHERE m.id= :m_id limit 1', [':m_id' => $value['id']]);
         }
         /*--- ЦОУ, ШЛЧС---*/
         else{
@@ -8528,24 +9022,30 @@ function is_btn_confirm($change) {
     }
     if ($raznost != 0) {
         //обновить $start_date, $start_ch в БД
-        R::exec('update dutych  set start_date = ?, start_ch = ? ', array(date('Y-m-d'), $duty_ch));
+       // R::exec('update dutych  set start_date = ?, start_ch = ? ', array(date('Y-m-d'), $duty_ch));
     }
     if ($duty_ch == $change)
         $is_btn_confirm = 1; //кнопка доступна
     else {
         $is_btn_confirm = 0; //кнопка не доступна
     }
+
+    if(date('H:i:s') <'05:00:00')
+         $is_btn_confirm = 0;
+
+
     return $is_btn_confirm;
 }
 
 //Время, после которого у областей нет возможности открыть доступ на редактирование
 function time_allow_open() {
-    $time_allow = R::getCell('select is_allow_open from dutych where start_date = :today', [':today' => date('Y-m-d')]);
-    if (isset($time_allow) && !empty($time_allow)) {
-        $time_allow = $time_allow;
-    } else
-        $time_allow = '11:00:00';
-    return $time_allow;
+//    $time_allow = R::getCell('select is_allow_open from dutych where start_date = :today', [':today' => date('Y-m-d')]);
+//    if (isset($time_allow) && !empty($time_allow)) {
+//        $time_allow = $time_allow;
+//    } else
+//        $time_allow = '11:00:00';
+
+    return TIME_ALLOW_OPEN_UPDATE;
 }
 
 //номер дежурной смены
@@ -8771,6 +9271,34 @@ function getListFioMainCou($id, $change, $sign, $date) {
         //$sql = $sql . '  WHERE id_card  =  ? AND ch = ? ';
     } elseif ($sign == 0) {//чужая
         $sql = 'SELECT id_fio FROM maincou WHERE id not in (select id from maincou WHERE id_card  =  ? AND ch = ? )  ';
+        //    $sql = $sql . '  WHERE id_card  <> ? AND ch <> ? ';
+    }
+    $param[] = $id;
+    $param[] = $change;
+    if ($date != 0) {
+        $sql = $sql . ' AND dateduty = ?';
+        $param[] = $today;
+    }
+    $result = R::getAll($sql, $param);
+
+    if (!empty($result)) {
+        foreach ($result as $value) {
+            $list_fio[] = $value['id_fio'];
+        }
+    } else
+        $list_fio = array();
+    return $list_fio;
+}
+
+function getListFioMainRcu($id, $change, $sign, $date) {
+    $id_cardch = getIdCardCh($id, $change);
+    $today = date("Y-m-d");
+
+    if ($sign == 1) {//своя смена
+        $sql = 'SELECT id_fio FROM mainrcu WHERE id_card  =  ? AND ch = ?  ';
+        //$sql = $sql . '  WHERE id_card  =  ? AND ch = ? ';
+    } elseif ($sign == 0) {//чужая
+        $sql = 'SELECT id_fio FROM mainrcu WHERE id not in (select id from mainrcu WHERE id_card  =  ? AND ch = ? )  ';
         //    $sql = $sql . '  WHERE id_card  <> ? AND ch <> ? ';
     }
     $param[] = $id;
@@ -9119,16 +9647,20 @@ function getPresentAbsent($id, $change) {
 
         //кто на сегодня заступил  в ЦОУ maincou
     $list_maincou = getListFioMainCou($id, $change, 1, $today);
+     $list_mainrcu = getListFioMainRcu($id, $change, 1, $today);
 
     //вычислить по формуле
     $result = minusArray($list_fio, $list_reserve);
     $result = minusArray($result, $list_car);
     $result = minusArray($result, $list_main);
      $result = minusArray($result, $list_maincou);
+     $result = minusArray($result, $list_mainrcu);
 
     //получить ФИО
     return getFioById($result, $id, $change);
 }
+
+
 
 // список ФИО для вкладки командировки
 function getPresentAbsentTrip($id, $change) {
@@ -9145,11 +9677,14 @@ function getPresentAbsentTrip($id, $change) {
         //кто на сегодня заступил в ЦОУ maincou
     $list_maincou = getListFioMainCou($id, $change, 1, $today);
 
+    $list_mainrcu = getListFioMainRcu($id, $change, 1, $today);
+
     //вычислить по формуле
     $result = minusArray($list_fio, $list_car);
     $result = plusArray($result, $list_reserve_plus);
     $result = minusArray($result, $list_main);
     $result = minusArray($result, $list_maincou);
+    $result = minusArray($result, $list_mainrcu);
 
     //получить ФИО
     return getFioById($result, $id, $change);
@@ -9250,6 +9785,9 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         elseif(getIdDivizion($id) == 9){//ШЛЧС
             $app->redirect('/str/v2/card/' . $id . '/ch/' . $change . '/main_sch');
         }
+        elseif(getIdDivizion($id) == 10){//rcu
+            $app->redirect('/str/v3/card/' . $id . '/ch/' . $change . '/main');
+        }
         /*--- ЦОУ, ШЛЧС---*/
 
         $data = bread($id);
@@ -9260,6 +9798,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['duty'] = $duty;
         $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
         $data['duty_ch'] = duty_ch();
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -9897,6 +10437,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['change'] = $change;
         $data['sign'] = 5; //main
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -9909,7 +10451,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -9929,6 +10471,9 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
              $app->redirect('/str/v2/card/' . $id . '/ch/' . $change . '/confirm/next');
         }
+        elseif(getIdDivizion($id) == 10){//rcu
+               $app->redirect('/str/v3/card/' . $id . '/ch/' . $change . '/confirm/next');
+        }
         /*--- ЦОУ, ШЛЧС---*/
 
         auth($id);
@@ -9936,6 +10481,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['change'] = $change;
         $data['sign'] = 5; //main
         $today = date("Y-m-d");
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -9951,7 +10497,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $app->render('card/sheet/main/main.php', $data);
 //заполнены ли вкладки главная, техника, склад
         $mas_error['main'] = getErrorMain($today, $id, $change);
-        $mas_error['teh'] = getErrorTeh($today, $id, $change);
+        $mas_error['teh'] = getErrorTehConfirm($today, $id, $change);
         $mas_error['storage'] = getErrorStorage($today, $id, $change);
 
         if (in_array(1, $mas_error)) {//хоть 1 вкладка не заполнена
@@ -10127,87 +10673,265 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         return $mas_error['main'];
     }
 
+    function getErrorMainRcu($today, $id, $change) {
+        $id_main = R::getCell("select id from mainrcu where id_card = ? and ch = ? and dateduty = ? limit 1",array($id,$change, $today));
+        if (isset($id_main) && !empty($id_main)) {//
+            $mas_error['main'] = 0;
+        }
+        //ошибка-вкладка не заполнена
+        else
+            $mas_error['main'] = 1;
+
+        return $mas_error['main'];
+    }
 
 
-        $app->get('/error_teh/:id/ch/:change', function ($id, $change) use ($app, $log) {//confirm  проверка соответствия формулам, заполненность вкладок
-
-
-            $today = date("Y-m-d");
-
-            $mas_error['main'] = getErrorMain($today, $id, $change);
-        $mas_error['teh'] = getErrorTeh($today, $id, $change);
-        $mas_error['storage'] = getErrorStorage($today, $id, $change);
-        print_r($mas_error['teh']);
-    });
 
 
 
+
+    function getErrorTehConfirm($today, $id, $change)
+    {
+        $row = R::getRow('SELECT * FROM dutych');
+        $today = $row['start_date'];
+        $change = $row['start_ch'];
+
+
+        $mas_error['teh'] = 0;
+
+        $trip_teh = R::getAll('SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr  '
+            . 'WHERE  (( "' . $today . '" BETWEEN tr.date1 AND tr.date2) OR( "' . $today . '"  >= tr.date1 AND tr.date2 IS NULL)) AND tr.`id_teh` IS NOT NULL');
+
+
+        if (!empty($trip_teh)) {
+            $ids_teh_in_pasp = R::getAll('SELECT DISTINCT c.`id_teh` AS id_teh
+FROM str.`car` AS c
+LEFT JOIN ss.`technics` AS t ON t.`id`=c.`id_teh`
+
+WHERE c.`ch`=' . $change . '
+
+ AND t.`id_record`=' . $id . '
+ AND c.`id_teh` NOT  IN (SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr
+
+LEFT JOIN ss.`technics` AS te ON te.`id`= tr.`id_teh`
+ WHERE
+ (( ' . $today . ' BETWEEN tr.date1 AND tr.date2) OR( ' . $today . '  >= tr.date1 AND tr.date2 IS NULL)) AND tr.`id_teh` IS NOT NULL)
+
+
+ UNION(
+
+SELECT DISTINCT  tr1.`id_teh`
+
+  FROM  str.`tripcar` AS tr1
+
+
+ WHERE
+
+  (( ' . $today . ' BETWEEN tr1.date1 AND tr1.date2) OR( ' . $today . '  >= tr1.date1 AND tr1.date2 IS NULL)) AND tr1.`id_teh` IS NOT NULL
+
+ AND  tr1.`to_card`=' . $id . '
+
+
+ )');
+        } else {
+            $ids_teh_in_pasp = R::getAll('SELECT DISTINCT c.`id_teh` AS id_teh
+FROM str.`car` AS c
+LEFT JOIN ss.`technics` AS t ON t.`id`=c.`id_teh`
+
+WHERE c.`ch`=' . $change . '
+
+ AND t.`id_record`=' . $id . '
+
+ UNION(
+
+SELECT DISTINCT  tr1.`id_teh`
+
+  FROM  str.`tripcar` AS tr1
+
+
+ WHERE
+
+  (( ' . $today . ' BETWEEN tr1.date1 AND tr1.date2) OR( ' . $today . '  >= tr1.date1 AND tr1.date2 IS NULL)) AND tr1.`id_teh` IS NOT NULL
+
+ AND  tr1.`to_card`=' . $id . '
+
+
+ )');
+        }
+
+
+        if (!empty($ids_teh_in_pasp)) {
+            foreach ($ids_teh_in_pasp as $value) {
+                R::exec('update car set dateduty = ?, is_auto_refresh_dateduty = ?, is_auto_refresh_by_confirm=?, is_auto_refresh_by_user=? '
+                    . 'WHERE ch = ? and id_teh = ?  ', array($today, date('Y-m-d H:i:s'), 1, $_SESSION['uid'], $change, $value['id_teh']));
+            }
+        }
+
+        return $mas_error['teh'];
+    }
 
     function getErrorTeh($today, $id, $change) {
         //обновлена ли вкладка техника сегодня
-        $own_car = getOwnCar($id, $change, $today); //машины свои
-        $car_from_reserve = getCarInReserve($id, $today, $change); //из др пасч
-        $k = 0;
-        $mas_error['teh']=0;
-
-
-        //print_r($car_from_reserve);
+//        $own_car = getOwnCar($id, $change, $today); //машины свои
+//        $car_from_reserve = getCarInReserve($id, $today, $change); //из др пасч
+//        $k = 0;
+//        $mas_error['teh']=0;
+//
+//        //print_r($car_from_reserve);
+////        if (!empty($own_car)) {
+////
+////            foreach ($own_car as $value) {
+////                if ($value['dateduty'] == $today)
+////                    $k++;
+////            }
+////            if ($k != 0)
+////                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
+////            else
+////                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+////        }
+////        elseif (!empty($car_from_reserve)) {
+////            foreach ($car_from_reserve as $value) {
+////                if ($value['dateduty'] == $today)
+////                    $k++;
+////            }
+////            if ($k != 0)
+////                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
+////             else
+////                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+////        }
+////        else {
+////            $mas_error['teh'] = 1;
+////        }
+//
+//
+//
+//
 //        if (!empty($own_car)) {
 //
 //            foreach ($own_car as $value) {
-//                if ($value['dateduty'] == $today)
-//                    $k++;
+//                $diff_days= date_diff(new DateTime($value['dateduty']), new DateTime($today))->days;
+//                if ( $value['dateduty'] != $today && $change == $value['ch'] && $diff_days>3  ){
+//
+//                    //$k++;
+//                    /* future - auto update without k.k=0 */
+//                    $car = R::load('car', $value['tehstr_id']);
+//                    $car->dateduty=$today;
+//                    $car->is_auto_refresh_dateduty = $today;
+//                    $car->is_auto_refresh_by_user = $_SESSION['uid'];
+//                    R::store($car);
+//                }
 //            }
 //            if ($k != 0)
-//                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
-//            else
 //                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+//           // else
+//              //  $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
 //        }
-//        elseif (!empty($car_from_reserve)) {
+//        if (!empty($car_from_reserve)) {
 //            foreach ($car_from_reserve as $value) {
-//                if ($value['dateduty'] == $today)
-//                    $k++;
+//                $diff_days= date_diff(new DateTime($value['dateduty']), new DateTime($today))->days;
+//                if ($value['dateduty'] != $today && $change == $value['ch'] && $diff_days>3  ) {
+//                   // $k++;
+//
+//                    /* future - auto update */
+//                    $car = R::load('car', $value['tehstr_id']);
+//                    $car->dateduty = $today;
+//                    $car->is_auto_refresh_dateduty = $today;
+//                    $car->is_auto_refresh_by_user = $_SESSION['uid'];
+//                    R::store($car);
+//                }
 //            }
 //            if ($k != 0)
-//                $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
-//             else
-//                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+//                   $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
+//
+//           // else
+//             // $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
 //        }
-//        else {
-//            $mas_error['teh'] = 1;
-//        }
-                if (!empty($own_car)) {
+//
+//        return $mas_error['teh'];
 
-            foreach ($own_car as $value) {
-                if ($value['dateduty'] != $today){
-                    //$k++;
-                    /* future - auto update without k.k=0 */
-                    $car = R::load('car', $value['tehstr_id']);
-                    $car->dateduty=$today;
-                    R::store($car);
-                }
+
+
+
+        $row = R::getRow('SELECT * FROM dutych');
+        $today = $row['start_date'];
+        $change = $row['start_ch'];
+
+
+        $mas_error['teh'] = 0;
+
+
+		$trip_teh=R::getAll('SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr
+
+ WHERE
+ (( "' . $today . '" BETWEEN tr.date1 AND tr.date2) OR( "' . $today . '"  >= tr.date1 AND tr.date2 IS NULL)) AND tr.`id_teh` IS NOT NULL');
+
+
+ if(!empty($trip_teh)){
+
+                $ids_teh_in_pasp = R::getAll('SELECT DISTINCT c.`id_teh` AS id_teh
+FROM str.`car` AS c
+LEFT JOIN ss.`technics` AS t ON t.`id`=c.`id_teh`
+
+WHERE c.`ch`=' . $change . '
+
+ AND t.`id_record`=' . $id . '
+ AND c.`id_teh` NOT  IN (SELECT  tr.`id_teh`  FROM  str.`tripcar` AS tr
+
+ WHERE
+ (( "' . $today . '" BETWEEN tr.date1 AND tr.date2) OR( "' . $today . '"  >= tr.date1 AND tr.date2 IS NULL)) AND tr.`id_teh` IS NOT NULL)
+
+
+ UNION(
+
+SELECT DISTINCT  tr1.`id_teh`
+
+  FROM  str.`tripcar` AS tr1
+
+
+ WHERE
+
+  (( "' . $today . '" BETWEEN tr1.date1 AND tr1.date2) OR( "' . $today . '"  >= tr1.date1 AND tr1.date2 IS NULL)) AND tr1.`id_teh` IS NOT NULL
+
+ AND  tr1.`to_card`=' . $id . '
+
+
+ )');
+
+ }
+ else{
+
+
+                $ids_teh_in_pasp = R::getAll('SELECT DISTINCT c.`id_teh` AS id_teh
+FROM str.`car` AS c
+LEFT JOIN ss.`technics` AS t ON t.`id`=c.`id_teh`
+
+WHERE c.`ch`=' . $change . '
+
+ AND t.`id_record`=' . $id . '
+
+ UNION(
+
+SELECT DISTINCT  tr1.`id_teh`
+
+  FROM  str.`tripcar` AS tr1
+
+
+ WHERE
+
+  (( ' . $today . ' BETWEEN tr1.date1 AND tr1.date2) OR( ' . $today . '  >= tr1.date1 AND tr1.date2 IS NULL)) AND tr1.`id_teh` IS NOT NULL
+
+ AND  tr1.`to_card`=' . $id . '
+
+
+ )');
+
+ }
+
+        if (!empty($ids_teh_in_pasp)) {
+            foreach ($ids_teh_in_pasp as $value) {
+                R::exec('update car set dateduty = ?, is_auto_refresh_dateduty = ?, is_auto_refresh_by_confirm=?, is_auto_refresh_by_user=? '
+                    . 'WHERE ch = ? and id_teh = ?  ', array($today, date('Y-m-d H:i:s'), 0, $_SESSION['uid'], $change,$value['id_teh']));
             }
-            if ($k != 0)
-                $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
-           // else
-              //  $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
-        }
-        if (!empty($car_from_reserve)) {
-            foreach ($car_from_reserve as $value) {
-                if ($value['dateduty'] != $today) {
-                   // $k++;
-
-                    /* future - auto update */
-                    $car = R::load('car', $value['tehstr_id']);
-                    $car->dateduty = $today;
-                    R::store($car);
-                }
-            }
-            if ($k != 0)
-                   $mas_error['teh'] = 1; //ошибка-вкладка не обновлена
-
-           // else
-             // $mas_error['teh'] = 0; //нет ошибки-вкладка обновлена
         }
 
         return $mas_error['teh'];
@@ -10439,15 +11163,19 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['sign'] = 1; //ill
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
-             $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+        if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+            $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
         }
-        /*--- ЦОУ, ШЛЧС---*/
-        else{
-             $duty = is_duty($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
+        /* --- ЦОУ, ШЛЧС--- */ else {
+            $duty = is_duty($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
         }
 
         $data['duty'] = $duty;
@@ -10462,7 +11190,17 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
          $data['organ_active']=R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
         /*------- END для развертывания меню ------*/
 
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+
+
+            if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            //get main
+            $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            //get main
+            $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } else {
+            $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+        }
         if (isset($main) && !empty($main)) {
             foreach ($main as $value) {
                 $dateduty = $value['dateduty'];
@@ -10479,12 +11217,15 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 //список доступных ФИО смены
         $data['listfio'] = getPresentAbsent($id, $change);
 
+
+
+
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -10534,6 +11275,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $maim = R::getAll('SELECT * FROM maim '); //классификатор maim
         $data['maim'] = $maim;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -10549,7 +11292,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -10688,6 +11431,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['sign'] = 1; //ill
         $data['idill'] = $idill;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
 
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -10738,16 +11483,21 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['sign'] = 2; //holiday
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
 
                 /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
-             $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+        if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+            $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
         }
-        /*--- ЦОУ, ШЛЧС---*/
-        else{
-             $duty = is_duty($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
+
+        /* --- ЦОУ, ШЛЧС--- */ else {
+            $duty = is_duty($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
         }
         $data['duty'] = $duty;
 
@@ -10763,7 +11513,15 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
          $data['organ_active']=R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
         /*------- END для развертывания меню ------*/
 
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+        if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            //get main
+            $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            //get main
+            $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } else {
+            $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+        }
         if (isset($main) && !empty($main)) {
             foreach ($main as $value) {
                 $dateduty = $value['dateduty'];
@@ -10778,7 +11536,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -10824,6 +11582,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $data['sign'] = 2; //holiday
         $data['listfio'] = getPresentAbsent($id, $change); //список доступных ФИО смены
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -10841,12 +11601,16 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 //            $place_region_name_for_prikaz = $p['region_name'];
         }
 
+
+        if($data['organ_active']==5)
+            $data['organ_type_for_prikaz']='РЦУРЧС';
+
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php', $data);
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -10975,6 +11739,8 @@ if($date1 != NULL){
         $data['sign'] = 2; //holiday
         $data['idhol'] = $idhol;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -11023,6 +11789,7 @@ if($date1 != NULL){
         $data['sign'] = 2; //holiday
         $data['idhol'] = $idhol;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -11079,12 +11846,16 @@ if($date1 != NULL){
         $data['sign'] = 3; //trip
         $today = date("Y-m-d");
 
-
+$data['unseen_notifications']=getUnseenNotificationsByUser();
                 /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 ){
              $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
               $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
         }
+        elseif(getIdDivizion($id) == 10){//rcu
+              $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+              $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
+         }
         /*--- ЦОУ, ШЛЧС---*/
         else{
              $duty = is_duty($id, $change, 0); //смена дежурная или нет
@@ -11112,7 +11883,17 @@ if($date1 != NULL){
             $data['vid_document']=R::getAll('select * from str.viddocument ');//вид документы
             $data['vid_position']=R::getAll('select * from str.vidposition ');//должность, чей приказ
 
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+
+         if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            //get main
+            $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            //get main
+            $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } else {
+
+            $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+        }
         if (isset($main) && !empty($main)) {
             foreach ($main as $value) {
                 $dateduty = $value['dateduty'];
@@ -11127,7 +11908,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -11171,7 +11952,7 @@ if($date1 != NULL){
         $data['change'] = $change;
         $data['counttrip'] = $app->request()->post('counttrip');
         $data['sign'] = 3; //trip
-
+$data['unseen_notifications']=getUnseenNotificationsByUser();
         /* ------- для развертывания меню ------ */
         $data['grochs_active'] = get_id_grochs($id);
         $data['region_active'] = get_id_region($id);
@@ -11191,7 +11972,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -11244,6 +12025,8 @@ if($date1 != NULL){
 
             $prikaz_date_f = new DateTime($prikaz_date);
             $pr_d_f = $prikaz_date_f->Format('d.m.Y');
+
+
 
             $arr_vid_pos=array(1,2,3);
 
@@ -11308,7 +12091,7 @@ if($date1 != NULL){
 
             $trip->id_viddocument=$id_vid_doc;
             $trip->id_vidposition=$id_vid_position;
-            $trip->prikaz_date=$prikaz_date;
+            $trip->prikaz_date=$prikaz_date_f->Format('Y-m-d');
             $trip->prikaz_number=$prikaz_number;
 
             $trip->date1 = $date1;
@@ -11427,7 +12210,7 @@ if($date1 != NULL){
 
                 $trip->id_viddocument = $id_vid_doc;
                 $trip->id_vidposition = $id_vid_position;
-                $trip->prikaz_date = $prikaz_date;
+                $trip->prikaz_date = $prikaz_date_f->Format('Y-m-d');
                 $trip->prikaz_number = $prikaz_number;
 
                 $trip->date1 = $date1;
@@ -11454,6 +12237,7 @@ if($date1 != NULL){
         $data['change'] = $change;
         $data['sign'] = 3; //trip
         $data['idtrip'] = $idtrip;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -11502,16 +12286,19 @@ if($date1 != NULL){
         $data['sign'] = 4; //other reasons
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
-                /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
-             $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+                /* --- ЦОУ, ШЛЧС--- */
+        if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+            $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
         }
-        /*--- ЦОУ, ШЛЧС---*/
-        else{
-             $duty = is_duty($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
+        /* --- ЦОУ, ШЛЧС--- */ else {
+            $duty = is_duty($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
         }
 
         $data['duty'] = $duty;
@@ -11527,7 +12314,15 @@ if($date1 != NULL){
          $data['organ_active']=R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
         /*------- END для развертывания меню ------*/
 
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+            if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            //get main
+            $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            //get main
+            $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } else {
+            $main = R::getAssoc("CALL get_main('{$id}','{$change}', 0);");
+        }
         if (isset($main) && !empty($main)) {
             foreach ($main as $value) {
                 $dateduty = $value['dateduty'];
@@ -11542,7 +12337,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -11584,6 +12379,7 @@ if($date1 != NULL){
         $data['change'] = $change;
         $data['countother'] = $app->request()->post('countother');
         $data['sign'] = 4; //other reasons
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -11598,7 +12394,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -11729,6 +12525,8 @@ if($date1 != NULL){
         $data['sign'] = 4; //other reasons
         $data['idother'] = $idother;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -11845,8 +12643,14 @@ if($date1 != NULL){
                     $id_reason_repaire = $app->request()->post('reason_repaire' . $i);
                     $date1 = $app->request()->post('date1' . $i);
                     $date2 = $app->request()->post('date2' . $i);
-                    $start_repaire = (!isset($date1) || empty($date1) ) ? NULL :   date("Y-m-d", strtotime($date1));
-                    $end_repaire = (!isset($date2) || empty($date2) ) ? NULL :  date("Y-m-d", strtotime($date2));
+                    $start_repaire = (!isset($date1) || empty($date1) ) ? NULL : date("Y-m-d", strtotime($date1));
+                    $end_repaire = (!isset($date2) || empty($date2) ) ? NULL : date("Y-m-d", strtotime($date2));
+                } elseif ($type == 3 || $type == 4) {//to
+                    $id_reason_repaire = $app->request()->post('reason_repaire' . $i);
+                    $date1 = $app->request()->post('date1' . $i);
+                    $date2 = $app->request()->post('date2' . $i);
+                    $start_repaire = (!isset($date1) || empty($date1) ) ? NULL : date("Y-m-d", strtotime($date1));
+                    $end_repaire = (!isset($date2) || empty($date2) ) ? NULL : date("Y-m-d", strtotime($date2));
                 } else {
                     $id_reason_repaire = 1; //нет неисправности
                     $start_repaire = NULL;
@@ -11874,6 +12678,9 @@ if($date1 != NULL){
                 $teh->id_reason_repaire=$id_reason_repaire;
                 $teh->start_repaire=$start_repaire;
                 $teh->end_repaire=$end_repaire;
+
+                $teh->t_type = $type;
+
                 $id_car = R::store($teh);
 
                 //добавить ФИО на технику
@@ -11947,6 +12754,13 @@ if($date1 != NULL){
                     $date2 = $app->request()->post('date2' . $i);
                     $start_repaire = (!isset($date1) || empty($date1) ) ? NULL :   date("Y-m-d", strtotime($date1));
                     $end_repaire = (!isset($date2) || empty($date2) ) ? NULL :  date("Y-m-d", strtotime($date2));
+                }
+                elseif ($type == 3 || $type == 4) {//to
+                    $id_reason_repaire = $app->request()->post('reason_repaire' . $i);
+                    $date1 = $app->request()->post('date1' . $i);
+                    $date2 = $app->request()->post('date2' . $i);
+                    $start_repaire = (!isset($date1) || empty($date1) ) ? NULL : date("Y-m-d", strtotime($date1));
+                    $end_repaire = (!isset($date2) || empty($date2) ) ? NULL : date("Y-m-d", strtotime($date2));
                 } else {
                     $id_reason_repaire = 1; //нет неисправности
                     $start_repaire = NULL;
@@ -11973,6 +12787,8 @@ if($date1 != NULL){
                 $teh->start_repaire=$start_repaire;
                 $teh->end_repaire=$end_repaire;
 
+                $teh->t_type=$type;
+
                 R::store($teh);
 
                 /*  установить ФИО на технику  */
@@ -11997,12 +12813,18 @@ if($date1 != NULL){
         $data['sign'] = 6; //car
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
 
                 /*--- ЦОУ, ШЛЧС---*/
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
              $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
               $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
         }
+        elseif(getIdDivizion($id) == 10){//rcu
+              $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+              $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
+         }
         /*--- ЦОУ, ШЛЧС---*/
         else{
              $duty = is_duty($id, $change, 0); //смена дежурная или нет
@@ -12027,6 +12849,10 @@ if($date1 != NULL){
          if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
                //get main
         $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
+         }
+         elseif(getIdDivizion($id) == 10){//rcu
+               //get main
+        $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
          }
          else{
               $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
@@ -12056,8 +12882,16 @@ if($date1 != NULL){
 
          //классификатор областей
         $data['regions'] = R::getAll('select * from ss.regions');
-        //классификатор Г(Р)ОЧС, кроме РОСН
-        $grochs = R::getAll('select organ as name, id_card as id_grochs, region as id_region  from ss.maintable where orgid <> :id_org_rosn', [':id_org_rosn' => 8]);
+
+        if (getIdDivizion($id) == 10) {//rcu
+            //классификатор Г(Р)ОЧС, кроме РОСН
+            $grochs = R::getAll('select organ as name, id_card as id_grochs, region as id_region  from ss.maintable where orgid <> :id_org_rosn and orgid <> :rcu', [':id_org_rosn' => 8,':rcu' => RCU]);
+        } else {
+            //классификатор Г(Р)ОЧС, кроме РОСН
+            $grochs = R::getAll('select organ as name, id_card as id_grochs, region as id_region  from ss.maintable where orgid <> :id_org_rosn', [':id_org_rosn' => 8]);
+        }
+
+
         $grochs_rosn = R::getAll('select concat(l.name," ",o.name) as name, locor.id as id_grochs, re.id as id_region  from '
                         . ' ss.locorg as locor left join ss.organs as o on locor.id_organ=o.id left join ss.locals as l on l.id=locor.id_local '
                         . ' left join ss.regions as re on l.id_region=re.id where o.id = :id_org_rosn', [':id_org_rosn' => 8]);
@@ -12076,7 +12910,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -12296,6 +13130,7 @@ if($date1 != NULL){
         $data['change'] = $change;
         $data['sign'] = 6; //car
         $data['id_tripcar'] = $id_tripcar;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -12354,11 +13189,17 @@ if($date1 != NULL){
         $data['sign'] = 6; //car
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*--- ЦОУ, ШЛЧС---*/
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
              $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
               $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
         }
+        elseif(getIdDivizion($id) == 10){//rcu
+              $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+              $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
+         }
         /*--- ЦОУ, ШЛЧС---*/
         else{
              $duty = is_duty($id, $change, 0); //смена дежурная или нет
@@ -12379,7 +13220,16 @@ if($date1 != NULL){
         /*------- END для развертывания меню ------*/
 
         /*         * * определить dateduty ** */
-        $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
+        if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            //get main
+            $main = R::getAll('select * from maincou where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            //get main
+            $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1', array($id, $change));
+        } else {
+            $main = R::getAssoc("CALL get_main('{$id}','{$change}', '0');");
+        }
+
         if (isset($main) && !empty($main)) {
             foreach ($main as $value) {
                 $dateduty = $value['dateduty'];
@@ -12390,8 +13240,14 @@ if($date1 != NULL){
         $data['dateduty'] = $dateduty;
         //классификатор областей
         $data['regions'] = R::getAll('select * from ss.regions');
-        //классификатор Г(Р)ОЧС, кроме РОСН
-        $grochs = R::getAll('select organ as name, id_card as id_grochs, region as id_region  from ss.maintable where orgid <> :id_org_rosn', [':id_org_rosn' => 8]);
+        if (getIdDivizion($id) == 10) {//rcu
+            //классификатор Г(Р)ОЧС, кроме РОСН
+            $grochs = R::getAll('select organ as name, id_card as id_grochs, region as id_region  from ss.maintable where orgid <> :id_org_rosn and orgid <> :rcu', [':id_org_rosn' => 8, ':rcu' => RCU]);
+        } else {
+            //классификатор Г(Р)ОЧС, кроме РОСН
+            $grochs = R::getAll('select organ as name, id_card as id_grochs, region as id_region  from ss.maintable where orgid <> :id_org_rosn', [':id_org_rosn' => 8]);
+        }
+
         $grochs_rosn = R::getAll('select concat(l.name," ",o.name) as name, locor.id as id_grochs, re.id as id_region  from '
                         . ' ss.locorg as locor left join ss.organs as o on locor.id_organ=o.id left join ss.locals as l on l.id=locor.id_local '
                         . ' left join ss.regions as re on l.id_region=re.id where o.id = :id_org_rosn', [':id_org_rosn' => 8]);
@@ -12422,7 +13278,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -12705,19 +13561,21 @@ if($date1 != NULL){
         $data['sign'] = 6; //car
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
-             $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
-
-              //заступает ли техника. для ЦОУ, если нет техники для заступления - поставить отметку и сохранить
-              $data['is_car']=R::getCell('select id from carcou where id_card = ? and ch = ?',array($id,$change));
-
+        if (getIdDivizion($id) == 8 || getIdDivizion($id) == 9) {
+            $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
+            //заступает ли техника. для ЦОУ, если нет техники для заступления - поставить отметку и сохранить
+            $data['is_car'] = R::getCell('select id from carcou where id_card = ? and ch = ?', array($id, $change));
+        } elseif (getIdDivizion($id) == 10) {//rcu
+            $duty = is_duty_rcu($id, $change, 0); //ch is duty or not
+            $data['is_open_update'] = is_duty_rcu($id, $change, 1); //open update or not
         }
-        /*--- ЦОУ, ШЛЧС---*/
-        else{
-             $duty = is_duty($id, $change, 0); //смена дежурная или нет
-              $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
+        /* --- ЦОУ, ШЛЧС--- */ else {
+            $duty = is_duty($id, $change, 0); //смена дежурная или нет
+            $data['is_open_update'] = is_duty($id, $change, 1); //открыт ли доступ на ред
         }
 
         $data['duty'] = $duty;
@@ -12741,7 +13599,7 @@ if($date1 != NULL){
         $app->render('bread/breadCard.php', $data);
 
          /*--- ЦОУ, ШЛЧС---*/
-        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
+        if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9 || getIdDivizion($id) == 10){
             $app->render('card/sheet/start_cou.php', $data);
         }
         /*--- ЦОУ, ШЛЧС---*/
@@ -13086,6 +13944,8 @@ if($date1 != NULL){
         $data['sign'] = 7; //storage
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*--- ЦОУ, ШЛЧС---*/
         if(getIdDivizion($id) == 8 || getIdDivizion($id) == 9){
              $duty = is_duty_cou($id, $change, 0); //смена дежурная или нет
@@ -13205,27 +14065,37 @@ $app->group('/open_update', $is_auth, function () use ($app, $log) {
 
 //проверка, есть ли права на выполнение операции
     $app->get('/:id_main', function ($id_main) use ($app) {
-        $data['bread_array'] = getBreadArray($id_main);
-        $data['id_main'] = $id_main;
-        $app->render('layouts/header.php');
-        $app->render('layouts/menu.php');
-        $app->render('bread/breadOpenUpdate.php', $data);
-        // $app->render('layouts/pz_container.php');
-        // $is_radmin = R::getAll('SELECT * FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
-        if ($_SESSION['is_admin'] == 1) {//есть правао
-            //предепреждение
-            $app->render('msg/open_update.php');
-            $app->render('open_update/open_update.php', $data);
-            $app->render('open_update/back.php');
-            $app->render('layouts/footer.php');
-        } else {//нет права
-            $app->redirect('/str/modal');
-        }
+
+         if (is_open_close_update($id_main) == 0) {
+             $app->redirect('/str/general/1');
+         }
+            $data['bread_array'] = getBreadArray($id_main);
+            $data['id_main'] = $id_main;
+            $data['unseen_notifications'] = getUnseenNotificationsByUser();
+
+            $app->render('layouts/header.php');
+            $app->render('layouts/menu.php');
+            $app->render('bread/breadOpenUpdate.php', $data);
+            // $app->render('layouts/pz_container.php');
+            // $is_radmin = R::getAll('SELECT * FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
+            if ($_SESSION['is_admin'] == 1) {//есть правао
+                //предепреждение
+                $app->render('msg/open_update.php');
+                $app->render('open_update/open_update.php', $data);
+                $app->render('open_update/back.php');
+                $app->render('layouts/footer.php');
+            } else {//нет права
+                $app->redirect('/str/modal');
+            }
+
     });
     //открытие доступа
     $app->get('/open/:id_main', function ($id_main) use ($app, $log) {
-        // $id_main = $app->request()->post('id_main');
-        //$id_radmin = R::getCell('SELECT id_admin FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
+
+         if (is_open_close_update($id_main) == 0) {
+             $app->redirect('/str/general/1');
+         }
+
         if ($_SESSION['is_admin'] == 1) {//есть правао
             $main = R::load('main', $id_main);
             $main->who_open = $_SESSION['uid'];
@@ -13234,6 +14104,7 @@ $app->group('/open_update', $is_auth, function () use ($app, $log) {
             $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Открыт доступ на редактирование main - запись с id=' . $id_main . '- Данные:: ' . $main);
             $app->redirect('/str/general/1');
         }
+
     });
 });
 /* * ************************* ЗАКРЫТЬ ДОСТУП НА РЕД********************************* */
@@ -13241,8 +14112,14 @@ $app->group('/close_update', $is_auth, function () use ($app, $log) {
     //предупреждение
     $app->get('/:id_main', function ($id_main) use ($app, $log) {
 
+         if (is_open_close_update($id_main) == 0) {
+             $app->redirect('/str/general/1');
+         }
+
         $data['bread_array'] = getBreadArray($id_main);
         $data['id_main'] = $id_main;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php');
         $app->render('bread/breadCloseUpdate.php', $data);
@@ -13268,8 +14145,13 @@ $app->group('/close_update', $is_auth, function () use ($app, $log) {
 
     $app->get('/close/error/:id_main', function ($id_main) use ($app) {
 
+                 if (is_open_close_update($id_main) == 0) {
+             $app->redirect('/str/general/1');
+         }
         $data['bread_array'] = getBreadArray($id_main);
         $data['id_main'] = $id_main;
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php');
         $app->render('bread/breadCloseUpdate.php', $data);
@@ -13280,6 +14162,12 @@ $app->group('/close_update', $is_auth, function () use ($app, $log) {
 
     //закрытие доступа
     $app->get('/close/:id_main', function ($id_main) use ($app, $log) {
+
+         if (is_open_close_update($id_main) == 0) {
+             $app->redirect('/str/general/1');
+         }
+
+
         if ($_SESSION['is_admin'] == 1) {//есть правао
             $data['id_main'] = $id_main;
             $mainstr = R::load('main', $id_main);
@@ -13508,7 +14396,38 @@ $app->group('/close_update', $is_auth, function () use ($app, $log) {
 });
 
 
+function is_open_close_update($id_main)
+{
+    $main = R::load('main', $id_main);
+    $dateduty = $main->dateduty;
+    $ch = $main->ch;
+    $ch_today = R::getCell('select start_ch from dutych where start_date = :today', [':today' => date('Y-m-d')]);
+    if (empty($ch_today))
+        $ch_today = 0;
 
+    if (date('H:i:s') < time_allow_open() && date('Y-m-d') == $dateduty && $ch_today == $ch) {
+        return 1;
+    } else
+        return 0;
+}
+
+
+
+function is_open_close_update_cou()
+{
+    if (date('H:i:s') < time_allow_open()) {
+        return 1;
+    } else
+        return 0;
+}
+
+function is_open_close_update_rcu()
+{
+    if (date('H:i:s') < time_allow_open()) {
+        return 1;
+    } else
+        return 0;
+}
 /* * ***************************** ОТЧЕТЫ ****************************** */
 $app->group('/v1/report',$is_auth, function () use ($app) {
 
@@ -13516,6 +14435,8 @@ $app->group('/v1/report',$is_auth, function () use ($app) {
     /*     * ************************* Spravochnaya inf for spec donesenia ************************************ */
 
         $app->post('/spr_info/grochs/:id/:id_pasp_active', function ($id,$id_pasp_active) use ($app) {
+
+            $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         //определяем, РОСН это или нет
         $sign = R::getCell('select id_organ from ss.locorg where id = ? limit 1', array($id));
@@ -13818,6 +14739,8 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
 
         $data['id_grochs']=$id;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
 
         /*------- for fold up menu ------*/
         $data['grochs_active']=  get_id_grochs($id_pasp);
@@ -13843,6 +14766,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
         function get_data_by_id_teh($date, $array_of_teh) {
             //формирует б/р, резерв, ТО, ремонт
             if (!empty($array_of_teh)) {
+                //print_r($array_of_teh);
                     $mas = R::getAll('SELECT  COUNT(c.id) AS br, COUNT(c1.id) AS reserv, COUNT(c2.id) AS too, COUNT(c3.id) AS repair,'
                                     . ' t.id AS id_teh,t.id_view FROM  ss.technics AS t LEFT JOIN str.car AS c ON (c.id_teh=t.id AND  (c.id_type = 1) AND c.dateduty=:date )'
                                     . ' LEFT JOIN str.car AS c1 ON (c1.id_teh=t.id AND  (c1.id_type = 2) AND c1.dateduty=:date) '
@@ -13865,6 +14789,8 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
 
               $data['convex_item']['report']=1;// item 'search' is active
               $data['convex_item']['big_report_teh_sub']=1;
+
+              $data['unseen_notifications']=getUnseenNotificationsByUser();
             //bread
             $data['bread_active'] = 'Техника (общий)';
             $app->render('layouts/header.php',$data);
@@ -13876,6 +14802,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
         //результат (УГЗ г.Минска не учитывать)
          $app->post('/', function () use ($app) {
 
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
             $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
             $date_d = new DateTime($date_start);
             $date = $date_d->Format('Y-m-d');
@@ -14775,6 +15702,8 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
 
              $data['convex_item']['report']=1;// item 'search' is active
              $data['convex_item']['big_report_teh2_sub']=1;
+
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
             //bread
             $data['bread_active'] = 'Техника (руководство)';
             $app->render('layouts/header.php',$data);
@@ -14785,6 +15714,8 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
         });
         //результат (УГЗ г.Минска не учитывать)
          $app->post('/', function () use ($app) {
+
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
 
             $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
             $date_d = new DateTime($date_start);
@@ -14800,7 +15731,9 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
                 $array_of_teh = array();
                 //выбор техники, которая на сег числится в области
                 $teh = R::getAssoc("CALL umchs_teh_for_ministry('{$date}','{$value['id']}');");
+                //$teh = R::getAssoc("CALL ids_teh_on_dateduty('{$date}','{$value['id']}');");
 
+               // print_r($teh);
                 if (!empty($teh)) {
                     foreach ($teh as $t) {
                         $array_of_teh[] = $t;
@@ -14809,9 +15742,12 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
                 } else {
                     $array_of_teh = array();
                 }
+
                 $result[$value['id']] = get_data_by_id_teh($date, $array_of_teh); //результат по конкретной области
             }
-            // print_r($result);
+            // print_r($result[5]);
+            // $teh=R::getAll('select   from ');
+
             /* ---------------------------------------- КОНЕЦ УМЧС кол-во техники ------------------------------------------- */
 
             /* ------------------------------------- РОСН  кол-во техники ---------------------------------------------------- */
@@ -15269,6 +16205,8 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
               $data['convex_item']['report']=1;// item 'search' is active
               $data['convex_item']['teh_in_trip_sub']=1;
 
+              $data['unseen_notifications']=getUnseenNotificationsByUser();
+
             //bread
             $data['bread_active'] = 'Техника в командировке';
 
@@ -15281,6 +16219,8 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
         });
 
          $app->post('/teh_in_trip', function () use ($app) {
+
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
   $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
             $date_d = new DateTime($date_start);
             $date = $date_d->Format('Y-m-d');
@@ -15415,8 +16355,8 @@ $k = 0; //кол-во по РБ
                     $sheet->setCellValue('C' . $r, $row['locorg_name'].chr(10) .$row['pasp']);
                     $sheet->setCellValue('D' . $r, $row['teh']);
                     $sheet->setCellValue('E' . $r, $row['place']);
-                    $sheet->setCellValue('F' . $r, $row['date1']);
-                    $sheet->setCellValue('G' . $r, $row['date2']);
+                    $sheet->setCellValue('F' . $r, (date('d.m.Y', strtotime($row['date1']))));
+                    $sheet->setCellValue('G' . $r, (date('d.m.Y', strtotime($row['date2']))));
                     $sheet->setCellValue('H' . $r, $row['is_take']);
                     $r++;
 
@@ -15489,6 +16429,8 @@ $k = 0; //кол-во по РБ
          $data['convex_item']['report']=1;// item 'search' is active
          $data['convex_item']['teh_br_sub']=1;
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         if ($_SESSION['ulevel'] != 1 && $_SESSION['note'] != NULL) {
 
             if ($_SESSION['note'] == ROSN) {
@@ -15515,8 +16457,8 @@ $k = 0; //кол-во по РБ
          /*----------------- END форма ------------------*/
 
         //bread
-        $data['bread_active'] = 'Техника (Гродно)';
-      $data['title_name']='Отчеты/Техника (Гродно)';
+        $data['bread_active'] = 'Техника (б.р.)';
+      $data['title_name']='Отчеты/Техника (б.р.)';
         $app->render('layouts/header.php',$data);
             $app->render('layouts/menu.php');
             $app->render('report/teh_in_trip/bread.php', $data);
@@ -15526,12 +16468,14 @@ $k = 0; //кол-во по РБ
 
          $app->post('/teh_br', function () use ($app) {
 
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         /* -------------------------------- анализ входных данных --------------------------------------------------- */
         $result = array();
         if (isset($_POST['diviz']) && !empty($_POST['diviz'])) {
 
             $query = R::getAll('select distinct id_record, regionn as region_name, f as locorg_name, '
-                            . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," - ",divizion_num) end
+                            . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," № ",divizion_num) end
 as divizion_name, disloc  from ss.card WHERE id_record = ?  order by local_name, divizion_num asc', array($_POST['diviz']));
         } elseif (isset($_POST['locorg']) && !empty($_POST['locorg'])) {
             $id_organ = R::getCell('select id_organ from ss.locorg where id = ?', array($_POST['locorg']));
@@ -15539,19 +16483,19 @@ as divizion_name, disloc  from ss.card WHERE id_record = ?  order by local_name,
             if ($id_organ == ROSN || $id_organ == UGZ) {
                 //выбор всех подразделений этого органа
                 $query = R::getAll('select distinct id_record, regionn as region_name, f as locorg_name, '
-                                . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," - ",divizion_num) end
+                                . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," № ",divizion_num) end
 as divizion_name, disloc  from ss.card WHERE orgid = ?  order by local_name, divizion_num asc', array($id_organ));
             } else {// УМЧС
                 //выбор всех ПАСЧ этого ГРОЧС
                 $query = R::getAll('select distinct id_record, regionn as region_name, f as locorg_name, '
-                                . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," - ",divizion_num) end
+                                . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," № ",divizion_num) end
 as divizion_name, disloc  from ss.card WHERE id_card = ?  order by local_name, divizion_num asc', array($_POST['locorg']));
             }
         } elseif (isset($_POST['region']) && !empty($_POST['region'])) {//по области
             //выбор всех ГРОЧС области
             //выбор всех ПАСЧ этого ГРОЧС
             $query = R::getAll('select distinct id_record, regionn as region_name, f as locorg_name, '
-                            . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," - ",divizion_num) end
+                            . ' case when (divizion_num =0) then divizion_name else concat(divizion_name," № ",divizion_num) end
 as divizion_name, disloc  from ss.card WHERE region = ?  order by local_name, divizion_num asc', array($_POST['region']));
         }
         /* -------------------------------- КОНЕЦ анализ входных данных --------------------------------------------------- */
@@ -15797,6 +16741,8 @@ $styleArray = array(
          $data['convex_item']['report']=1;// item 'search' is active
          $data['convex_item']['teh_repaire_sub']=1;
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         //bread
         $data['bread_active'] = 'Неисправности техники';
 
@@ -15815,13 +16761,14 @@ $styleArray = array(
 
     $app->post('/teh_repaire', function () use ($app) {
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         /* ------ обработка входных данных ----- */
 
         $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
         $date_d = new DateTime($date_start);
         $date = $date_d->Format('Y-m-d');
-        $date_for_excel = $date_d->format('d-m-Y');
+        $date_for_excel = $date_d->format('d.m.Y');
 
 
         $name_teh = (isset($_POST['technic_name']) && !empty($_POST['technic_name'])) ? $_POST['technic_name'] : 0; //id вида техники: АЦ, АБР...
@@ -15971,7 +16918,7 @@ $styleArray = array(
 
                     $sheet->setCellValue('B' . $r, $row['divizion_name'] . ', ' . $row['locorg']);
                     $sheet->setCellValue('C' . $r, $row['mark']);
-                    $sheet->setCellValue('D' . $r, $row['start_repaire']);
+                    $sheet->setCellValue('D' . $r, ((!empty($row['start_repaire']) && $row['start_repaire'] != null) ?(date('d.m.Y', strtotime($row['start_repaire']))) : ''));
                     $sheet->setCellValue('E' . $r, $row['reason_repaire']);
                     $sheet->setCellValue('F' . $r, $row['end_repaire']);
                     $r++;
@@ -16001,12 +16948,17 @@ $styleArray = array(
 
 
 
+
+
+
              /*     * *************************  Мин боевой расчет ************************************ */
          /*----------------- форма ------------------*/
     $app->get('/min_br', function () use ($app) {
 
          $data['convex_item']['report']=1;// item 'search' is active
          $data['convex_item']['min_br_sub']=1;
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         if ($_SESSION['ulevel'] != 1 && $_SESSION['note'] != NULL) {
 
@@ -16044,6 +16996,8 @@ $styleArray = array(
         });
 
      $app->post('/min_br', function () use ($app) {
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         /* ------ обработка входных данных ----- */
 
@@ -16369,6 +17323,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
          $data['convex_item']['report']=1;// item 'search' is active
          $data['convex_item']['detail_teh_sub']=1;
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
         if ($_SESSION['ulevel'] != 1 && $_SESSION['note'] != NULL) {
 
             if ($_SESSION['note'] == ROSN) {
@@ -16406,6 +17362,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
 
          $app->post('/detail_teh', function () use ($app) {
 
+
+             $data['unseen_notifications']=getUnseenNotificationsByUser();
         /*         * *********дата, на которую надо выбирать данные ******** */
         $d = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
         $date_d = new DateTime($d);
@@ -17476,6 +18434,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
  $data['convex_item']['report']=1;// item 'search' is active
  $data['convex_item']['detail_teh_region_sub']=1;
 
+ $data['unseen_notifications']=getUnseenNotificationsByUser();
+
             $data['region'] = R::getAll('SELECT * FROM ss.regions'); //список область
              $data['region'][]=array('id'=>8,'name'=>'РОСН');
              $data['region'][]=array('id'=>9,'name'=>'УГЗ');
@@ -17506,6 +18466,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
 
             //по области общее кол-во техники
        $app->post('/detail_teh/region', function () use ($app) {
+
+           $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         /*         * *********дата, на которую надо выбирать данные ******** */
         $d = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
@@ -18108,6 +19070,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
          $data['convex_item']['report']=1;// item 'search' is active
          $data['convex_item']['count_position_sub']=1;
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
             $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
         $data['region'][] = array('id' => 8, 'name' => 'РОСН');
         $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
@@ -18142,6 +19106,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
 
 
   $app->post('/count_position', function () use ($app) {
+
+      $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $region = $app->request()->post('region'); //oblast
         $grochs = $app->request()->post('locorg'); //grochs
@@ -18369,6 +19335,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
         $data['convex_item']['report'] = 1; // item 'search' is active
         $data['convex_item']['sz_spec_donos'] = 1;
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
 
         $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
         $data['region'][] = array('id' => 8, 'name' => 'РОСН');
@@ -18397,6 +19365,8 @@ from br  where dateduty = ? and calculation>br and id_type = 1 ";
 
         $data['convex_item']['report'] = 1; // item 'search' is active
         $data['convex_item']['sz_spec_donos'] = 1;
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $region = $app->request()->post('region'); //oblast
         $grochs = $app->request()->post('locorg'); //grochs
@@ -19183,6 +20153,8 @@ $objWriter->save("php://output");
          $data['convex_item']['report']=1;// item 'search' is active
          $data['convex_item']['count_rank_sub']=1;
 
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
             $data['region'] = R::getAll('SELECT * FROM ss.regions'); //list of regions
         $data['region'][] = array('id' => 8, 'name' => 'РОСН');
         $data['region'][] = array('id' => 9, 'name' => 'УГЗ');
@@ -19220,6 +20192,8 @@ $objWriter->save("php://output");
         $region = $app->request()->post('region'); //oblast
         $grochs = $app->request()->post('locorg'); //grochs
         $divizion = $app->request()->post('diviz'); //pasp
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         $rank_search = (isset($_POST['rank_search']) && !empty($_POST['rank_search'])) ? $_POST['rank_search'] : 0;
         //print_r($pos_search);
@@ -19368,7 +20342,7 @@ $objWriter->save("php://output");
 
             //bread
             $data['bread_active'] = 'Отчет по званиям';
-            $data['title_name'] = 'Отчет по званиямм';
+            $data['title_name'] = 'Отчет по званиям';
             $app->render('layouts/header.php', $data);
             $app->render('layouts/menu.php');
             $app->render('report/teh_in_trip/bread.php', $data);
@@ -19382,7 +20356,238 @@ $objWriter->save("php://output");
         }
     });
 
+
+
+
+          /* --------------------------- teh on TO ----------------------- */
+    //форма с выбором даты
+    $app->get('/teh_to', function () use ($app) {
+
+         $data['convex_item']['report']=1;// item 'search' is active
+         $data['convex_item']['teh_to_sub']=1;
+
+         $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        //bread
+        $data['bread_active'] = 'Техника на ТО';
+
+        $data['title_name'] = 'Отчеты/Техника на ТО';
+
+
+        $data['name_teh'] = R::getAll('select * from ss.views'); //наименование техники
+
+
+        $app->render('layouts/header.php', $data);
+        $app->render('layouts/menu.php');
+        $app->render('report/teh_in_trip/bread.php', $data);
+        $app->render('report/teh_to/form.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+    $app->post('/teh_to', function () use ($app) {
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        /* ------ обработка входных данных ----- */
+
+        $date_start = (isset($_POST['date_start']) && !empty($_POST['date_start'])) ? $_POST['date_start'] : date("Y-m-d");
+        $date_d = new DateTime($date_start);
+        $date = $date_d->Format('Y-m-d');
+        $date_for_excel = $date_d->format('d.m.Y');
+
+
+        $name_teh = (isset($_POST['technic_name']) && !empty($_POST['technic_name'])) ? $_POST['technic_name'] : 0; //id вида техники: АЦ, АБР...
+
+
+        $to = (isset($_POST['state_teh']) && !empty($_POST['state_teh']) && $_POST['state_teh'] != 0) ? $_POST['state_teh'] : 0;
+
+        /* ------ END обработка входных данных ----- */
+
+
+        //$sql = 'SELECT * FROM teh_repaire WHERE start_repaire <= ? OR start_repaire is null ';
+        $sql = 'SELECT * FROM teh_to WHERE dateduty = ?  ';
+        $param[] = $date;
+
+        //$sql = 'SELECT * FROM teh_repaire ';
+
+        if ($name_teh != 0) {//вид техники выбран
+            $sql = $sql . ' and id_view = ? ';
+            // $sql = $sql . ' where id_view = ? ';
+
+            $param[] = $name_teh;
+
+            $name_of_view_teh = R::getCell('select name from ss.views where id = ?', array($name_teh)); //название вида техники
+        } else {
+            $name_of_view_teh = 'единицах техники';
+        }
+
+        if (intval($to) > 0) {
+            $sql = $sql . ' and id_to = ? ';
+            $param[] = intval($to);
+        }
+
+
+        // $teh = R::getAll($sql);
+        $teh = R::getAll($sql, $param);
+        //print_r($teh);exit();
+        $mas_teh = array(); //массив вида [id_region]=>array(все машины)
+        foreach ($teh as $t) {
+            $mas_teh[$t['region_id']][] = $t;
+        }
+        //print_r($param);
+
+        /* ------- Export to Excel --------- */
+
+        $objPHPExcel = new PHPExcel();
+        $objReader = PHPExcel_IOFactory::createReader("Excel2007");
+        $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/teh_to/teh_to.xlsx');
+//activate worksheet number 1
+        $objPHPExcel->setActiveSheetIndex(0);
+        $sheet = $objPHPExcel->getActiveSheet();
+//начальная строка для записи
+        $r = 4;
+        $i = 0;
+
+        $itogo = 0; //по РБы
+
+
+        /* +++++++++++++++++++++ style +++++++++++++++++++ */
+
+        /* Название области */
+        $style_name_oblast = array(
+// Заполнение цветом
+            'fill' => array(
+                'type' => PHPExcel_STYLE_FILL::FILL_SOLID,
+                'color' => array(
+                    'rgb' => 'ccffff'
+                )
+            ),
+            // Шрифт
+            'font' => array(
+                'bold' => true
+            )
+        );
+
+        /* Итого по РБ */
+        $style_itogo = array(
+// Заполнение цветом
+            'fill' => array(
+                'type' => PHPExcel_STYLE_FILL::FILL_SOLID,
+                'color' => array(
+                    'rgb' => 'ffff99'
+                )
+            ),
+            // Шрифт
+            'font' => array(
+                'bold' => true,
+                'size' => 24
+            )
+        );
+
+        $style_all = array(
+// Заполнение цветом
+            'borders' => array(
+                'allborders' => array(
+                    'style' => PHPExcel_Style_Border::BORDER_THIN
+                )
+            ),
+            // Шрифт
+            'font' => array(
+                'size' => 14
+            )
+        );
+
+        /* другим цветом РОСН, УГЗ, Авиация */
+        $style_rosn = array(
+// Заполнение цветом
+            'fill' => array(
+                'type' => PHPExcel_STYLE_FILL::FILL_SOLID,
+                'color' => array(
+                    'rgb' => 'ffff5d'
+                )
+            )
+        );
+        /* ++++++++++++++++++++++ end style +++++++++++++++++++ */
+
+
+        $cp = array(8, 9, 12); //РОСН, УГЗ, Авиация
+
+        $sheet->setCellValue('A1', 'Сведения о ' . $name_of_view_teh . ', находящихся на ТО'.(($to==0) ? '':'-'.$to).' МЧС РБ на ' . $date_for_excel);
+
+        for ($j = 1; $j <= 7; $j++) {//7 областей
+            if (isset($mas_teh[$j]) && !empty($mas_teh[$j])) {
+                $k = 0; //№ п/п в пределах области
+
+                switch ($j) {
+                    case 1: $name_oblast = 'Брестская область';
+                        break;
+                    case 2: $name_oblast = 'Витебская область';
+                        break;
+                    case 3: $name_oblast = 'г. Минск';
+                        break;
+                    case 4: $name_oblast = 'Гомельская область';
+                        break;
+                    case 5: $name_oblast = 'Гродненская область';
+                        break;
+                    case 6: $name_oblast = 'Минская область';
+                        break;
+                    case 7: $name_oblast = 'Могилевская область';
+                        break;
+                    default : $name_oblast = 'область';
+                }
+
+                $sheet->setCellValue('A' . $r, $name_oblast); //oblast
+                $sheet->mergeCells('A' . $r . ':F' . $r);
+                $sheet->getStyleByColumnAndRow(0, $r, 5, $r)->applyFromArray($style_name_oblast); //наименование области
+                $r++;
+
+
+                foreach ($mas_teh[$j] as $row) {
+
+                    $k++;
+                    $sheet->setCellValue('A' . $r, $k); //№ п/п
+
+                    if (in_array($row['organ_id'], $cp)) {////РОСН, УГЗ, Авиация
+                        $sheet->getStyleByColumnAndRow(0, $r, 5, $r)->applyFromArray($style_rosn);
+                    }
+
+                    $sheet->setCellValue('B' . $r, $row['divizion_name'] . ', ' . $row['locorg']);
+                    $sheet->setCellValue('C' . $r, $row['mark']);
+                    $sheet->setCellValue('D' . $r, ((!empty($row['start_repaire']) && $row['start_repaire'] != null) ?(date('d.m.Y', strtotime($row['start_repaire']))) : ''));
+                    $sheet->setCellValue('E' . $r, $row['reason_repaire']);
+                    $sheet->setCellValue('F' . $r, $row['end_repaire']);
+                    $sheet->setCellValue('G' . $r, $row['to_name']);
+                    $r++;
+                }
+                $itogo+=$k; //itogo po RB
+            }
+        }
+
+        $sheet->mergeCells('A' . $r . ':F' . $r);
+        $sheet->setCellValue('A' . $r, 'ВСЕГО: ' . $itogo);  //itogo
+        $sheet->getStyleByColumnAndRow(0, $r, 6, $r)->applyFromArray($style_itogo); //итого по РБ
+
+        $sheet->getStyleByColumnAndRow(0, 4, 6, $r)->applyFromArray($style_all); //рамка
+
+
+
+        /* Сохранить в файл */
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="техника на ТО.xlsx"');
+        header('Cache-Control: max-age=0');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save('php://output');
+    });
+
+    /* ------------------------- END teh on TO ---------------------- */
+
 });
+
+
+
+
+
+
 
 
 
@@ -19404,6 +20609,8 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         $data['duty'] = $duty;
         $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
         $data['duty_ch'] = duty_ch();
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
 
         /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
@@ -20082,11 +21289,6 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
           /* ------------------------------------ КОНЕЦ все ФИО, выбранные на форме в массив ------------------------------------------- */
 
 
-
-
-
-
-
         if (isset($reserve)) {
              setReserve($reserve, $id, $change, $dateduty, $id_head_fio_new, $log); //заступающие из другич частей
         }
@@ -20111,6 +21313,7 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         $data['is_open_update'] = is_duty_cou($id, $change, 1); //открыт ли доступ на ред
         $data['duty_ch'] = duty_ch();
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
         /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -20317,6 +21520,8 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         $data['sign'] = 5; //main
         $today = date("Y-m-d");
 
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
                 /*------- для развертывания меню ------*/
         $data['grochs_active']=  get_id_grochs($id);
         $data['region_active']=  get_id_region($id);
@@ -20332,7 +21537,7 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
 //заполнены ли вкладки главная, техника, склад
         $mas_error['main'] = getErrorMainCou($today, $id, $change);
-        $mas_error['teh'] = getErrorTeh($today, $id, $change);
+        $mas_error['teh'] = getErrorTehConfirm($today, $id, $change);
         $mas_error['storage'] = 0;//вкладка не существует для ЦОУ
 
         if (in_array(1, $mas_error)) {//хоть 1 вкладка не заполнена
@@ -20454,11 +21659,17 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
 //проверка, есть ли права на выполнение операции
     $app->get('/open_update/:id', function ($id) use ($app) {
+
+        if (is_open_close_update_cou() == 0) {
+             $app->redirect('/str/general/4');
+         }
         $data['bread_array'] = R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=? limit 1', array($id));
         $data['id'] = $id;
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php');
         $app->render('bread/breadOpenUpdate.php', $data);
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
         // $app->render('layouts/pz_container.php');
         // $is_radmin = R::getAll('SELECT * FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
         if ($_SESSION['is_admin'] == 1) {//есть правао
@@ -20473,8 +21684,11 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
     });
     //открытие доступа
     $app->get('/open_update/open/:id', function ($id) use ($app, $log) {
-        // $id_main = $app->request()->post('id_main');
-        //$id_radmin = R::getCell('SELECT id_admin FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
+
+                if (is_open_close_update_cou() == 0) {
+             $app->redirect('/str/general/4');
+         }
+
         if ($_SESSION['is_admin'] == 1) {//есть правао
             R::exec('update maincou set open_update = ?, who_open = ?  WHERE is_duty = ? AND id_card = ? AND  dateduty = ? ', array(1, $_SESSION['uid'], 1, $id, date('Y-m-d')));
 
@@ -20493,11 +21707,19 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
     //предупреждение
     $app->get('/close_update/:id', function ($id) use ($app, $log) {
 
+                if (is_open_close_update_cou() == 0) {
+             $app->redirect('/str/general/4');
+         }
+
         $data['bread_array'] =  R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=? limit 1', array($id));
         $data['id'] = $id;
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php');
         $app->render('bread/breadCloseUpdate.php', $data);
+
+
 
         if ($_SESSION['is_admin'] == 1) {//есть правао
             //предепреждение
@@ -20514,20 +21736,23 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
     //закрытие доступа
     $app->get('/close_update/close/:id', function ($id) use ($app, $log) {
+
+                if (is_open_close_update_cou() == 0) {
+             $app->redirect('/str/general/4');
+         }
+
         if ($_SESSION['is_admin'] == 1) {//есть правао
 
 
-            $today = date("Y-m-d");
+		$row = R::getRow('SELECT * FROM dutych');
+        $today = $row['start_date'];
+        $change = $row['start_ch'];
 
-            $mainstr = R::load('maincou', $id);
-            $dateduty = $mainstr->dateduty;
-            $id_card = $mainstr->id_card;
-            $change= $mainstr->ch;
+            $mas_error['teh'] = getErrorTeh($today, $id, $change);// set dateduty = today for cars cou
 
-            $mas_error['teh'] = getErrorTeh($today, $id_card, $change);// set dateduty = today for cars cou
 
              //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
-             setTripFromReserve($id_card, $change, $today, $log);
+             setTripFromReserve($id, $change, $today, $log);
 
 
             R::exec('update maincou set open_update = ?, who_open = ?  WHERE is_duty = ? AND id_card = ? AND  dateduty = ? ', array(0, $_SESSION['uid'], 1, $id, date('Y-m-d')));
@@ -20563,6 +21788,7 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
             array($app, 'is_auth');
 
             $data['convex_item']['query'] = 1; // item 'search' is active
+            $data['unseen_notifications']=getUnseenNotificationsByUser();
 
             $data['title_name'] = 'Запросы/Инф.по сменам ЦОУ, ШЛЧС';
             $app->render('layouts/header.php', $data);
@@ -21885,5 +23111,1001 @@ $sheet->setCellValue('C' . $r, $itogo);
 }
 
 /*---------- END export to Excel count rank ------------*/
+
+
+
+
+/*----------------------------------------------------- str RCU --------------------------------------------------------*/
+
+
+function is_duty_rcu($id, $change, $sign) {
+
+    $is_main = R::getAll("select is_duty, open_update from mainrcu where id_card = ? and ch = ? limit 1 ",array($id,$change));
+
+    if (!empty($is_main)) {//isset
+        foreach ($is_main as $row) {
+            if ($row['is_duty'] == 0) {
+                $duty = 0; //смена не дежурная
+            } else {
+                $duty = 1; //смена  дежурная
+            }
+            if ($row['open_update'] == 0)
+                $open_update = 0;
+            else
+                $open_update = 1;
+        }
+    } else {
+        $duty = 0; //смена не дежурная
+        $open_update = 0;
+    }
+
+
+    if ($sign == 0)
+        return $duty;
+    else
+        return $open_update;
+}
+
+
+/*  employees  main rcu by position*/
+function getListFioByPosMainRcu($id, $change, $sign, $date, $id_pos_duty) {
+    $id_cardch = getIdCardCh($id, $change);
+    $today = date("Y-m-d");
+
+    if ($sign == 1) {//yourself ch
+        $sql = 'SELECT id_fio FROM mainrcu WHERE id_card  =  ? AND ch = ? AND id_pos_duty = ? ';
+        //$sql = $sql . '  WHERE id_card  =  ? AND ch = ? ';
+    } elseif ($sign == 0) {//no yourself ch
+        $sql = 'SELECT id_fio FROM mainrcu WHERE id not in (select id from mainrcu WHERE id_card  =  ? AND ch = ? AND id_pos_duty = ? )  ';
+        //    $sql = $sql . '  WHERE id_card  <> ? AND ch <> ? ';
+    }
+    $sql=$sql.'AND id_fio <>"" ';
+    $param[] = $id;
+    $param[] = $change;
+    $param[]=$id_pos_duty;
+    if ($date != 0) {
+
+        $sql = $sql . ' AND dateduty = ?';
+        $param[] = $today;
+    }
+    $result = R::getAll($sql, $param);
+
+    if (!empty($result)) {
+        foreach ($result as $value) {
+            $list_fio[] = $value['id_fio'];
+        }
+    } else
+        $list_fio = array();
+    return $list_fio;
+}
+
+
+/* reset is_duty RCU */
+function reset_is_duty_rcu($id,$change,$dateduty){
+    $old_dateduty=R::getCell('select dateduty from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
+
+     if($dateduty != $old_dateduty)
+            R::exec('update mainrcu set is_duty = ?  WHERE id_card = ? and ch = ?', array(0,$id, $change));
+}
+
+
+
+/*--------------  main_rcu - relation 1 to 1 ----------------*/
+
+function saveMainRcuOne($id, $change, $id_pos_duty, $dateduty, $id_fio) {
+
+
+    $id_main = R::getCell('select id from mainrcu where id_card = ? and ch = ? and id_pos_duty = ? ORDER BY dateduty DESC LIMIT ?', array($id, $change, $id_pos_duty, 1));
+
+    if (isset($id_main) && !empty($id_main)) {
+        $main = R::load('mainrcu', $id_main);
+
+        if (empty($id_fio)) {//никто сег на эту должность не заступает
+            R::trash($main);
+
+            return;
+        }
+    } else {
+
+        if (!empty($id_fio)) {//заступает
+            $main = R::dispense('mainrcu');
+        } else {
+            return;
+        }
+    }
+
+    $main->id_card = $id;
+    $main->ch = $change;
+    $main->dateduty = $dateduty;
+    $main->id_fio = $id_fio;
+    $main->id_pos_duty = $id_pos_duty;
+    $main->last_update = date("Y-m-d H:i:s");
+    $main->id_user = $_SESSION['uid'];
+
+    R::store($main);
+
+    return;
+}
+
+/*-------------- END main_rcu - relation 1 to 1 ----------------*/
+
+
+
+/*-------------- main_rcu - relation many to many ----------------*/
+
+function saveMainRcuTwo($id, $change, $id_pos_duty, $dateduty,$reserve) {
+
+        $fioteh_bd = R::getAll('SELECT * FROM mainrcu WHERE id_card = :id_card AND ch = :ch AND id_pos_duty = :id_pos_duty ', [':id_card' => $id, ':ch' => $change, ':id_pos_duty' => $id_pos_duty]);
+
+
+
+        //если не выбрано ни одного ФИО
+        if (empty($reserve)) {
+            if (isset($fioteh_bd) && !empty($fioteh_bd)) {
+                foreach ($fioteh_bd as $key_bd => $value_bd) {
+
+                    $f = R::load('mainrcu', $value_bd['id']);
+                    R::trash($f);
+                }
+            }
+        } else {
+            if (isset($fioteh_bd) && !empty($fioteh_bd)) {
+
+                //ищем совпадения из формы и из БД-если найдены-ничего не выполнять-оставляем их в БД
+                foreach ($fioteh_bd as $key_bd => $value_bd) {
+                    foreach ($reserve as $key => $value) {
+                        if ($value_bd['id_fio'] == $value) {
+                            $reservefio = R::load('mainrcu', $value_bd['id']);
+                            //обновить дату на сегодня, т.к.работник был зарезервирован на прошлую дату заступления этой смены
+                            $reservefio->dateduty = $dateduty;
+                            R::store($reservefio);
+                            unset($reserve[$key]);
+                            unset($fioteh_bd[$key_bd]);
+                            break;
+                        }
+                    }
+                }
+                //замена фио в БД на ФИО из формы, если совпадения не найдены
+                if (!empty($fioteh_bd)) {
+                    foreach ($fioteh_bd as $key_bd => $value_bd) {
+                        foreach ($reserve as $key => $value) {
+
+                            $reservefio = R::load('mainrcu', $value_bd['id']);
+                            $reservefio->id_fio = $value;
+                            $reservefio->dateduty = $dateduty;
+                            $reservefio->last_update=date("Y-m-d H:i:s");
+                            $reservefio->id_user=$_SESSION['uid'];
+                            R::store($reservefio);
+                            unset($reserve[$key]);
+                            unset($fioteh_bd[$key_bd]);
+                            break;
+                        }
+                    }
+                }
+//если на форме было > фио, чем в БД- добавить оставшихся
+                if (!empty($reserve)) {
+
+                    foreach ($reserve as $key => $value) {
+
+                        $reservefio = R::dispense('mainrcu');
+                        $reservefio->id_card = $id;
+                        $reservefio->ch = $change;
+                        $reservefio->id_pos_duty=$id_pos_duty;
+                        $reservefio->id_fio = $value;
+                        $reservefio->dateduty = $dateduty;
+                        $reservefio->last_update=date("Y-m-d H:i:s");
+                        $reservefio->id_user=$_SESSION['uid'];
+                        R::store($reservefio);
+                    }
+                }
+//удалить из БД оставшихся-лишних
+                if (!empty($fioteh_bd)) {
+
+                    foreach ($fioteh_bd as $key_bd => $value_bd) {
+
+                        $fiotehstr = R::load('mainrcu', $value_bd['id']);
+                        R::trash($fiotehstr);
+                    }
+                }
+            } else {//insert
+                if (!empty($reserve)) {
+                    foreach ($reserve as $key => $value) {
+                        $reservefio = R::dispense('mainrcu');
+                        $reservefio->id_card = $id;
+                        $reservefio->ch = $change;
+                        $reservefio->id_pos_duty=$id_pos_duty;
+                        $reservefio->id_fio = $value;
+                        $reservefio->dateduty = $dateduty;
+                        $reservefio->last_update=date("Y-m-d H:i:s");
+                        $reservefio->id_user=$_SESSION['uid'];
+                        R::store($reservefio);
+                    }
+                }
+            }
+        }
+
+}
+
+/*-------------- END main_rcu - relation many to many ----------------*/
+
+/*  employees  mainrcu by position - fio text*/
+function getListFioTextByPosMainRcu($id, $change, $sign, $date, $id_pos_duty) {
+    $id_cardch = getIdCardCh($id, $change);
+    $today = date("Y-m-d");
+
+    if ($sign == 1) {//your change
+        $sql = 'SELECT fio_text FROM mainrcu WHERE id_card  =  ? AND ch = ? AND id_pos_duty = ? ';
+        //$sql = $sql . '  WHERE id_card  =  ? AND ch = ? ';
+    } elseif ($sign == 0) {//foreign change
+        $sql = 'SELECT fio_text FROM mainrcu WHERE id not in (select id from mainrcu WHERE id_card  =  ? AND ch = ? AND id_pos_duty = ? )  ';
+        //    $sql = $sql . '  WHERE id_card  <> ? AND ch <> ? ';
+    }
+    $param[] = $id;
+    $param[] = $change;
+    $param[]=$id_pos_duty;
+    if ($date != 0) {
+        $sql = $sql . ' AND dateduty = ?';
+        $param[] = $today;
+    }
+    $result = R::getAll($sql, $param);
+
+    if (!empty($result)) {
+        foreach ($result as $value) {
+            $list_fio[] = $value['fio_text'];
+        }
+    } else
+        $list_fio = array();
+    return $list_fio;
+}
+
+
+function saveMainRcuOneText($id, $change, $id_pos_duty, $dateduty, $id_fio) {
+
+
+    $id_main = R::getCell('select id from mainrcu where id_card = ? and ch = ? and id_pos_duty = ? ORDER BY dateduty DESC LIMIT ?', array($id, $change, $id_pos_duty, 1));
+
+    if (isset($id_main) && !empty($id_main)) {
+        $main = R::load('mainrcu', $id_main);
+
+        if (empty($id_fio)) {//nobody does't go on this position
+            R::trash($main);
+
+            return;
+        }
+    } else {
+
+        if (!empty($id_fio)) {//goes
+            $main = R::dispense('mainrcu');
+        } else {
+            return;
+        }
+    }
+
+    $main->id_card = $id;
+    $main->ch = $change;
+    $main->dateduty = $dateduty;
+    $main->fio_text = $id_fio;
+    $main->id_pos_duty = $id_pos_duty;
+    $main->last_update = date("Y-m-d H:i:s");
+    $main->id_user = $_SESSION['uid'];
+
+    R::store($main);
+
+    return;
+}
+
+$app->group('/v3/card', $is_auth, function () use ($app, $log) {
+
+//main RCU
+    $app->get('/:id/ch/:change/main', function ($id, $change) use ($app) {//sheet other reasons for  change
+        array($app, 'is_auth');
+
+        $data = bread($id);
+        $data['change'] = $change;
+        $data['sign'] = 5; //main
+        $today = date("Y-m-d");
+        $data['time_allow_open'] = time_allow_open();
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        $duty = is_duty_rcu($id, $change, 0); //change is duty or not
+        $data['duty'] = $duty;
+        $data['is_open_update'] = is_duty_rcu($id, $change, 1); //открыт ли доступ на ред
+        $data['duty_ch'] = duty_ch();
+
+        /* ------- для развертывания меню ------ */
+        $data['grochs_active'] = get_id_grochs($id);
+        $data['region_active'] = get_id_region($id);
+        $data['pasp_active'] = $id;
+        $data['organ_active'] = R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
+        /* ------- END для развертывания меню ------ */
+
+        /* id_divizion, id_organ, cou_with_slhs */
+        $param = R::getAll('SELECT rec.id_divizion, l.id_organ, rec.cou_with_slhs, loc.id_region FROM ss.records as rec LEFT JOIN ss.locorg as l ON l.id=rec.id_loc_org left join ss.locals as loc ON loc.id=l.id_local WHERE rec.id = ?', array($id));
+        foreach ($param as $value) {
+            $data['id_diviz'] = $value['id_divizion'];
+            $data['id_organ'] = $value['id_organ'];
+            $data['cou_with_slhs'] = $value['cou_with_slhs'];
+            $data['id_region'] = $value['id_region'];
+        }
+        /* END id_divizion, id_organ, cou_with_slhs */
+
+
+        /*         * **************************  list fio ************************************ */
+        //list from other divizion
+        $data['present_reserve_fio'] = getPresentReserveFio($id, $change);
+
+        //list from other divizion past
+        $data['past_reserve_fio'] = getFioById(getListFioReserve($id, $change, 1, 0), $id, $change);
+
+        // list everyday fio
+        $data['present_everyday_fio'] = getPresentEverydayFio($id, $change);
+
+        // list everyday fio past
+        $data['past_everyday_fio'] = getFioById(getListFioEveryday($id, $change, 1, 0, 0), $id, $change);
+
+
+
+        // list of ch without "nobody"
+        $data['present_head_fio'] = getPresentHeadFio($id, $change);
+
+        $data['head_odh'] = R::getRow('SELECT l.id, l.fio,ra.name as rank FROM listfio as l
+LEFT JOIN cardch as c on l.id_cardch=c.id
+LEFT JOIN ss.records as r on r.id=c.id_card
+ LEFT JOIN ss.locorg as locor on locor.id=r.id_loc_org
+LEFT JOIN ss.locals as loc on loc.id=locor.id_local
+left join position as p on p.id=l.id_position
+left join rank as ra on ra.id=l.id_rank
+where  locor.id_organ=? and p.id=? limit 1', array(5, 131));
+
+                $data['head_ousis'] = R::getRow('SELECT l.id, l.fio,ra.name as rank FROM listfio as l
+LEFT JOIN cardch as c on l.id_cardch=c.id
+LEFT JOIN ss.records as r on r.id=c.id_card
+ LEFT JOIN ss.locorg as locor on locor.id=r.id_loc_org
+LEFT JOIN ss.locals as loc on loc.id=locor.id_local
+left join position as p on p.id=l.id_position
+left join rank as ra on ra.id=l.id_rank
+where  locor.id_organ=? and p.id=? limit 1', array(5, 130));
+
+
+        // $past_god_fio
+        $data['past_god_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 1), $id, $change);
+
+        // $past_od_fio
+        $data['past_od_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 2), $id, $change);
+
+        // $past_z_od_fio
+        $data['past_z_od_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 3), $id, $change);
+
+        // $past_st_pom_od_fio
+        $data['past_st_pom_od_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 4), $id, $change);
+
+         // $past_insp_fio
+        $data['past_insp_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 6), $id, $change);
+
+         // $past_other_fio
+       // $data['past_other_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 8), $id, $change);
+
+         // $past_otsio_fio
+        $data['past_st_ing_otsio_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 10), $id, $change);
+        // $past_ing_connect
+        $data['past_ing_connect_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 11), $id, $change);
+
+        // $past_psych_fio
+        $data['past_psych_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 12), $id, $change);
+
+         // $past_other text
+        $data['past_other_text'] = getListFioTextByPosMainRcu($id, $change, 1, 0, 8);
+
+
+                // $past_monitoring_fio
+        $data['past_monitoring_fio'] = getFioById(getListFioByPosMainRcu($id, $change, 1, 0, 13), $id, $change);
+
+
+
+        /* ------------------- vacant from list of change  ---------------------- */
+        $data['count_vacant_from_list'] = getCountVacantOnList($id, $change);
+
+        /* all employees COU with vacant with everyday */
+        $data['count_shtat'] = getCountOnListAllForCou($id, $change);
+
+
+
+
+         //get main - for calculation
+         $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC limit 1',array($id,$change));
+        if (isset($main) && !empty($main)) {//есть запись
+            ///выбор последней даты
+            foreach ($main as $value) {
+                $last_data = $value['dateduty'];
+            }
+        }
+         else
+                 $last_data = $today;
+
+         $data['count_fio_on_car'] = getCountCalc($id, $change, $last_data);
+
+
+
+
+        //get main
+        //$main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty', array($id, $change));
+        $main = R::getAll('select * from mainrcu where id_card = ? and ch = ? ORDER BY dateduty DESC ', array($id, $change));
+        if (isset($main) && !empty($main)) {//есть запись
+            ///выбор последней даты
+            foreach ($main as $value) {
+                //format 10-01-2018 to 2018-01-10
+                /*  $date = new DateTime($value['dateduty']);
+                  $last_data = $date->Format('Y-m-d'); */
+                $last_data = $value['dateduty'];
+            }
+
+            /* ------------ кол-во больных, отпусков, командировок,др.причины ------------ */
+            $data['count_ill'] = getCountIll($id, $change, $last_data);
+            $data['count_holiday'] = getCountHoliday($id, $change, $last_data);
+            $data['count_trip'] = getCountTrip($id, $change, $last_data);
+            $data['count_other'] = getCountOther($id, $change, $last_data);
+
+            $data['main'] = $main;
+
+            $data['post'] = 0; //put data main...при хранении инф за месяц =1: не обновляем, а добавляем запись
+        } else {
+            //empty form
+            //выводим пустую формы
+            //insert row
+            //кол-во больных, отпусков, командировок,др.причины
+            $data['count_ill'] = 0;
+            $data['count_holiday'] = 0;
+            $data['count_trip'] = 0;
+            $data['count_other'] = 0;
+            $last_data = date('Y-m-d');
+        }
+
+
+        $data['is_btn_confirm'] = is_btn_confirm($change);
+
+
+        $app->render('layouts/header.php');
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadCard.php', $data);
+        $app->render('card/sheet/start_cou.php', $data);
+        $app->render('card/sheet/main/main.php', $data);
+
+        /*         * *********************** msg about operation ********************************* */
+        view_msg();
+        unset($_SESSION['msg']); //сбросить сообщение
+
+        $app->render('card/sheet/main/rcu/formMain.php', $data); //view data
+
+
+        $app->render('card/sheet/end.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+    //main RCU save
+    $app->post('/:id/ch/:change/main', function ($id, $change) use ($app, $log) {// form main for fill
+
+        array($app, 'is_auth'); //авторизован ли пользователь
+        $data['change'] = $change;
+        $data['sign'] = 5; //main
+
+        $dateduty = $app->request()->post('dateduty');
+
+
+        if (empty($dateduty))
+            $dateduty = NULL;
+        else
+            $dateduty = date("Y-m-d", strtotime($dateduty));
+
+        /* reset is duty */
+        reset_is_duty_rcu($id, $change, $dateduty);
+
+        $reserve = $app->request()->post('reserve');
+        if (empty($reserve))
+            $reserve = array();
+
+        $everydayfio = $app->request()->post('everydayfio');
+        if (empty($everydayfio))
+            $everydayfio = array();
+
+
+        /* id_divizion, id_organ, cou_with_slhs */
+        $param = R::getAll('SELECT rec.id_divizion, l.id_organ, rec.cou_with_slhs, loc.id_region FROM ss.records as rec LEFT JOIN ss.locorg as l ON l.id=rec.id_loc_org left join ss.locals as loc ON loc.id=l.id_local WHERE rec.id = ?', array($id));
+        foreach ($param as $value) {
+            $data['id_diviz'] = $value['id_divizion'];
+            $data['id_organ'] = $value['id_organ'];
+            $data['cou_with_slhs'] = $value['cou_with_slhs'];
+            $data['id_region'] = $value['id_region'];
+        }
+        /* END id_divizion, id_organ, cou_with_slhs */
+
+
+        /* ----- god - 1  --- */
+        $god = $app->request()->post('god');
+        if (!isset($god)) {
+            $god = array();
+        }
+        saveMainRcuTwo($id, $change, 1, $dateduty, $god); //check and insert or update
+
+        // od - 2
+        $od = $app->request()->post('od');
+        if (!isset($od)) {
+            $od = array();
+        }
+        saveMainRcuTwo($id, $change, 2, $dateduty, $od); //check and insert or update
+
+        /* ----- zam od - 3  --- */
+        $z_od = $app->request()->post('z_od');
+        if (!isset($z_od)) {
+            $z_od = array();
+        }
+        saveMainRcuTwo($id, $change, 3, $dateduty, $z_od); //check and insert or update
+
+        /* ----- st pom - 4  --- */
+        $st_pom_od = $app->request()->post('st_pom_od');
+        if (!isset($st_pom_od)) {
+            $st_pom_od = array();
+        }
+        saveMainRcuTwo($id, $change, 4, $dateduty, $st_pom_od); //check and insert or update
+
+        // other - 8
+//        $other = $app->request()->post('other');
+//        if (!isset($other)) {
+//            $other = array();
+//        }
+//        saveMainRcuTwo($id, $change, 8, $dateduty, $other); //check and insert or update
+
+        // inspectors - 6
+        $insp = $app->request()->post('insp');
+        if (!isset($insp)) {
+            $insp = array();
+        }
+        saveMainRcuTwo($id, $change, 6, $dateduty, $insp); //check and insert or update
+
+
+                /* ----- st ing otsio - 10  --- */
+        $st_ing_otsio = $app->request()->post('st_ing_otsio');
+        if (!isset($st_ing_otsio)) {
+            $st_ing_otsio = array();
+        }
+        saveMainRcuTwo($id, $change, 10, $dateduty, $st_ing_otsio); //check and insert or update
+
+                // ing connect - 11
+        $ing_connect = $app->request()->post('ing_connect');
+        if (!isset($ing_connect)) {
+            $ing_connect = array();
+        }
+        saveMainRcuTwo($id, $change, 11, $dateduty, $ing_connect); //check and insert or update
+
+
+         // psych - 12
+        $psych = $app->request()->post('psych');
+        if (!isset($psych)) {
+            $psych = array();
+        }
+        saveMainRcuTwo($id, $change, 12, $dateduty, $psych); //check and insert or update
+
+
+
+         // other text - 8
+        $other_text = $app->request()->post('other_text');
+        if (isset($other_text))
+            saveMainRcuOneText($id, $change, 8, $dateduty, $other_text); // insert or update
+
+
+                 // monitoring - 13
+        $monitoring = $app->request()->post('monitoring');
+        if (!isset($monitoring)) {
+            $monitoring = array();
+        }
+        saveMainRcuTwo($id, $change, 13, $dateduty, $monitoring); //check and insert or update
+
+
+            /* all fio from form - push to array */
+        //$id_head_fio_old = array($god, $z_od, $st_pom_od);
+        $id_head_fio_new = array();
+//        foreach ($id_head_fio_old as $element) {
+//            if (!empty($element))
+//                $id_head_fio_new[] = $element;
+//        }
+
+
+
+        if (is_array($god) && !empty($god)) {
+            $id_head_fio_new = array_merge($id_head_fio_new, $god);
+        }
+        if (is_array($z_od) && !empty($z_od)) {
+            $id_head_fio_new = array_merge($id_head_fio_new, $z_od);
+        }
+
+        if (is_array($st_pom_od) && !empty($st_pom_od)) {
+            $id_head_fio_new = array_merge($id_head_fio_new, $st_pom_od);
+        }
+
+
+        if (is_array($od) && !empty($od)) {
+            $id_head_fio_new = array_merge($id_head_fio_new, $od);
+        }
+
+//        if (is_array($other) && !empty($other)) {
+//            $id_head_fio_new = array_merge($id_head_fio_new, $other);
+//        }
+
+        if (is_array($insp) && !empty($insp)) {
+            $id_head_fio_new = array_merge($id_head_fio_new, $insp);
+        }
+        /* reserve, everyday */
+        if (isset($reserve)) {
+            setReserve($reserve, $id, $change, $dateduty, $id_head_fio_new, $log); //заступающие из другич частей
+        }
+        if (isset($everydayfio)) {
+            setEverydayFio($everydayfio, $id, $change, $dateduty, $id_head_fio_new, $log); //заступающие ежедневники
+        }
+
+        $_SESSION['msg'] = 1; //ok
+        $app->redirect('/str/v3/card/' . $id . '/ch/' . $change . '/main');
+    });
+
+    //заступление на смену
+    $app->get('/:id/ch/:change/confirm/next', function ($id, $change) use ($app, $log) {//confirm  проверка соответствия формулам, заполненность вкладок
+
+        $data = bread($id);
+        $data['change'] = $change;
+        $data['sign'] = 5; //main
+        $today = date("Y-m-d");
+
+                /*------- для развертывания меню ------*/
+        $data['grochs_active']=  get_id_grochs($id);
+        $data['region_active']=  get_id_region($id);
+         $data['pasp_active']=$id;
+         $data['organ_active']=R::getCell('SELECT orgid FROM ss.card WHERE id_record =:id', [':id' => $id]);
+        /*------- END для развертывания меню ------*/
+
+        $app->render('layouts/header.php');
+        $app->render('layouts/menu.php', $data);
+        $app->render('bread/breadCard.php', $data);
+        $app->render('card/sheet/start_cou.php', $data);
+        $app->render('card/sheet/main/main.php', $data);
+
+//заполнены ли вкладки главная, техника, склад
+        $mas_error['main'] = getErrorMainRcu($today, $id, $change);
+        $mas_error['teh'] = getErrorTehConfirm($today, $id, $change);
+        $mas_error['storage'] = 0;//вкладка не существует для ЦОУ
+
+        if (in_array(1, $mas_error)) {//хоть 1 вкладка не заполнена
+            $msg_m = $mas_error['main'] == 1 ? '<strong>Главная</strong>' : '';
+
+
+            /*--------------- заполнена ли вкладка техники----------------------*/
+
+            if($mas_error['teh'] == 1){//нет техники в таблице car
+
+               $c=R::findOne('carcou', 'id_card = ? and ch = ? and dateduty = ?', [$id, $change, $today]);
+                if(isset($c) && !empty($c)){  //есть отметка о том, что техника сег не заступает
+                   //можно заступить
+                     $msg_t = '';
+                }
+                else{//нет
+                  //заступать нельзя
+                     $msg_t = '<strong>Техника</strong>' ;
+                }
+            }
+            else{
+                $msg_t = '';
+            }
+
+            /*--------------- КОНЕЦ заполнена ли вкладка техники----------------------*/
+
+            if (isset($msg_m) && !empty($msg_m) && isset($msg_t) && !empty($msg_t) ) {
+                $data['msg'] = 'Не заполнена(обновлена) информация на вкладках: ' . $msg_m . ' ' . $msg_t ;
+                $app->render('card/sheet/confirm/msg_empty_sheet.php', $data);
+            } else {//все вкладки заполнены, техника стоит отметка "техника не заступает"
+                //update is_duty=0 у всех смен этой карточки
+                R::exec('update mainrcu set is_duty = ? WHERE is_duty = ? AND  id_card = ? ', array(0, 1, $id));
+
+                //update is_duty=1 у данной смены
+                R::exec('update mainrcu set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ? and dateduty = ? ', array(1, date("Y-m-d H:i:s"), $_SESSION['uid'], $id, $change, $today));
+                //R::exec('update maincou set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ?  ', array(1, date("Y-m-d H:i:s"), $_SESSION['uid'], $id, $change));
+
+
+                //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+                setTripFromReserve($id, $change, $today, $log);
+                //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+               // setReserveToTripCar($id, $change, $today, $log);
+
+                //delete rows og ch with dateduty != today
+                R::exec('delete from  mainrcu  WHERE id_card = ? AND  ch = ? and dateduty <> ? ', array($id, $change, $today));
+
+
+                $app->render('card/sheet/confirm/success.php', $data);
+            }
+        } else {//все вкладки заполнены
+
+
+                //update is_duty=0 у всех смен этой карточки
+                  R::exec('update mainrcu set is_duty = ? WHERE is_duty = ? AND  id_card = ? ', array(0, 1, $id));
+
+                //update is_duty=1 у данной смены
+                   R::exec('update mainrcu set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ? and dateduty = ? ', array(1,  date("Y-m-d H:i:s"),$_SESSION['uid'], $id, $change,$today));
+                  //R::exec('update maincou set is_duty = ?, last_update = ?, id_user = ? WHERE id_card = ? AND  ch = ?  ', array(1, date("Y-m-d H:i:s"), $_SESSION['uid'], $id, $change));
+
+
+                //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+                setTripFromReserve($id, $change, $today, $log);
+                //ту технику, которая заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+               // setReserveToTripCar($id, $change, $today, $log);
+
+                 //delete rows og ch with dateduty != today
+                R::exec('delete from  mainrcu  WHERE id_card = ? AND  ch = ? and dateduty <> ? ', array($id, $change, $today));
+
+                $app->render('card/sheet/confirm/success.php', $data);
+
+        }
+        $app->render('card/sheet/end.php', $data);
+        $app->render('layouts/footer.php');
+    });
+
+
+
+
+
+    //is_car
+    $app->post('/:id/ch/:change/is_car', function ($id, $change) use ($app, $log) {// form main for fill
+        array($app, 'is_auth'); //авторизован ли пользователь
+
+        $is_car = $app->request()->post('is_car');
+
+        $dateduty=date("Y-m-d");
+
+        echo $is_car;
+
+        if($is_car == 1){
+
+            $c=R::findOne('carcou', 'id_card = ? and ch = ?', [$id, $change]);
+            if(isset($c)){
+               //insert or update
+                $c->dateduty=$dateduty;
+
+            }
+            else{
+                //create
+                $c=R::dispense('carcou');
+                $c->id_card=$id;
+                $c->ch=$change;
+                $c->dateduty=$dateduty;
+            }
+            R::store($c);
+        }
+        else{
+            //delete
+             $c=R::findOne('carcou', 'id_card = ? and ch = ?', [$id, $change]);
+             R::trash($c);
+        }
+
+
+        $app->redirect('/str/v1/card/' . $id . '/ch/' . $change . '/car');
+    });
+
+
+
+    /* -------------- ОТКРЫТЬ ДОСТУП НА РЕД RCU ----------------- */
+
+//проверка, есть ли права на выполнение операции
+    $app->get('/open_update/:id', function ($id) use ($app) {
+
+
+        if (is_open_close_update_rcu() == 0) {
+             $app->redirect('/str/general/1');
+         }
+
+        //$data['bread_array'] = R::getAll('select region, locorg_name, divizion FROM general_table_cou WHERE id_record=? limit 1', array($id));
+        $data['id'] = $id;
+
+        $data['unseen_notifications']=getUnseenNotificationsByUser();
+
+        $app->render('layouts/header.php');
+        $app->render('layouts/menu.php');
+        $app->render('bread/rcu/breadOpenUpdate.php', $data);
+        // $app->render('layouts/pz_container.php');
+        // $is_radmin = R::getAll('SELECT * FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
+        if ($_SESSION['is_admin'] == 1 || $_SESSION['can_edit'] == 1) {//есть правао
+            //предепреждение
+            $app->render('msg/open_update.php');
+            $app->render('open_update/rcu/open_update.php', $data);
+            $app->render('open_update/rcu/back.php');
+            $app->render('layouts/footer.php');
+        } else {//нет права
+            $app->redirect('/str/modal');
+        }
+    });
+    //открытие доступа
+    $app->get('/open_update/open/:id', function ($id) use ($app, $log) {
+        if (is_open_close_update_rcu() == 0) {
+             $app->redirect('/str/general/1');
+         }
+
+        // $id_main = $app->request()->post('id_main');
+        //$id_radmin = R::getCell('SELECT id_admin FROM radmins WHERE pssw = ?', array($_SESSION['psw']));
+        if ($_SESSION['is_admin'] == 1 || $_SESSION['can_edit'] == 1) {//есть правао
+            R::exec('update mainrcu set open_update = ?, who_open = ?  WHERE is_duty = ? AND id_card = ? AND  dateduty = ? ', array(1, $_SESSION['uid'], 1, $id, date('Y-m-d')));
+
+
+            $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Открыт доступ на редактирование mainrcu - для карточки с id_card= ' . $id);
+            $app->redirect('/str/v3/card/'.$id.'/ch/'.duty_ch().'/main');
+        } else {//нет права
+            $app->redirect('/str/modal');
+        }
+    });
+
+    /* ----------------- END ОТКРЫТЬ ДОСТУП НА РЕД RCU ----------------- */
+
+
+    /* ----------------- ЗАКРЫТЬ ДОСТУП НА РЕД RCU ----------------- */
+
+    //предупреждение
+    $app->get('/close_update/:id', function ($id) use ($app, $log) {
+
+        if (is_open_close_update_rcu() == 0) {
+             $app->redirect('/str/general/1');
+         }
+
+        $data['id'] = $id;
+        $data['unseen_notifications'] = getUnseenNotificationsByUser();
+
+        $app->render('layouts/header.php');
+        $app->render('layouts/menu.php');
+        $app->render('bread/rcu/breadCloseUpdate.php', $data);
+
+
+        if ($_SESSION['is_admin'] == 1 || $_SESSION['can_edit'] == 1) {//есть правао
+            //предепреждение
+            $app->render('msg/close_update.php');
+
+            $app->render('close_update/rcu/close_update.php', $data);
+            $app->render('open_update/rcu/back.php');
+            $app->render('layouts/footer.php');
+        } else {//нет права
+            $app->redirect('/str/modal');
+        }
+    });
+
+
+    //закрытие доступа
+    $app->get('/close_update/close/:id', function ($id) use ($app, $log) {
+
+        if (is_open_close_update_rcu() == 0) {
+             $app->redirect('/str/general/1');
+         }
+
+        if ($_SESSION['is_admin'] == 1 || $_SESSION['can_edit'] == 1) {//есть правао
+            $row = R::getRow('SELECT * FROM dutych');
+            $dateduty = $today = $row['start_date'];
+            $change = $row['start_ch'];
+
+            $id_card = $id;
+
+            $mas_error['teh'] = getErrorTeh($today, $id_card, $change); // set dateduty = today for cars cou
+            //тех, кто заступают из других ПАСЧ - занести в командировку в своих ПАСЧ
+            setTripFromReserve($id_card, $change, $today, $log);
+
+
+            R::exec('update mainrcu set open_update = ?, who_open = ?  WHERE is_duty = ? AND id_card = ? AND  dateduty = ? ', array(0, $_SESSION['uid'], 1, $id, date('Y-m-d')));
+
+            $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Закрыт доступ на редактирование mainrcu - для карточки с id_card= ' . $id);
+            $app->redirect('/str/v3/card/' . $id . '/ch/' . duty_ch() . '/main');
+        } else {//нет права
+            $app->redirect('/str/modal');
+        }
+    });
+
+    /* ----------------- END ЗАКРЫТЬ ДОСТУП НА РЕД RCU -----------------*/
+
+
+});
+
+
+
+$app->post('/getModalStrRcu', function () use ($app) {//modal with rcu str
+
+
+    $my_time = time() - 86400;
+    $yesterday = date("d-m-Y", $my_time);
+    $today = date("Y-m-d");
+
+    $ch=duty_ch();
+
+
+    $main = R::getAll('SELECT m.*, l.`fio`, r.`name` AS rank_name, p.`name` AS posduty FROM mainrcu AS m
+LEFT JOIN listfio AS l ON l.`id`=m.`id_fio`
+LEFT JOIN posdutyrcu AS p ON p.`id`=m.`id_pos_duty`
+LEFT JOIN rank AS r ON r.`id`=l.`id_rank` where m.dateduty = ?  ', array($today));
+    if (isset($main) && !empty($main)) {
+
+    } else {
+        $main = R::getAll('SELECT m.*, l.`fio`, r.`name` AS rank_name, p.`name` AS posduty FROM mainrcu AS m
+
+LEFT JOIN listfio AS l ON l.`id`=m.`id_fio`
+LEFT JOIN posdutyrcu AS p ON p.`id`=m.`id_pos_duty`
+LEFT JOIN rank AS r ON r.`id`=l.`id_rank` where m.dateduty = ?  ', array($yesterday));
+    }
+
+    if (isset($main) && !empty($main)) {
+        foreach ($main as $value) {
+
+            $data['last_data'] = $value['dateduty'];
+            $data['last_ch'] = $value['ch'];
+        }
+    } else {
+        $data['last_data'] = $today;
+        $data['last_ch'] = $ch;
+    }
+    $data['main']=$main;
+
+
+    $date=date_create($data['last_data']);
+    $data['head'] = 'Строевая записка РЦУРЧС на '. date_format($date, 'd.m.Y');
+
+    $view = $app->render('layouts/parts/body_modal_str_rcu.php', $data);
+    $response = ['success' => TRUE, 'view' => $view];
+});
+
+
+/* notification */
+
+function getUnseenNotificationsByUser()
+{
+$msg=R::getAll('SELECT * from notifications where id_user = ? and is_see = ? order by date_action desc',array($_SESSION['uid'],0));
+if(!empty($msg))
+    return $msg;
+else
+    array();
+}
+
+
+$app->get('/seeAllNotifications',$is_auth, function () use ($app) {
+
+            $data['unseen_notifications']=getUnseenNotificationsByUser();
+            $data['locorg_umchs']=locorg_umchs;
+
+            $data['bread_active'] = 'Уведомления';
+            $data['convex_item']['notifications']=1;// item 'notifications' is active
+
+            $data['all_notifications']=$msg=R::getAll('SELECT * from notifications where id_user = ? order by date_action desc',array($_SESSION['uid']));
+
+            $app->render('layouts/header.php', $data);
+            $app->render('layouts/menu.php');
+            $app->render('notifications/bread.php', $data);
+            $app->render('notifications/list.php', $data);
+
+            $app->render('layouts/footer.php');
+
+});
+
+$app->post('/readNotify',$is_auth, function () use ($app) {
+        $is_ajax = $app->request->isAjax();
+        if ($is_ajax) {
+        $id = $app->request()->post('id');
+
+        R::exec('UPDATE notifications SET is_see=?, date_read = ? WHERE id = ?', array(1, date('Y-m-d H:i:s'), $id));
+        // echo json_encode(array('success' => 'Уведомление прочитано'));
+        //return true;
+        $data['unseen_notifications'] = getUnseenNotificationsByUser();
+        $view = $app->render('notifications/parts/unseen_notifications_for_topmenu.php', $data);
+        $response = ['success' => TRUE, 'view' => $view];
+    }
+});
+
+
+$app->post('/readAllNotify',$is_auth, function () use ($app) {
+        $is_ajax = $app->request->isAjax();
+        if ($is_ajax) {
+            R::exec('UPDATE notifications SET is_see=?, date_read = ? WHERE id_user = ? and is_see = ?', array(1,date('Y-m-d H:i:s'),$_SESSION['uid'],0));
+            echo json_encode(array('success' => 'Все уведомление прочитаны'));
+            return true;
+        }
+
+});
+
+
 
 $app->run();
