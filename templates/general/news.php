@@ -15,6 +15,10 @@
 
 
 
+
+
+
+
  <span style="color: #a94442; font-size: 15px; float: left;"> <i><b> Дата публикации 30.09.2018</b></i></span><br><br>
 
 

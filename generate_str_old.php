@@ -2,13 +2,13 @@
 
 /*подключение к БД*/
 //require_once dirname(__FILE__) . '/bootstrap.php';
-//require_once dirname(__FILE__) . '/vendor/autoload.php';
+require_once dirname(__FILE__) . '/vendor/autoload.php';
 $connection=mysql_connect("172.26.200.14","str_natali","str_natali");
 mysql_query("set names 'utf8'");
 mysql_select_db("str");
 
 
-require_once 'libraries/ParseCsv/parsecsv.lib.php';
+
 
 /* in data */
 
@@ -99,8 +99,7 @@ if ($totalitems1 > 0) {
 //print_r($inf);
 //exit();
     if(isset($inf) && !empty($inf)){
-        //$csv = new ParseCsv\Csv('data.csv');
-        $csv = new ParseCsv('data.csv');
+        $csv = new ParseCsv\Csv('data.csv');
        // $csv->encoding( 'UTF-8');
         # When saving,  write the header row:
         $csv->heading = FALSE;

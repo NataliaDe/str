@@ -1,5 +1,34 @@
 <br>
 
+<?php
+$is_vacant = 0;
+foreach ($list_fio as $row) {
+
+    if (strtolower(trim($row['fio'])) == 'вакант' && $row['is_vacant'] == 0) {
+        $is_vacant++;
+    }
+}
+
+if ($is_vacant > 0) {
+
+    ?>
+    <div class="container">
+        <div class="alert alert-danger">
+    <strong>Внимание!</strong> Необходимо установить отметку
+    <div class="checkbox checkbox-danger" style="display: inline">
+        <input id="checkbox1" type="checkbox" checked >
+                <label for="checkbox1">
+                    Вакант (Ф.И.О. не указывать)
+                </label>
+    </div> для вакантов! <b>В противном случае данные будут не достоверными.</b>
+
+        </div>
+    </div>
+
+    <?php
+}
+?>
+
 <div class="container" id="container-query-result">
     <div class="col-lg-12">
 
@@ -63,7 +92,20 @@
                         }
                         ?>
 
-                        <td><?= $row['fio'] ?></td>
+                        <td><?= $row['fio'] ?>
+
+                         <?php
+                                if ((strtolower(trim($row['fio']))) == 'вакант' && $row['is_vacant'] == 0) {
+
+                                    ?><br>
+                                    Нет отметки!!!
+                                    <?php
+                                }
+
+                                ?><br>
+
+                        <?= (!empty($row['phone'])) ? ('тел: ' . $row['phone']) : '' ?>
+                        </td>
                         <td><?= $row['rank'] ?></td>
                         <td><?= $row['position'] ?></td>
                         <td><?= $row['divizion'] ?></td>

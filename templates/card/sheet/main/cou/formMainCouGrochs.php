@@ -1,3 +1,4 @@
+<!------------------- cou GROCHS without shlhs ---------------------->
 <?php
 //какую дату писать в дате заступления. если смена сег должна заступить - сегодня
 $is_btn_confirm = isset($is_btn_confirm) ? $is_btn_confirm : 0;
@@ -191,6 +192,8 @@ if (isset($main) && !empty($main)) {
 
         $dateduty = $row['dateduty'];
 
+
+
         if (!empty($row['id_fio'])) {
             $count_all[] = $row['id_fio'];
         }
@@ -233,6 +236,8 @@ if (isset($main) && !empty($main)) {
             $driver[] = $row['id_fio'];
         elseif ($row['id_pos_duty'] == 12)
             $others[] = $row['id_fio'];
+                 elseif ($row['id_pos_duty'] == 25)
+            $fio_head = $row['fio_text'];
 
 
         //$is_open_update = $row['open_update']; //доступ на ред.дежурной смены
@@ -863,6 +868,13 @@ if (isset($main) && !empty($main)) {
                                     </div>
                                 </div>
 
+
+
+
+
+
+
+
  <div class="col-lg-1">
                                     <div class="form-group">
                                         <label class="control-label col-lg-12" for="face">еж.</label>
@@ -876,6 +888,13 @@ if (isset($main) && !empty($main)) {
                                         <input type="text" class="form-control" style="background-color:  #d4e062 !important;" placeholder="0" value="<?= $count_past_reserve_fio ?>" disabled="" id="on_reserve">
                                     </div>
                                 </div>
+
+
+
+   <?php
+               include 'parts/fio_head.php';
+
+   ?>
 
 
                             </div>

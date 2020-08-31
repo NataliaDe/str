@@ -1,3 +1,5 @@
+
+
 <?php
 /* ------- запрос по технике в цифрах ------- */
 //foreach ($res as $value) {
@@ -141,10 +143,10 @@ $date_start = $today->Format('d.m.Y');
                         ?>
                         <tr class="info">
                             <td></td>
-                            <td>ИТОГО по Г(Р)ОЧС</td>
+                            <td><b>ИТОГО по Г(Р)ОЧС</b></td>
                             <td></td>
                             <td></td>
-                            <td><?= $grochs_all ?></td>
+                            <td><b><?= $grochs_all ?></b></td>
                         </tr>
                         <?php
                         $grochs_all = 0; //обнулить
@@ -153,10 +155,10 @@ $date_start = $today->Format('d.m.Y');
                         ?>
                         <tr class="warning">
                             <td></td>
-                            <td>ИТОГО по области</td>
+                            <td><b>ИТОГО по области</b></td>
                             <td></td>
                             <td></td>
-                            <td><?= $region_all ?></td>
+                            <td><b><?= $region_all ?></b></td>
 
                         </tr>
             <?php
@@ -176,8 +178,10 @@ $date_start = $today->Format('d.m.Y');
 
     if (( isset($value['co']) && $value['co'] != 0 ) || $co_from_other_pasp != 0) {
         ?>
-                    <tr>
-                        <td><?= $i ?></td>
+                <tr style="background-color: <?=($value['id_divizion'] == 8) ? '#fdfbc6  !important;' : ''?>">
+                        <td><?= $i ?>
+
+                        </td>
                         <td><?= $value['region_name'] ?> </td>
                         <td> <?= $value['divizion'] ?>, <?= $value['organ'] ?> </td>
                         <td><?php
@@ -228,10 +232,10 @@ if ($type == 1) {//кроме РОСН/UGZ
         ?>
                     <tr class="info">
                         <td></td>
-                        <td>ИТОГО по Г(Р)ОЧС</td>
+                        <td><b>ИТОГО по Г(Р)ОЧС</b></td>
                         <td></td>
                         <td></td>
-                        <td><?= $grochs_all ?></td>
+                        <td><b><?= $grochs_all ?></b></td>
                     </tr>
         <?php
         $grochs_all = 0; //обнулить
@@ -242,10 +246,10 @@ if ($type == 1) {//кроме РОСН/UGZ
 
                     <tr class="warning">
                         <td></td>
-                        <td>ИТОГО по области</td>
+                        <td><b>ИТОГО по области</b></td>
                         <td></td>
                         <td></td>
-                        <td><?= $region_all ?></td>
+                        <td><b><?= $region_all ?></b></td>
                     </tr>
         <?php
         $region_all = 0; //обнулить
@@ -254,10 +258,10 @@ if ($type == 1) {//кроме РОСН/UGZ
 ?>
             <tr class="success">
                 <td></td>
-                <td>ИТОГО</td>
+                <td><b>ИТОГО</b></td>
                 <td></td>
                 <td></td>
-                <td><?= $rb_all ?></td>
+                <td><b><?= $rb_all ?></b></td>
 
             </tr>
 

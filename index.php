@@ -17,7 +17,7 @@ define(RCUIDCARD, 152);//rcu locorg
 const locorg_umchs= array(1=>145,2=>146,4=>147,5=>148,3=>149,7=>150,6=>151);//id of umchs. declare else in topmenu.php !!!!!
 
 define(VER, '3.2');
-define(NEWS_DATE, '30.09.2019');
+define(NEWS_DATE, '17.08.2020');
 define(TIME_ALLOW_OPEN_UPDATE,'17:00:00');
 /************************  END CONSTANT ******************************/
 
@@ -537,7 +537,23 @@ $app->group('/general', function () use ($app) {
 
         }
 
-        return R::getAll($sql);
+        $list=R::getAll($sql);
+
+        $isolation = R::getAll('select * from isolation');
+        $ids_isolation = array_column($isolation, 'id_card');
+
+
+        if (isset($ids_isolation) && !empty($ids_isolation)) {
+            foreach ($list as $key => $row) {
+                if (in_array($row['id_record'], $ids_isolation))
+                    unset($list[$key]);
+            }
+        }
+
+
+        return $list;
+
+        //return R::getAll($sql);
     }
 
     //Общая инф о заполненности строевых ЦОУ
@@ -792,10 +808,24 @@ $app->post('/login', function () use ($app, $log) {
         $cp_umchs_rcu = array(8, 9, 10, 11, 12,  5); //id ЦП+'РЦУ'
         $cp = array(9, 10, 11, 12); //id ЦП без РОСН
 
+        $isolation=R::getAll('select * from isolation');
+        $ids_isolation=array_column($isolation,'id_card');
+
+
+
+
+
         if ($_SESSION['ulevel'] == 1) {//РЦУРЧС
 
             /*             * ***************  меню УМЧС без ЦП *************** */
             $menu = R::getAll('SELECT * FROM menu WHERE organ_id NOT IN (' . implode(",", $cp_umchs_rcu) . ')  ORDER BY region, locorg, divizion_num ASC');
+
+            if(isset($ids_isolation) && !empty($ids_isolation)){
+                foreach ($menu as $key => $row) {
+                    if(in_array($row['record_id'], $ids_isolation))
+                        unset($menu[$key]);
+                }
+            }
 
             /*             * ***************  меню РОСН *************** */
             $menurosn = R::getAll('SELECT * FROM menurosn ORDER BY name ASC');
@@ -853,6 +883,14 @@ $app->post('/login', function () use ($app, $log) {
             }
 
             if (isset($menu) && !empty($menu)) {
+
+                if (isset($ids_isolation) && !empty($ids_isolation)) {
+                    foreach ($menu as $key => $row) {
+                        if (in_array($row['record_id'], $ids_isolation))
+                            unset($menu[$key]);
+                    }
+                }
+
                 prepareMenu($menu);
             }
             if (isset($menurosn) && !empty($menurosn)) {
@@ -1994,6 +2032,9 @@ $data['active']= 'car';
         }
         /* ++++++++  РЕЗУЛЬТАТ ++++++++++ */
         //пробежать по всем ПАСЧ - выбрать инф по деж смене , определить дату и смены, на которую надо позже выбрать отсутствующих
+                 $itogo=[];
+                $itogo_obl=[];
+                $itogo_rb=[];
         foreach ($id_pasp as $value) {
 
                if($date==0){
@@ -2003,8 +2044,10 @@ $data['active']= 'car';
                   $inf1 = R::getAll('select * from spr_info_report where id_pasp = ? AND dateduty = ? limit 1', array($value['id_pasp'],$date));
             }
 
+
             if(!empty($inf1)){
                 $main[$value['id_pasp']] = array();
+
 
             //оформить инф по деж смене в массив : [id_pasp] => array([shtat_ch]=>25,...)
             foreach ($inf1 as $row) {
@@ -6652,7 +6695,7 @@ return $main;
         /*----------------------------- только родная техника - та, которая уехала в командировку - та, которая приехала из др.ПАСЧ ------------------------------------*/
             $sql = " SELECT   count(distinct c.id_teh) as co, "
             . "     `reg`.`name`        AS `region_name`,"
-            . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`,"
+            . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`, re.id_divizion,"
             . " `re`.`id`         AS `id_pasp`,"
             . " (CASE WHEN (`org`.`id` = 8) THEN `org`.`name` WHEN (`org`.`id` = 7) THEN CONCAT(`org`.`name`,' №',`locor`.`no`,' ',REPLACE(`loc`.`name`,'ий','ого'),' ',`orgg`.`name`) "
             . "  ELSE CONCAT(`loc`.`name`,' ',`org`.`name`) END) AS `organ`,"
@@ -6680,7 +6723,7 @@ return $main;
             . "  (SELECT  res.`id_teh`  FROM  str.reservecar AS res WHERE (( ' " . $date_start . " ' BETWEEN res.date1 AND res.date2) OR( ' " . $date_start . " '  >= res.date1 AND res.date2 IS NULL)) ) ";
         //   . " and d.id not in (8,9)";
         //марка техники
-                      $sql_mark = " SELECT distinct t.id as teh_id,   t.mark as mark, `re`.`id` AS `id_pasp`,"
+                      $sql_mark = " SELECT distinct t.id as teh_id,   t.mark as mark, `re`.`id` AS `id_pasp`, re.id_divizion,"
                           . "CASE WHEN(c.id_type=1) THEN CONCAT(' (Бр)')
 WHEN(c.id_type=2) THEN CONCAT(' (Рез)')
  WHEN(c.is_repair=1) THEN CONCAT(' (Рем)')
@@ -6852,7 +6895,7 @@ ELSE 5 END AS is_color "
         /* ------------------------------------------------ Техника из др подразделения ------------------------------------------------------------- */
             $sql_teh_from_other_pasp = " SELECT distinct c.id_teh as teh_id,  res.id_card as id_pasp, count(res.`id_teh` ) as co, "
                       . "     `reg`.`name`        AS `region_name`,"
-                    . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`,"
+                    . "`reg`.`id`          AS `region_id`,  `re`.`id_loc_org` AS `id_grochs`, re.id_divizion,"
 
                     . " (CASE WHEN (`org`.`id` = 8) THEN `org`.`name` WHEN (`org`.`id` = 7) THEN CONCAT(`org`.`name`,' №',`locor`.`no`,' ',REPLACE(`loc`.`name`,'ий','ого'),' ',`orgg`.`name`) "
                     . "  ELSE CONCAT(`loc`.`name`,' ',`org`.`name`) END) AS `organ`,"
@@ -6877,7 +6920,7 @@ ELSE 5 END AS is_color "
 
 
             //марка техники из др.подразделения
-               $sql_teh_mark_from_other_pasp = " SELECT distinct c.id_teh as teh_id,  res.id_card as id_pasp, t.mark as mark, "
+               $sql_teh_mark_from_other_pasp = " SELECT distinct c.id_teh as teh_id,  res.id_card as id_pasp, t.mark as mark,re.id_divizion, "
                           . "CASE WHEN(c.id_type=1) THEN CONCAT(' (Бр)')
 WHEN(c.id_type=2) THEN CONCAT(' (Рез)')
  WHEN(c.is_repair=1) THEN CONCAT(' (Рем)')
@@ -7024,6 +7067,7 @@ ELSE 5 END AS is_color "
 
         /*----------------------------- экспорт в Excel запроса по технике count --------------------------------------*/
     function exportToExcelQueryCarBigCount($res, $teh_from_other_card_array, $type, $data) {
+
         $objPHPExcel = new PHPExcel();
         $objReader = PHPExcel_IOFactory::createReader("Excel2007");
         $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/builder_basic/query_car_count.xlsx');
@@ -7045,7 +7089,29 @@ ELSE 5 END AS is_color "
         }
         foreach ($teh_from_other_card_array as $key => $value) {
             if (!in_array($key, $id_native_teh)) {//добавить в массив информацию о подразделении, где есть только чужая техника, а родной нет
-                $res[] = $value;
+//                $res[] = $value;
+//                unset($teh_from_other_card_array[$key]);
+                $id_gochs = $value['id_grochs'];
+                $k_pos = 0;
+                $k_pos_region = 0;
+                foreach ($res as $k => $m) {
+
+                    if ($m['id_grochs'] == $id_gochs) {
+
+                        $k_pos = $k + 1;
+                    }
+                    if ($value['region_id'] == $m['region_id'])
+                        $k_pos_region = $k + 1;
+                }
+
+                if ($k_pos != 0) {
+                    array_splice($res, $k_pos, 0, array($value));
+                } elseif ($k_pos_region != 0) {
+                    array_splice($res, $k_pos_region, 0, array($value));
+                } else {
+                    $res[] = $value;
+                }
+
                 unset($teh_from_other_card_array[$key]);
             }
         }
@@ -9914,6 +9980,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $calc = $app->request()->post('calc');
        // $countduty = $face - $calc;
         $countduty = $app->request()->post('duty');
+        $fio_dop=trim($app->request()->post('fio_dop'));
+
 
         //если не указан начальник смены
         if(empty($id_head_fio) || !isset($id_head_fio)){
@@ -9959,6 +10027,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $main->countdisp = $app->request()->post('countdisp');
        // $main->fiodisp = $app->request()->post('fiodisp');
         $main->fio_duty = $app->request()->post('fio_duty');
+        $main->fio_dop = $fio_dop;
         $main->last_update = date("Y-m-d H:i:s");
         $main->id_user = $_SESSION['uid'];
 
@@ -9982,6 +10051,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 
     $app->put('/:id/ch/:change/main', function ($id, $change) use ($app, $log) {//update main information
         array($app, 'is_auth'); //авторизован ли пользователь
+
         $data = bread($id);
         $data['change'] = $change;
         $data['sign'] = 5; //main
@@ -10045,6 +10115,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         //$countduty = $face - $calc;
          $countduty=$app->request()->post('duty');
 
+        $fio_dop=trim($app->request()->post('fio_dop'));
+
         $main = R::load('main', $id_main);
 
         $old_dateduty=$main->dateduty;//дата прошлого дежурства
@@ -10063,6 +10135,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
         $main->countdisp = $app->request()->post('countdisp');
         //$main->fiodisp = $app->request()->post('fiodisp');
         $main->fio_duty = $app->request()->post('fio_duty');
+        $main->fio_dop = $fio_dop;
         $main->last_update = date("Y-m-d H:i:s");
         $main->id_user = $_SESSION['uid'];
 
@@ -20683,6 +20756,7 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         $data['past_garnison_fio'] =getListFioTextByPosMainCou($id, $change, 1, 0, 14);
 
 
+
         /* ----- связь многие ко многим ---- */
 
         // last disp
@@ -20724,7 +20798,6 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         // last on garnison
         $data['past_garnison_fio'] =getListFioTextByPosMainCou($id, $change, 1, 0, 14);
 
-
         /* ----- связь многие ко многим ---- */
 
         // last disp
@@ -20764,7 +20837,6 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         // last on garnison
         $data['past_garnison_fio'] =getListFioTextByPosMainCou($id, $change, 1, 0, 14);
 
-
         /* ----- связь многие ко многим ---- */
 
         // Заступал зам ОД
@@ -20784,6 +20856,11 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
         // Заступал другие
         $data['past_others_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 12), $id, $change);
+
+
+        // last pom sch
+        $data['past_st_pom_sch_fio'] = getFioById(getListFioByPosMainCou($id, $change, 1, 0, 22), $id, $change);
+
 
         /* -------------------- END ЗАСТУПАЛИ прошлый раз  --------------------------- */
          }
@@ -21028,6 +21105,14 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
                 saveMainCouOneText($id, $change, 14, $dateduty, $garnison); // insert or update
 
 
+                            /* -----------  fio head - 25 ----------- */
+            $fio_head = $app->request()->post('fio_head');
+            if (isset($fio_head))
+                saveMainCouOneText($id, $change, 25, $dateduty, $fio_head); // insert or update
+
+
+
+
             $id_head_fio_old = array($head_ch, $god, $pom_god,$head_sch,$zam_head_sch,$st_pom_sch, $trainee, $inspector_inip, $garnison);
             $id_head_fio_new=array();
             foreach ($id_head_fio_old as $element) {
@@ -21127,6 +21212,13 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
             $opg = $app->request()->post('opg');
             if (isset($opg))
                 saveMainCouOneText($id, $change, 24, $dateduty, $opg); // insert or update
+
+
+
+                                        /* -----------  fio head - 25 ----------- */
+            $fio_head = $app->request()->post('fio_head');
+            if (isset($fio_head))
+                saveMainCouOneText($id, $change, 25, $dateduty, $fio_head); // insert or update
 
 
             $id_head_fio_old = array( $god, $pom_god,$zam_head_sch, $trainee, $garnison,$opg);
@@ -21251,7 +21343,19 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
                 saveMainCouOneText($id, $change, 14, $dateduty, $garnison); // insert or update
 
 
+                            /* -----------  fio head - 25 ----------- */
+            $fio_head = $app->request()->post('fio_head');
+            if (isset($fio_head))
+                saveMainCouOneText($id, $change, 25, $dateduty, $fio_head); // insert or update
 
+
+            /* ----- st pom sch - 22  --- */
+            $st_pom_sch = $app->request()->post('st_pom_sch');
+            // insert or update
+            if (!isset($st_pom_sch)) {
+                $st_pom_sch = array();
+            }
+            saveMainCouTwo($id, $change, 22, $dateduty, $st_pom_sch); //check and insert or update
 
 
 
@@ -21282,6 +21386,10 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
             }
             if (is_array($others) && !empty($others)) {
                 $id_head_fio_new = array_merge($id_head_fio_new, $others);
+            }
+
+            if (is_array($st_pom_sch) && !empty($st_pom_sch)) {
+                $id_head_fio_new = array_merge($id_head_fio_new, $st_pom_sch);
             }
         }
 
@@ -21783,12 +21891,12 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         return $new_arr;
     }
     /* +++++++++++++++++++++ инф по сменам +++++++++++++++++++++ */
-        $app->post('/builder/basic/inf_ch_cou/:type', function ($type) use ($app) {// результат запросника информация по сменам ЦОУ, ШЛЧС
+    $app->post('/builder/basic/inf_ch_cou/:type', function ($type) use ($app) {// результат запросника информация по сменам ЦОУ, ШЛЧС
         if (!isset($_POST['export_to_excel'])) {
             array($app, 'is_auth');
 
             $data['convex_item']['query'] = 1; // item 'search' is active
-            $data['unseen_notifications']=getUnseenNotificationsByUser();
+            $data['unseen_notifications'] = getUnseenNotificationsByUser();
 
             $data['title_name'] = 'Запросы/Инф.по сменам ЦОУ, ШЛЧС';
             $app->render('layouts/header.php', $data);
@@ -21832,10 +21940,9 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
         $main = array();
         $head_info = array();
-        if (!empty($region) && !empty($grochs) ) {//должно быть выбрано подразделение обязательно!
-
-            if(empty($divizion)){
-$divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = ?  limit 1', array($grochs));
+        if (!empty($region) && !empty($grochs)) {//должно быть выбрано подразделение обязательно!
+            if (empty($divizion)) {
+                $divizion = R::getCell('select id_pasp from spr_info_report_cou where id_grochs = ?  limit 1', array($grochs));
             }
 
             $head_info = getInfChBasicCou($region, $grochs, $divizion, $date); //information about name for caption of table
@@ -21865,7 +21972,7 @@ $divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = 
 //            exit();
                 foreach ($mas_pos_fio as $key => $value) {
 
-                    if (!empty($value) && ($key == 'Ответственный по гарнизону' || $key == 'Инспектор ОНиП')) {
+                    if (!empty($value) && ($key == 'Ответственный по гарнизону' || $key == 'Инспектор ОНиП' || $key == 'Дополнительно для усиления')) {
 
                         $new_mas_pos_fio[$key][0] = array('id' => '', 'id_cardch' => '', 'is_every' => '', 'fio' => $value[0], 'slug' => '', 'pasp' => '', 'locorg_name' => '', 'is_nobody' => '');
                     } else {
@@ -21926,10 +22033,7 @@ $divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = 
                 $app->render('msg/emtyResult.php', $data); //no result
             }
         } elseif (empty($region) && $region == '' && $grochs == '') {// all cou by rb
-
-
-             $data['posduty_list'] = R::getAll("SELECT *  FROM  posdutycou");
-
+            $data['posduty_list'] = R::getAll("SELECT *  FROM  posdutycou where is_not_show = ? and sort <>? order by sort", array(0,0));
 
             if ($date != 0) {
 
@@ -21940,182 +22044,48 @@ $divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = 
                 $head_info['name'] = 'РБ';
                 $data['head_info'] = $head_info;
 
+                $result = [];
+                $regions = R::getAll('select * from ss.regions');
+                $regions[] = array('id' => 8, 'name' => 'РОСН');
+                //$regions[]=array('id'=>9,'name'=>'УГЗ');
+                //$regions[]=array('id'=>12,'name'=>'Авиация');
+                foreach ($regions as $value) {
 
-                /* pasp */
-                $pasp_inf_bd=R::getAll("select * from main_cou_cnt_pasp_pos as m where m.dateduty= ?",array($dateduty_head));
+                    $region_name = $value['name'];
 
-                //by region
-                $region_inf_bd=R::getAll("select * from main_cou_cnt_region_pos as m where m.dateduty= ?",array($dateduty_head));
-
-                 //by rb
-                $rb_inf_bd=R::getAll("select * from main_cou_cnt_rb_pos as m where m.dateduty= ?",array($dateduty_head));
-
-
-                foreach ($region_inf_bd as $value) {
-                    $cnt_by_region[$value['region_id']][$value['id_pos_duty']] = $value['cnt_pos'];
-                }
-                $data['cnt_by_region'] = $cnt_by_region;
-
-                foreach ($rb_inf_bd as $value) {
-                    $cnt_by_rb[$value['id_pos_duty']] = $value['cnt_pos'];
-                }
-                $data['cnt_by_rb'] = $cnt_by_rb;
-
-
-//print_r( $region_inf_bd);exit();
-
-                /* itogo position region */
-                $region_itogo = array();
-                foreach ($region_inf_bd as $value) {
-                    $region_itogo[$value['region_id']]['position'][$value['id_pos_duty']] = array('id_pos_duty' => $value['id_pos_duty'], 'pos_name' => $value['pos_name'], 'cnt_pos' => $value['cnt_pos']);
-                    $region_itogo[$value['region_id']]['info']['region_name'] = $value['region'];
-                }
-
-                /* itogo position rb */
-                $rb_itogo = array();
-                foreach ($rb_inf_bd as $value) {
-                    $rb_itogo[$value['id_pos_duty']] = array('id_pos_duty' => $value['id_pos_duty'], 'pos_name' => $value['pos_name'], 'cnt_pos' => $value['cnt_pos']);
-                }
-
-                $data['region_itogo'] = $region_itogo;
-                $data['rb_itogo'] = $rb_itogo;
-
-
-
-                /* ROSN */
-
-                //by region
-                $region_rosn_inf_bd = R::getAll("select * from main_cou_cnt_region_rosn_pos as m where m.dateduty= ?", array($dateduty_head));
-
-                /* itogo position region */
-                $region_rosn_itogo = array();
-                foreach ($region_rosn_inf_bd as $value) {
-                    $region_rosn_itogo[$value['organ_id']]['position'][$value['id_pos_duty']] = array('id_pos_duty' => $value['id_pos_duty'], 'pos_name' => $value['pos_name'], 'cnt_pos' => $value['cnt_pos']);
-                    $region_rosn_itogo[$value['organ_id']]['info']['region_name'] = $value['region'];
-                }
-
-                $data['region_rosn_itogo'] = $region_rosn_itogo;
-
-
-
-
-//print_r( $region_rosn_itogo);exit();
-
-                /* shtat, absent */
-                $pasp_inf_new=array();
-                $shtat[1]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[2]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[3]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[4]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[5]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[6]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[7]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[8]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[9]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-                $shtat[12]=array('shtat_ch'=>0,'vacant_ch'=>0,'shtat'=>0,'vacant'=>0);
-
-                $absent[1]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[2]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[3]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[4]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[5]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[6]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[7]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[8]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[9]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-                $absent[12]=array('trip'=>0,'holiday'=>0,'ill'=>0,'other'=>0);
-
-                $count_fio_on_car[1]=array('cnt_on_car'=>0);
-                $count_fio_on_car[2]=array('cnt_on_car'=>0);
-                $count_fio_on_car[3]=array('cnt_on_car'=>0);
-                $count_fio_on_car[4]=array('cnt_on_car'=>0);
-                $count_fio_on_car[5]=array('cnt_on_car'=>0);
-                $count_fio_on_car[6]=array('cnt_on_car'=>0);
-                $count_fio_on_car[7]=array('cnt_on_car'=>0);
-                $count_fio_on_car[8]=array('cnt_on_car'=>0);
-                $count_fio_on_car[9]=array('cnt_on_car'=>0);
-                $count_fio_on_car[12]=array('cnt_on_car'=>0);
-
-
-
-
-                /* unique id card */
-                $ids_card=array();
-
-                foreach ($pasp_inf_bd as $row) {
-
-                    $arr_cp = array(8, 9, 12);
-
-                    if (in_array($row['organ_id'], $arr_cp)) {
-                        $id_reg = $row['organ_id'];
+                    $id_region = $value['id'];
+                    //all cou by region
+                    if (in_array($id_region, array(8, 9, 12))) {
+                        $list_cou = R::getAll('select * from spec_tbl_dones where id_organ = ? AND diviz_id = ? ORDER BY id_organ DESC', array($id_region, 8));
                     } else {
-                        $id_reg = $row['region_id'];
+                        $cou_umchs = R::getAll('select * from spec_tbl_dones where id_region = ? and id_organ NOT IN (8,9,12) AND diviz_id = ? AND id_organ = ?', array($id_region, 8, 4));
+                        $list_cou = R::getAll('select * from spec_tbl_dones where id_region = ? and id_organ NOT IN (8,9,12) AND diviz_id = ? AND id_organ <> ?', array($id_region, 8, 4));
+                        $list_cou = array_merge($cou_umchs, $list_cou);
                     }
 
-                    if (isset($ids_card[$id_reg]) && !empty($ids_card[$id_reg])) {
-                            if (!in_array($row['id_card'], $ids_card[$id_reg])) {
-                                $ids_card[$id_reg][] = $row['id_card'];
+
+                    if (!empty($list_cou)) {
+                        foreach ($list_cou as $cou_key => $cou) {
+
+                            foreach ($data['posduty_list'] as $p) {
+
+                                $mc = R::getRow('SELECT `mc`.`id_card` AS `id_card`, `mc`.`id_pos_duty`  AS `id_pos_duty`,`pd`.`name` AS `pos_name`, COUNT(DISTINCT `mc`.`id`) AS `cnt_pos` FROM ((`str`.`maincou` `mc` LEFT JOIN `str`.`posdutycou` `pd` ON ((`pd`.`id` = `mc`.`id_pos_duty`))) LEFT JOIN `str`.`menu` `m` ON ((`m`.`record_id` = `mc`.`id_card`))) WHERE (`m`.`region` IS NOT NULL) AND mc.`dateduty`=? and mc.id_card = ? and id_pos_duty = ? GROUP BY `mc`.`id_card`,`mc`.`dateduty`,`mc`.`id_pos_duty` limit ?', array($dateduty_head, $cou['id_pasp'], $p['id'], 1));
+                                //print_r($mc);
+
+                                if (!empty($mc)) {
+                                    //$result[$region_name]['list_cou'] = $list_cou;
+                                    $list_cou[$cou_key][$p['name']] = $mc['cnt_pos'];
+                                } else {
+                                    $list_cou[$cou_key][$p['name']] = '';
+                                }
                             }
-                        } else {
-                            $ids_card[$id_reg][] = $row['id_card'];
                         }
-
-                }
-
-               // print_r($ids_card);
-
-                /* shtat, absent */
-                foreach ($ids_card as $id_region=>$value) {
-                    foreach ($value as $row) {
-                        $shtat[$id_region]['shtat_ch']+= getShtatFromKUSiS($change, $row);
-                        $shtat[$id_region]['vacant_ch']+= getCountVacantOnList($row, $change);
-
-                         $shtat[$id_region] ['shtat'] += R::getCell('select count(l.id) as shtat from str.cardch as c '
-                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ?  ', array($row));
-                        //вакансия по подразделению
-                        $shtat[$id_region] ['vacant'] += R::getCell('select count(l.id) as shtat from str.cardch as c '
-                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND l.is_vacant = ? ', array($row, 1));
-
-                        $absent[$id_region] ['trip'] += getCountTrip($row, $change, $dateduty_head);
-                        $absent[$id_region]['holiday'] += getCountHoliday($row, $change, $dateduty_head);
-                        $absent [$id_region]['ill'] += getCountIll($row, $change, $dateduty_head);
-                        $absent[$id_region]['other'] += getCountOther($row, $change, $dateduty_head);
-
-                        $count_fio_on_car[$id_region]['cnt_on_car']+= getCountCalc($row, $change, $dateduty_head);
                     }
+
+                    $result[$region_name]['list_cou'] = $list_cou;
                 }
 
-               // echo '<br>';
-
-
-                $data['shtatRb'] = sumElementsArray($shtat);
-                $data['absentRb'] = sumElementsArray($absent);
-                $data['countBrRb'] = sumElementsArray($count_fio_on_car);
-
-
-
-//                print_r($aa);
-//                exit();
-
-                $data['main_cou'] = $pasp_inf_new;
-                $data['shtat'] = $shtat;
-                $data['absent'] = $absent;
-                $data['count_fio_on_car'] = $count_fio_on_car;
-               // exit();
-
-                /* -------------------------- export to excel ---------------------------- */
-            if (isset($_POST['export_to_excel'])) {
-               exportToExcelInfChCouByRb($region_itogo,$region_rosn_itogo,$rb_itogo, $data['shtatRb'], $data['absentRb'], $data['countBrRb'],$cnt_by_region,$cnt_by_rb, $shtat, $absent, $count_fio_on_car, $head_info);
-                // exportToExcelInfChCouByRegion($cou_ids,$new_mas_pos_fio,$cnt_main_cou,$main_cou, $shtat, $absent, $count_fio_on_car, $head_info);
-
-            }
-            /* ---------------------- view on screen  ----------------------------- */ else {
-                //print_r($absent);
-                //$app->render('query/result/cou/inf_ch_cou_by_rb.php', $data); //result
-                 $app->render('query/result/cou/inf_ch_cou_by_rb_1.php', $data); //result
-                $app->render('query/pzend.php');
-            }
-
+                $data['result'] = $result;
             } else {
                 $app->render('msg/emtyResult.php', $data); //no result
                 // $app->render('query/pzend.php');
@@ -22123,109 +22093,122 @@ $divizion=R::getCell('select id_pasp from spr_info_report_cou where id_grochs = 
 
 
 
+            /* -------------------------- export to excel ---------------------------- */
+            if (isset($_POST['export_to_excel'])) {
+                export_to_excel_maincou_rb($data['posduty_list'], $result, $head_info);
+            }
+            /* ---------------------- view on screen  ----------------------------- */ else {
 
+                $app->render('query/result/cou/rb.php', $data); //result
+                $app->render('query/pzend.php');
+            }
+
+
+
+            if (!isset($_POST['export_to_excel'])) {
+                $app->render('layouts/footer.php');
+            }
         } elseif (!empty($region) && empty($grochs) && $grochs == '') {// all cou by region
             if ($date != 0) {
 
                 $change = R::getCell('select ch from spr_info_report_cou where dateduty = ? limit 1', array($date));
                 $dateduty_head = $date;
 
-                $head_info['dateduty']=$date;
-                $head_info['name']=R::getCell('select m.region FROM menu AS m WHERE m.`region_id`= ? AND m.`id_divizion`=8 ORDER BY m.`locorg` limit 1', array($region));
+                $head_info['dateduty'] = $date;
+                $head_info['name'] = R::getCell('select m.region FROM menu AS m WHERE m.`region_id`= ? AND m.`id_divizion`=8 ORDER BY m.`locorg` limit 1', array($region));
                 $data['head_info'] = $head_info;
 //$change=2;
 //id of cou
-            $cou_ids = R::getAll('SELECT DISTINCT m.`record_id`,m.* FROM menu AS m WHERE m.`region_id`= ? AND m.`id_divizion`=8 ORDER BY m.`locorg`', array($region));
-            $main_cou = array();
-            $count_fio_on_car = array();
-            $absent = array();
-            $count_main_cou = array();
-            foreach ($cou_ids as $key => $row) {
-                $new_mas_pos_fio = array();
-                $mas_pos_fio = array();
-                $divizion = $row['record_id'];
-                $main = R::getAll('select * from inf_ch_cou where id_card = ? and dateduty = ? order by p_id ', array($row['record_id'], $dateduty_head));
-                // $cou_ids[$key]['inf_ch_cou']=$main;
-                if (!empty($main)) {
-                    //  print_r($main);
-                    foreach ($main as $m) {
-                        $mas_pos_fio[$m['p_name']][] = $m['id_fio']; //массив ключ - наим должности, значение - массив ФИО(id_fio), заступивших на эту должность
-                    }
+                $cou_ids = R::getAll('SELECT DISTINCT m.`record_id`,m.* FROM menu AS m WHERE m.`region_id`= ? AND m.`id_divizion`=8 ORDER BY m.`locorg`', array($region));
+                $main_cou = array();
+                $count_fio_on_car = array();
+                $absent = array();
+                $count_main_cou = array();
+                foreach ($cou_ids as $key => $row) {
+                    $new_mas_pos_fio = array();
+                    $mas_pos_fio = array();
+                    $divizion = $row['record_id'];
+                    $main = R::getAll('select * from inf_ch_cou where id_card = ? and dateduty = ? order by p_id ', array($row['record_id'], $dateduty_head));
+                    // $cou_ids[$key]['inf_ch_cou']=$main;
+                    if (!empty($main)) {
+                        //  print_r($main);
+                        foreach ($main as $m) {
+                            $mas_pos_fio[$m['p_name']][] = $m['id_fio']; //массив ключ - наим должности, значение - массив ФИО(id_fio), заступивших на эту должность
+                        }
 //print_r($mas_pos_fio);
 //            exit();
-                    foreach ($mas_pos_fio as $key => $value) {
-                        //  print_r($value);
-                        if (!empty($value) && ($key == 'Ответственный по гарнизону' || $key == 'Инспектор ОНиП')) {
+                        foreach ($mas_pos_fio as $key => $value) {
+                            //  print_r($value);
+                            if (!empty($value) && ($key == 'Ответственный по гарнизону' || $key == 'Инспектор ОНиП' || $key == 'Дополнительно для усиления')) {
 
 
-                            $new_mas_pos_fio[$key][0] = array('id' => '', 'id_cardch' => '', 'is_every' => '', 'fio' => $value[0], 'slug' => '', 'pasp' => '', 'locorg_name' => '', 'is_nobody' => '');
-                        } else {
-                            $new_mas_pos_fio[$key] = getFioById($value, $divizion, $change); //ключ - наим должности, значение - массив ФИО, заступивших на эту должность
-                        }
+                                $new_mas_pos_fio[$key][0] = array('id' => '', 'id_cardch' => '', 'is_every' => '', 'fio' => $value[0], 'slug' => '', 'pasp' => '', 'locorg_name' => '', 'is_nobody' => '');
+                            } else {
+                                $new_mas_pos_fio[$key] = getFioById($value, $divizion, $change); //ключ - наим должности, значение - массив ФИО, заступивших на эту должность
+                            }
 
 
 //                if (!empty($value) && !in_array('', $value) ) {
 //                    //print_r($value);echo '<br>';
 //                    $new_mas_pos_fio[$key] = getFioById($value, $divizion, $change); //ключ - наим должности, значение - массив ФИО, заступивших на эту должность
 //                }
-                    }
-                    //print_r($new_mas_pos_fio);
-                    //exit();
+                        }
+                        //print_r($new_mas_pos_fio);
+                        //exit();
 
-                    $main_cou[$row['record_id']] = $new_mas_pos_fio;
-                    $count_main_cou[$row['record_id']] = count($new_mas_pos_fio);
+                        $main_cou[$row['record_id']] = $new_mas_pos_fio;
+                        $count_main_cou[$row['record_id']] = count($new_mas_pos_fio);
 //print_r($new_mas_pos_fio);
 //echo '<br><br>';
 
-                    /* ------------- по штату в деж смене выбираем из карточки для данной смены! ---------------- */
-                    $shtat[$row['record_id']]['shtat_ch'] = getShtatFromKUSiS($change, $divizion);
+                        /* ------------- по штату в деж смене выбираем из карточки для данной смены! ---------------- */
+                        $shtat[$row['record_id']]['shtat_ch'] = getShtatFromKUSiS($change, $divizion);
 
-                    /* ------------------- вакантов в деж смене -  из списка смен ---------------------- */
-                    $shtat[$row['record_id']]['vacant_ch'] = getCountVacantOnList($divizion, $change);
+                        /* ------------------- вакантов в деж смене -  из списка смен ---------------------- */
+                        $shtat[$row['record_id']]['vacant_ch'] = getCountVacantOnList($divizion, $change);
 
-                    /* ------------------- сколько человек в б.р.(на технике) ---------------------- */
-                    $count_fio_on_car[$row['record_id']] = getCountCalc($divizion, $change, $dateduty_head);
+                        /* ------------------- сколько человек в б.р.(на технике) ---------------------- */
+                        $count_fio_on_car[$row['record_id']] = getCountCalc($divizion, $change, $dateduty_head);
 
-                    /* --------------- отсутствующие ---------------- */
-                    $absent[$row['record_id']] ['trip'] = getCountTrip($divizion, $change, $dateduty_head);
-                    $absent[$row['record_id']]['holiday'] = getCountHoliday($divizion, $change, $dateduty_head);
-                    $absent [$row['record_id']]['ill'] = getCountIll($divizion, $change, $dateduty_head);
-                    $absent[$row['record_id']]['other'] = getCountOther($divizion, $change, $dateduty_head);
+                        /* --------------- отсутствующие ---------------- */
+                        $absent[$row['record_id']] ['trip'] = getCountTrip($divizion, $change, $dateduty_head);
+                        $absent[$row['record_id']]['holiday'] = getCountHoliday($divizion, $change, $dateduty_head);
+                        $absent [$row['record_id']]['ill'] = getCountIll($divizion, $change, $dateduty_head);
+                        $absent[$row['record_id']]['other'] = getCountOther($divizion, $change, $dateduty_head);
 
-                    $data['absent'] = $absent;
+                        $data['absent'] = $absent;
 
 
-                    /* ----------------- л/с подразделения ------------- */
-                    //по штату   по подразделению c ежедневниками
-                    $shtat[$row['record_id']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
-                            . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ?  ', array($divizion));
-                    //вакансия по подразделению
-                    $shtat[$row['record_id']] ['vacant'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
-                            . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND l.is_vacant = ? ', array($divizion, 1));
+                        /* ----------------- л/с подразделения ------------- */
+                        //по штату   по подразделению c ежедневниками
+                        $shtat[$row['record_id']] ['shtat'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ?  ', array($divizion));
+                        //вакансия по подразделению
+                        $shtat[$row['record_id']] ['vacant'] = R::getCell('select count(l.id) as shtat from str.cardch as c '
+                                . ' left join str.listfio as l on l.id_cardch=c.id where c.id_card = ? AND l.is_vacant = ? ', array($divizion, 1));
 
-                    /* ----------------- END л/с подразделения ------------- */
-                }
-                //else {
+                        /* ----------------- END л/с подразделения ------------- */
+                    }
+                    //else {
 //                $app->render('msg/emtyResult.php', $data); //no result
 //            }
-            }
-            $data['cou_ids'] = $cou_ids;
-            $data['cnt_main_cou'] = $count_main_cou;
-            $data['main_cou'] = $main_cou;
-            $data['shtat'] = $shtat;
-            $data['absent'] = $absent;
-            $data['count_fio_on_car'] = $count_fio_on_car;
-            /* -------------------------- export to excel ---------------------------- */
-            if (isset($_POST['export_to_excel'])) {
-               exportToExcelInfChCouByRegion($cou_ids,$new_mas_pos_fio,$count_main_cou,$main_cou, $shtat, $absent, $count_fio_on_car, $head_info);
-                // exportToExcelInfChCouByRegion($cou_ids,$new_mas_pos_fio,$cnt_main_cou,$main_cou, $shtat, $absent, $count_fio_on_car, $head_info);
-
-            }
-            /* ---------------------- view on screen  ----------------------------- */ else {
-                //print_r($absent);
-                $app->render('query/result/cou/inf_ch_cou_by_region.php', $data); //result
-                $app->render('query/pzend.php');
-            }
+                }
+                $data['cou_ids'] = $cou_ids;
+                $data['cnt_main_cou'] = $count_main_cou;
+                $data['main_cou'] = $main_cou;
+                $data['shtat'] = $shtat;
+                $data['absent'] = $absent;
+                $data['count_fio_on_car'] = $count_fio_on_car;
+                /* -------------------------- export to excel ---------------------------- */
+                if (isset($_POST['export_to_excel'])) {
+                    exportToExcelInfChCouByRegion($cou_ids, $new_mas_pos_fio, $count_main_cou, $main_cou, $shtat, $absent, $count_fio_on_car, $head_info);
+                    // exportToExcelInfChCouByRegion($cou_ids,$new_mas_pos_fio,$cnt_main_cou,$main_cou, $shtat, $absent, $count_fio_on_car, $head_info);
+                }
+                /* ---------------------- view on screen  ----------------------------- */ else {
+                    //print_r($absent);
+                    $app->render('query/result/cou/inf_ch_cou_by_region.php', $data); //result
+                    $app->render('query/pzend.php');
+                }
             } else {
                 $app->render('msg/emtyResult.php', $data); //no result
                 // $app->render('query/pzend.php');
@@ -22766,59 +22749,95 @@ $sheet->setCellValue('O' . $r, (($itogo_region_vacant != 0) ? $itogo_region_vaca
 
 
 
-function exportToExcelInfChCouByRb($region_itogo,$region_rosn_itogo,$rb_itogo, $shtatRb, $absentRb, $countBrRb,$cnt_by_region,$cnt_by_rb, $shtat, $absent, $count_fio_on_car, $head_info) {
+
+
+function export_to_excel_maincou_rb($posduty_list, $result, $head_info)
+{
 
     $objPHPExcel = new PHPExcel();
     $objReader = PHPExcel_IOFactory::createReader("Excel2007");
-    $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/builder_basic/cou/inf_ch_cou_by_rb.xlsx');
+    $objPHPExcel = $objReader->load(__DIR__ . '/tmpl/builder_basic/cou/maincou_rb.xlsx');
 //activate worksheet number 1
     $objPHPExcel->setActiveSheetIndex(0);
     $sheet = $objPHPExcel->getActiveSheet();
 //начальная строка для записи
-    $r = 8;
+    $r = 3;
+    $c = 0;
+
+    $cnt_position = count($posduty_list);
+    $all_td = $cnt_position + 2;
+    $vsego_obl = 0;
+    $vsego_pos_obl = [];
+    $prev_obl = 'Брестская';
     $i = 0;
+    $itogo_rb = [];
+    $vsego_rb = 0;
+    $x = 1;
 
     /* +++++++++++++++++++++ style ++++++++++ */
 
-                $style_all = array(
+    $style_all = array(
 // Заполнение цветом
-                'borders' => array(
-                  'allborders' => array(
-                      'style'=>  PHPExcel_Style_Border::BORDER_THIN
-                    )
-                )
+        'borders' => array(
+            'allborders' => array(
+                'style' => PHPExcel_Style_Border::BORDER_THIN
+            )
+        )
+    );
 
-            );
 
-
-                   $style_all_grochs = array(
+    $style_itogo = array(
 // Заполнение цветом
-                'fill' => array(
-                    'type' => PHPExcel_STYLE_FILL::FILL_SOLID,
-                    'color' => array(
-                        'rgb' => '99CCCC'
-                    )
-                ),
-                // Шрифт
-                'font' => array(
-                    'bold' => true
-                )
-            );
+        'fill' => array(
+            'type'  => PHPExcel_STYLE_FILL::FILL_SOLID,
+            'color' => array(
+                'rgb' => 'a7f294'
+            )
+        ),
+        // Шрифт
+        'font' => array(
+            'bold' => true
+        )
+    );
 
-                                  /* Итого по области */
-            $style_all_region = array(
+    /* Итого по области */
+    $style_region = array(
 // Заполнение цветом
-                'fill' => array(
-                    'type' => PHPExcel_STYLE_FILL::FILL_SOLID,
-                    'color' => array(
-                        'rgb' => '00CECE'
-                    )
-                ),
-                // Шрифт
-                'font' => array(
-                    'bold' => true
-                )
-            );
+        'fill' => array(
+            'type'  => PHPExcel_STYLE_FILL::FILL_SOLID,
+            'color' => array(
+                'rgb' => 'fafa28'
+            )
+        ),
+        // Шрифт
+        'font' => array(
+            'bold' => true
+        )
+    );
+
+
+    $style_itogo_rb = array(
+// Заполнение цветом
+        'fill' => array(
+            'type'  => PHPExcel_STYLE_FILL::FILL_SOLID,
+            'color' => array(
+                'rgb' => '65f740'
+            )
+        ),
+        // Шрифт
+        'font' => array(
+            'bold' => true
+        )
+    );
+    $style_umchs = array(
+// Заполнение цветом
+        'fill' => array(
+            'type'  => PHPExcel_STYLE_FILL::FILL_SOLID,
+            'color' => array(
+                'rgb' => '7ad4f5'
+            )
+        )
+    );
 
     /* +++++++++++++ end style +++++++++++++ */
     $head = '';
@@ -22827,126 +22846,156 @@ function exportToExcelInfChCouByRb($region_itogo,$region_rosn_itogo,$rb_itogo, $
         $dateduty_head = date('d.m.Y', strtotime($head_info['dateduty']));
         $name_head = $head_info['name'];
         //}
-        $head = 'Результат запроса за ' . $dateduty_head . ', ' . $name_head.'. '.'ЦОУ.';
+        $head = 'Результат запроса за ' . $dateduty_head . ', ' . $name_head . '. ' . 'ЦОУ.';
     }
-    $sheet->setCellValue('A' . 2, $head);
+    $sheet->setCellValue('A' . 1, $head);
 
     /* ---------------все должности и ФИО на этих должностях------------ */
 
 
-
-
-    foreach ($region_itogo as $id_region => $value) {
-
-         $sheet->setCellValue('A' . $r, $value['info']['region_name']);
-         $sheet->setCellValue('B' . $r, ((isset($value['position'][1]['cnt_pos']) && $value['position'][1]['cnt_pos'] != 0) ? $value['position'][1]['cnt_pos'] : ''));
-         $sheet->setCellValue('C' . $r, ((isset($value['position'][2]['cnt_pos']) && $value['position'][2]['cnt_pos'] != 0) ? $value['position'][2]['cnt_pos'] : ''));
-         $sheet->setCellValue('D' . $r, ((isset($value['position'][3]['cnt_pos']) && $value['position'][3]['cnt_pos'] != 0) ? $value['position'][3]['cnt_pos'] : ''));
-         $sheet->setCellValue('E' . $r, ((isset($value['position'][4]['cnt_pos']) && $value['position'][4]['cnt_pos'] != 0) ? $value['position'][4]['cnt_pos'] : ''));
-         $sheet->setCellValue('F' . $r, ((isset($value['position'][5]['cnt_pos']) && $value['position'][5]['cnt_pos'] != 0) ? $value['position'][5]['cnt_pos'] : ''));
-         $sheet->setCellValue('G' . $r, ((isset($value['position'][6]['cnt_pos']) && $value['position'][6]['cnt_pos'] != 0) ? $value['position'][6]['cnt_pos'] : ''));
-         $sheet->setCellValue('H' . $r, ((isset($value['position'][7]['cnt_pos']) && $value['position'][7]['cnt_pos'] != 0) ? $value['position'][7]['cnt_pos'] : ''));
-         $sheet->setCellValue('I' . $r, ((isset($value['position'][8]['cnt_pos']) && $value['position'][8]['cnt_pos'] != 0) ? $value['position'][8]['cnt_pos'] : ''));
-         $sheet->setCellValue('J' . $r, ((isset($value['position'][9]['cnt_pos']) && $value['position'][9]['cnt_pos'] != 0) ? $value['position'][9]['cnt_pos'] : ''));
-         $sheet->setCellValue('K' . $r, ((isset($value['position'][10]['cnt_pos']) && $value['position'][10]['cnt_pos'] != 0) ? $value['position'][10]['cnt_pos'] : ''));
-         $sheet->setCellValue('L' . $r, ((isset($value['position'][11]['cnt_pos']) && $value['position'][11]['cnt_pos'] != 0) ? $value['position'][11]['cnt_pos'] : ''));
-         $sheet->setCellValue('M' . $r, ((isset($value['position'][12]['cnt_pos']) && $value['position'][12]['cnt_pos'] != 0) ? $value['position'][12]['cnt_pos'] : ''));
-         $sheet->setCellValue('N' . $r, ((isset($value['position'][13]['cnt_pos']) && $value['position'][13]['cnt_pos'] != 0) ? $value['position'][13]['cnt_pos'] : ''));
-         $sheet->setCellValue('O' . $r, ((isset($value['position'][14]['cnt_pos']) && $value['position'][14]['cnt_pos'] != 0) ? $value['position'][14]['cnt_pos'] : ''));
-
-         $sheet->setCellValue('P' . $r, ((isset($shtat[$id_region]['shtat_ch']) && $shtat[$id_region]['shtat_ch'] != 0) ? $shtat[$id_region]['shtat_ch'] : ''));
-         $sheet->setCellValue('Q' . $r, ((isset($shtat[$id_region]['vacant_ch']) && $shtat[$id_region]['vacant_ch'] != 0) ? $shtat[$id_region]['vacant_ch'] : ''));
-         $sheet->setCellValue('R' . $r, ((isset($count_fio_on_car[$id_region]['cnt_on_car']) && $count_fio_on_car[$id_region]['cnt_on_car'] != 0) ? $count_fio_on_car[$id_region]['cnt_on_car'] : ''));
-         $sheet->setCellValue('S' . $r, ((isset($absent[$id_region]['trip']) && $absent[$id_region]['trip'] != 0) ? $absent[$id_region]['trip'] : ''));
-         $sheet->setCellValue('T' . $r, ((isset($absent[$id_region]['holiday']) && $absent[$id_region]['holiday'] != 0) ? $absent[$id_region]['holiday'] : ''));
-         $sheet->setCellValue('U' . $r, ((isset($absent[$id_region]['ill']) && $absent[$id_region]['ill'] != 0) ? $absent[$id_region]['ill'] : ''));
-         $sheet->setCellValue('V' . $r, ((isset($absent[$id_region]['other']) && $absent[$id_region]['other'] != 0) ? $absent[$id_region]['other'] : ''));
-         $sheet->setCellValue('W' . $r, ((isset($shtat[$id_region]['shtat']) && $shtat[$id_region]['shtat'] != 0) ? $shtat[$id_region]['shtat'] : ''));
-         $sheet->setCellValue('X' . $r, ((isset($shtat[$id_region]['vacant']) && $shtat[$id_region]['vacant'] != 0) ? $shtat[$id_region]['vacant'] : ''));
-
-$r++;
-
-
+    foreach ($posduty_list as $pos) {
+        $x++;
+        $sheet->setCellValueByColumnAndRow($c + 1, $r, $pos['name']);
+        $sheet->setCellValueByColumnAndRow($c + 1, $r + 1, $x);
+        $c++;
     }
 
-     $cp = array(8, 9, 12);
-            foreach ($cp as $id_organ) {
-                $id_region = $id_organ;
+    $x++;
+    $sheet->setCellValueByColumnAndRow($c + 1, $r, 'Всего');
+    $sheet->setCellValueByColumnAndRow($c + 1, $r + 1, $x);
+
+    $c = 0;
+    $r = 5;
+
+    foreach ($result as $obl => $row) {
+        $i++;
 
 
-         $sheet->setCellValue('A' . $r, ( ($id_organ == 8) ? 'РОСН' : (($id_organ == 9) ? 'УГЗ' : (($id_organ == 12) ? 'Авиация' : ''))));
-         $sheet->setCellValue('B' . $r, ((isset($region_rosn_itogo[$id_region]['position'][1]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][1]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][1]['cnt_pos'] : ''));
-         $sheet->setCellValue('C' . $r, ((isset($region_rosn_itogo[$id_region]['position'][2]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][2]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][2]['cnt_pos'] : ''));
-         $sheet->setCellValue('D' . $r, ((isset($region_rosn_itogo[$id_region]['position'][3]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][3]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][3]['cnt_pos'] : ''));
-         $sheet->setCellValue('E' . $r, ((isset($region_rosn_itogo[$id_region]['position'][4]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][4]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][4]['cnt_pos'] : ''));
-         $sheet->setCellValue('F' . $r, ((isset($region_rosn_itogo[$id_region]['position'][5]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][5]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][5]['cnt_pos'] : ''));
-         $sheet->setCellValue('G' . $r, ((isset($region_rosn_itogo[$id_region]['position'][6]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][6]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][6]['cnt_pos'] : ''));
-         $sheet->setCellValue('H' . $r, ((isset($region_rosn_itogo[$id_region]['position'][7]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][7]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][7]['cnt_pos'] : ''));
-         $sheet->setCellValue('I' . $r, ((isset($region_rosn_itogo[$id_region]['position'][8]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][8]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][8]['cnt_pos'] : ''));
-         $sheet->setCellValue('J' . $r, ((isset($region_rosn_itogo[$id_region]['position'][9]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][9]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][9]['cnt_pos'] : ''));
-         $sheet->setCellValue('K' . $r, ((isset($region_rosn_itogo[$id_region]['position'][10]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][10]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][10]['cnt_pos'] : ''));
-         $sheet->setCellValue('L' . $r, ((isset($region_rosn_itogo[$id_region]['position'][11]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][11]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][11]['cnt_pos'] : ''));
-         $sheet->setCellValue('M' . $r, ((isset($region_rosn_itogo[$id_region]['position'][12]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][12]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][12]['cnt_pos'] : ''));
-         $sheet->setCellValue('N' . $r, ((isset($region_rosn_itogo[$id_region]['position'][13]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][13]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][13]['cnt_pos'] : ''));
-         $sheet->setCellValue('O' . $r, ((isset($region_rosn_itogo[$id_region]['position'][14]['cnt_pos']) && $region_rosn_itogo[$id_region]['position'][14]['cnt_pos'] != 0) ? $region_rosn_itogo[$id_region]['position'][14]['cnt_pos'] : ''));
-
-
-         $sheet->setCellValue('P' . $r, ((isset($shtat[$id_region]['shtat_ch']) && $shtat[$id_region]['shtat_ch'] != 0) ? $shtat[$id_region]['shtat_ch'] : ''));
-         $sheet->setCellValue('Q' . $r, ((isset($shtat[$id_region]['vacant_ch']) && $shtat[$id_region]['vacant_ch'] != 0) ? $shtat[$id_region]['vacant_ch'] : ''));
-         $sheet->setCellValue('R' . $r, ((isset($count_fio_on_car[$id_region]['cnt_on_car']) && $count_fio_on_car[$id_region]['cnt_on_car'] != 0) ? $count_fio_on_car[$id_region]['cnt_on_car'] : ''));
-         $sheet->setCellValue('S' . $r, ((isset($absent[$id_region]['trip']) && $absent[$id_region]['trip'] != 0) ? $absent[$id_region]['trip'] : ''));
-         $sheet->setCellValue('T' . $r, ((isset($absent[$id_region]['holiday']) && $absent[$id_region]['holiday'] != 0) ? $absent[$id_region]['holiday'] : ''));
-         $sheet->setCellValue('U' . $r, ((isset($absent[$id_region]['ill']) && $absent[$id_region]['ill'] != 0) ? $absent[$id_region]['ill'] : ''));
-         $sheet->setCellValue('V' . $r, ((isset($absent[$id_region]['other']) && $absent[$id_region]['other'] != 0) ? $absent[$id_region]['other'] : ''));
-         $sheet->setCellValue('W' . $r, ((isset($shtat[$id_region]['shtat']) && $shtat[$id_region]['shtat'] != 0) ? $shtat[$id_region]['shtat'] : ''));
-         $sheet->setCellValue('X' . $r, ((isset($shtat[$id_region]['vacant']) && $shtat[$id_region]['vacant'] != 0) ? $shtat[$id_region]['vacant'] : ''));
-
-$r++;
+        if ($prev_obl != $obl) {
+            $sheet->setCellValueByColumnAndRow($c, $r, 'Итого по области:');
+            $all_obl_cnt = 0;
+            if (!empty($vsego_pos_obl) && isset($vsego_pos_obl[$prev_obl])) {
+                foreach ($vsego_pos_obl[$prev_obl] as $value) {
+                    $c++;
+                    $all_obl_cnt += $value;
+                    $sheet->setCellValueByColumnAndRow($c, $r, $value);
+                }
             }
+            $c++;
+            $sheet->setCellValueByColumnAndRow($c, $r, $all_obl_cnt);
+            $sheet->getStyleByColumnAndRow(0, $r, $c, $r)->applyFromArray($style_itogo);
+            $r++;
+        }
+
+        $c = 0;
+        $sheet->mergeCellsByColumnAndRow($c, $r, $c + $all_td - 1, $r);
+        $sheet->setCellValueByColumnAndRow($c, $r, (($obl == 'г.Минск' || $obl == 'РОСН') ? $obl : $obl . ' область'));
+        $sheet->getStyleByColumnAndRow($c, $r, $c + $all_td - 1, $r)->applyFromArray($style_region);
+        $r++;
 
 
-         $sheet->setCellValue('A' . $r, 'Итого по республике');
-         $sheet->setCellValue('B' . $r, ((isset($rb_itogo[1]['cnt_pos']) && $rb_itogo[1]['cnt_pos'] != 0) ? $rb_itogo[1]['cnt_pos'] : ''));
-         $sheet->setCellValue('C' . $r, ((isset($rb_itogo[2]['cnt_pos']) && $rb_itogo[2]['cnt_pos'] != 0) ? $rb_itogo[2]['cnt_pos'] : ''));
-         $sheet->setCellValue('D' . $r, ((isset($rb_itogo[3]['cnt_pos']) && $rb_itogo[3]['cnt_pos'] != 0) ? $rb_itogo[3]['cnt_pos'] : ''));
-         $sheet->setCellValue('E' . $r, ((isset($rb_itogo[4]['cnt_pos']) && $rb_itogo[4]['cnt_pos'] != 0) ? $rb_itogo[4]['cnt_pos'] : ''));
-         $sheet->setCellValue('F' . $r, ((isset($rb_itogo[5]['cnt_pos']) && $rb_itogo[5]['cnt_pos'] != 0) ? $rb_itogo[5]['cnt_pos'] : ''));
-         $sheet->setCellValue('G' . $r, ((isset($rb_itogo[6]['cnt_pos']) && $rb_itogo[6]['cnt_pos'] != 0) ? $rb_itogo[6]['cnt_pos'] : ''));
-         $sheet->setCellValue('H' . $r, ((isset($rb_itogo[7]['cnt_pos']) && $rb_itogo[7]['cnt_pos'] != 0) ? $rb_itogo[7]['cnt_pos'] : ''));
-         $sheet->setCellValue('I' . $r, ((isset($rb_itogo[8]['cnt_pos']) && $rb_itogo[8]['cnt_pos'] != 0) ? $rb_itogo[8]['cnt_pos'] : ''));
-         $sheet->setCellValue('J' . $r, ((isset($rb_itogo[9]['cnt_pos']) && $rb_itogo[9]['cnt_pos'] != 0) ? $rb_itogo[9]['cnt_pos'] : ''));
-         $sheet->setCellValue('K' . $r, ((isset($rb_itogo[10]['cnt_pos']) && $rb_itogo[10]['cnt_pos'] != 0) ? $rb_itogo[10]['cnt_pos'] : ''));
-         $sheet->setCellValue('L' . $r, ((isset($rb_itogo[11]['cnt_pos']) && $rb_itogo[11]['cnt_pos'] != 0) ? $rb_itogo[11]['cnt_pos'] : ''));
-         $sheet->setCellValue('M' . $r, ((isset($rb_itogo[12]['cnt_pos']) && $rb_itogo[12]['cnt_pos'] != 0) ? $rb_itogo[12]['cnt_pos'] : ''));
-         $sheet->setCellValue('N' . $r, ((isset($rb_itogo[13]['cnt_pos']) && $rb_itogo[13]['cnt_pos'] != 0) ? $rb_itogo[13]['cnt_pos'] : ''));
-         $sheet->setCellValue('O' . $r, ((isset($rb_itogo[14]['cnt_pos']) && $rb_itogo[14]['cnt_pos'] != 0) ? $rb_itogo[14]['cnt_pos'] : ''));
+        if (isset($row['list_cou']) && !empty($row['list_cou'])) {
+
+            foreach ($row['list_cou'] as $cou) {
+                $sheet->setCellValueByColumnAndRow($c, $r, ($cou['pasp_name_spec'] . ' ' . $cou['locorg_name_spec']));
+
+                $vsego = 0;
+                foreach ($posduty_list as $pos) {
+                    $c++;
+                    $sheet->setCellValueByColumnAndRow($c, $r, ($cou[$pos['name']]));
+                    $vsego += $cou[$pos['name']];
+                    $vsego_obl += $cou[$pos['name']];
+                    if (isset($vsego_pos_obl[$obl][$pos['name']]))
+                        $vsego_pos_obl[$obl][$pos['name']] += $cou[$pos['name']];
+                    else {
+                        $vsego_pos_obl[$obl][$pos['name']] = $cou[$pos['name']];
+                    }
+                }
+
+                $c++;
+                $sheet->setCellValueByColumnAndRow($c, $r, $vsego);
+
+                if ($cou['id_organ'] == 4)
+                    $sheet->getStyleByColumnAndRow(0, $r, $c, $r)->applyFromArray($style_umchs);
 
 
-         $sheet->setCellValue('P' . $r, ((isset($shtatRb['shtat_ch']) && $shtatRb['shtat_ch'] != 0) ? $shtatRb['shtat_ch'] : ''));
-         $sheet->setCellValue('Q' . $r, ((isset($shtatRb['vacant_ch']) && $shtatRb['vacant_ch'] != 0) ? $shtatRb['vacant_ch'] : ''));
-         $sheet->setCellValue('R' . $r, ((isset($countBrRb['cnt_on_car']) && $countBrRb['cnt_on_car'] != 0) ? $countBrRb['cnt_on_car'] : ''));
-         $sheet->setCellValue('S' . $r, ((isset($absentRb['trip']) && $absentRb['trip'] != 0) ? $absentRb['trip'] : ''));
-         $sheet->setCellValue('T' . $r, ((isset($absentRb['holiday']) && $absentRb['holiday'] != 0) ? $absentRb['holiday'] : '' ));
-         $sheet->setCellValue('U' . $r, ((isset($absentRb['ill']) && $absentRb['ill'] != 0) ? $absentRb['ill'] : ''));
-         $sheet->setCellValue('V' . $r, ((isset($absentRb['other']) && $absentRb['other'] != 0) ? $absentRb['other'] : ''));
-         $sheet->setCellValue('W' . $r, ((isset($shtatRb['shtat']) && $shtatRb['shtat'] != 0) ? $shtatRb['shtat'] : ''));
-         $sheet->setCellValue('X' . $r, ((isset($shtatRb['vacant']) && $shtatRb['vacant'] != 0) ? $shtatRb['vacant'] : ''));
+                $r++;
+                $c = 0;
+            }
+        }
+        $prev_obl = $obl;
+
+        if ($i == count($result)) {
+            $sheet->setCellValueByColumnAndRow($c, $r, 'Итого по РОСН:');
+            $all_obl_cnt = 0;
+            if (!empty($vsego_pos_obl) && isset($vsego_pos_obl[$prev_obl])) {
+                foreach ($vsego_pos_obl[$prev_obl] as $value) {
+                    $c++;
+                    $all_obl_cnt += $value;
+                    $sheet->setCellValueByColumnAndRow($c, $r, $value);
+                }
+            }
+            $c++;
+            $sheet->setCellValueByColumnAndRow($c, $r, $all_obl_cnt);
+            $sheet->getStyleByColumnAndRow(0, $r, $c, $r)->applyFromArray($style_itogo);
+            //$r++;
+        }
+        //$r++;
+    }
+
+    $r++;
+
+    $c = 0;
+    $sheet->setCellValueByColumnAndRow($c, $r, 'Итого по РБ:');
+
+    if (!empty($vsego_pos_obl) && isset($vsego_pos_obl[$prev_obl])) {
+        foreach ($vsego_pos_obl as $value) {
+
+            foreach ($value as $name_p => $cnt) {
+
+                if (isset($itogo_rb[$name_p]))
+                    $itogo_rb[$name_p] += $cnt;
+                else
+                    $itogo_rb[$name_p] = $cnt;
+            }
+        }
+    }
 
 
-    $sheet->getStyleByColumnAndRow(0, $r, 23, $r)->applyFromArray($style_all_region);
+
+
+    if (isset($itogo_rb) && !empty($itogo_rb)) {
+        foreach ($itogo_rb as $cnt) {
+
+            $c++;
+            $vsego_rb += $cnt;
+            $sheet->setCellValueByColumnAndRow($c, $r, $cnt);
+        }
+    }
+
+    $c++;
+    $sheet->setCellValueByColumnAndRow($c, $r, $vsego_rb);
+
+
+    $sheet->getStyleByColumnAndRow(0, $r, $c, $r)->applyFromArray($style_itogo_rb);
 
 
 
-   $sheet->getStyleByColumnAndRow(0, 8, 23, $r)->applyFromArray($style_all);
+
+
+    //$sheet->getStyleByColumnAndRow($c, $r, $c+$all_td, $r)->applyFromArray($style_all_region);
+
+
+
+    $sheet->getStyleByColumnAndRow(0, 4, $all_td - 1, $r)->applyFromArray($style_all);
 
     /* Сохранить в файл */
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="inf_ch_cou_by_rb.xlsx"');
+    header('Content-Disposition: attachment;filename="ЦОУ по РБ.xlsx"');
     header('Cache-Control: max-age=0');
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save('php://output');
 }
-
 /*---------- END export to Excel inf ch ЦОУ ------------*/
 
 

@@ -1,5 +1,32 @@
-
 <?php
+$is_vacant = 0;
+foreach ($list_fio as $row) {
+
+    if (mb_strtolower(trim($row['fio'])) == 'вакант' && $row['is_vacant'] == 0) {
+        $is_vacant++;
+    }
+}
+
+if ($is_vacant > 0) {
+
+    ?>
+    <div class="container">
+        <div class="alert alert-danger">
+    <strong>Внимание!</strong> Необходимо установить отметку
+    <div class="checkbox checkbox-danger" style="display: inline">
+        <input id="checkbox1" type="checkbox" checked >
+                <label for="checkbox1">
+                    Вакант (Ф.И.О. не указывать)
+                </label>
+    </div> для вакантов! <b>В противном случае данные будут не достоверными.</b>
+
+        </div>
+    </div>
+
+    <?php
+}
+
+
 //работники, которых нельзя редакутировать
 $not_edit_array = array();
 if (isset($not_edit) && !empty($not_edit)) {
@@ -125,7 +152,16 @@ if (isset($is_ill) && !empty($is_ill)) {
 
                         ?>
 
-                        <td><?= $row['fio'] ?><br>
+                            <td><?= $row['fio'] ?>
+                             <?php
+                                if ((mb_strtolower(trim($row['fio']))) == 'вакант' && $row['is_vacant'] == 0) {
+
+                                    ?><br>
+                                    Нет отметки!!!
+                                    <?php
+                                }
+
+                                ?><br>
                             <?= (!empty($row['phone'])) ? ('тел: ' . $row['phone']) : '' ?></td>
                         <td><?= $row['rank'] ?></td>
                         <td><?= $row['position'] ?></td>

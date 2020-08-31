@@ -44,8 +44,19 @@ $itogo_no_rb=0;
                                 <td><?= $value['region_name'] ?></td>
                                 <td class="success"><?= $value['yes_fill'] ?></td>
                                 <td class="warning"><?= $value['yes_fill_after'] ?></td>
-                                <td class="danger"><?= $value['no_fill'] ?></td>
-                                 <td><?= $value['itogo'] ?></td>
+                                <td class="danger">
+                                                                    <?php
+echo $value['no_fill'];
+                                ?>
+
+                                </td>
+                                 <td>
+                                <?php
+$value['itogo']
+                                ?>
+
+
+                                 </td>
                             </tr>
                             <?php
 

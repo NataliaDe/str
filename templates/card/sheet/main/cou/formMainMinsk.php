@@ -192,6 +192,7 @@ if (isset($main) && !empty($main)) {
 
         $dateduty = $row['dateduty'];
 
+
         if (!empty($row['id_fio'])) {
             $count_all[] = $row['id_fio'];
         }
@@ -236,6 +237,8 @@ if (isset($main) && !empty($main)) {
 
         elseif ($row['id_pos_duty'] == 12)
             $others[] = $row['id_fio'];
+                 elseif ($row['id_pos_duty'] == 25)
+            $fio_head = $row['fio_text'];
 
 
         //$is_open_update = $row['open_update']; //доступ на ред.дежурной смены
@@ -631,7 +634,7 @@ if (isset($main) && !empty($main)) {
 
             <div class="col-lg-3">
                     <div class="form-group">
-                        <label class="control-label  col-lg-12" for="eng_tks">Зам. начальника ШЛЧС центра
+                        <label class="control-label  col-lg-12" for="eng_tks">Зам. начальника ШЛЧС
 
                             <?php
                             /* -----------------  Заступали прошлый раз ----------------- */
@@ -764,7 +767,7 @@ if (isset($main) && !empty($main)) {
             <div class="col-lg-3">
 
                     <div class="form-group">
-                        <label class="control-label  col-lg-12" for="eng_connect">Ст.помощник начальника штаба ШЛЧС
+                        <label class="control-label  col-lg-12" for="eng_connect">Ст.помощник начальника ШЛЧС
 
                             <?php
                             /* -----------------  Заступали прошлый раз ----------------- */
@@ -1098,6 +1101,13 @@ if (isset($main) && !empty($main)) {
                                     </select>
                                 </div>
                             </div>
+
+
+
+   <?php
+               include 'parts/fio_head.php';
+
+   ?>
 
 
 

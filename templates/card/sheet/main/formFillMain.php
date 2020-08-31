@@ -67,6 +67,7 @@ if (isset($main) && !empty($main)) {
         $is_open_update = $row['open_update']; //доступ на ред.дежурной смены
         $idmain = $row['id'];
         $response_garnison=$row['response_garnison'];
+        $fio_dop=(isset($row['fio_dop'])) ? $row['fio_dop'] : '';
     }
     $date_d = new DateTime($dateduty);
     $dateduty_for_calendar = $date_d->Format('d-m-Y');
@@ -828,6 +829,19 @@ $paso_without_cou=array(598,604,605);
                     }
 
                     ?>
+
+
+                    <div class="row">
+
+                        <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodop">Заступают дополнительно для усиления (ФИО, должность, звание)
+                        </label>
+                        <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
+                            <div class="form-group">
+                                <textarea class="form-control" rows="2" cols="22" name="fio_dop" id="fio_dop"><?= (isset($fio_dop) && !empty($fio_dop)) ? $fio_dop : '' ?></textarea>
+                            </div>
+                        </div>
+
+                    </div>
 
 
 

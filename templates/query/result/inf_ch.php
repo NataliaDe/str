@@ -3,10 +3,20 @@
 
 if (isset($main) && !empty($main)) {
 
+    foreach ($main as $key => $value) {
+        if (isset($value['duty_date1'])) {
+            $date = $value['duty_date1']; //дата, на которую выбраны даты
+            break;
+        }
+    }
+}
+
+if (isset($main) && !empty($main)  && isset($date) && !empty($date)) {
+
          foreach ($main as $key => $value) {
-    $date=$value['duty_date1'];//дата, на которую выбраны даты
-         break;
-     }
+        $date = $value['duty_date1']; //дата, на которую выбраны даты
+        break;
+    }
 
 
     if (isset($main['itogo']))
