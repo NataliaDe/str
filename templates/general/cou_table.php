@@ -7,6 +7,8 @@ if (isset($duty_ch) && !empty($duty_ch)) {
     $duty_ch = $duty_ch;
 } else
     $duty_ch = 1;
+
+//print_r($general);exit();
 ?>
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="general_table">
@@ -77,8 +79,8 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                 </tfoot>
                 <tbody>
                     <?php
-                    foreach ($general as $v) {
-                         foreach ($v as $row) {
+                    foreach ($general as $row) {
+                       //  foreach ($v as $row) {
 
 
                         if ($row['is_fill'] == 1) {
@@ -105,8 +107,8 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                             <td><?= $row['locorg_name'] ?></td>
                             <td><a href="/str/v1/card/<?= $row['id_record'] ?>/ch/<?= $duty_ch ?>/main" data-toggle="tooltip" data-placement="left" title="Просмотр" target="_blank"><?= $row['divizion'] ?></a></td>
                             <td><?= $row['stat'] ?></td>
-                            <td><?= $row['ch'] ?></td>
-                            <td><?= date('d.m.Y', strtotime($row['dateduty'])) ?></td>
+                            <td><?= (!empty($row['ch'])) ? $row['ch'] : '-' ?></td>
+                            <td><?= (!empty($row['dateduty'])) ? date('d.m.Y', strtotime($row['dateduty'])) : '-' ?></td>
 
 
                             <?php
@@ -128,7 +130,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                         ?>
 
                                         <?php
-                                    } else {//доступ открыт-можно закрыть
+                                    } elseif ($row['open_update'] == 1){//доступ открыт-можно закрыть
                                         if (date('Y-m-d', strtotime($row['dateduty'])) == date("Y-m-d") && $time_now <$time_allow_open ) {
 
                                                 ?>
@@ -162,7 +164,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
 
                         </tr>
                             <?php
-                        }
+                       // }
                         }
                         ?>
                 </tbody>
