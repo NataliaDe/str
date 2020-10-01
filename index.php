@@ -480,84 +480,7 @@ $app->get('/', function () use ($app) {
 $app->group('/general', function () use ($app) {
 
     //выбор списка подразделений в зависимости от авторизованного пользоавтеля
-    function getGeneralTable($id_card_with_error=NULL) {
-        $cp=array(ROSN,UGZ,AVIA);
-        if ($_SESSION['ulevel'] == 1) {//rcu
-            //строевая по РБ
-            $sql="select * FROM general_table";
-            //return R::getAll('select * FROM general_table');
-        }
-        if ($_SESSION['ulevel'] == 2) {//obl
-            //РОСН
-            if ($_SESSION['note'] == 8) {
-                //строевая по всему РОСН
-                $sql="select * FROM general_table WHERE organ_id = ".$_SESSION['note'];
-                //return R::getAll('select * FROM general_table WHERE organ_id = ?', array($_SESSION['note']));
-            }
-               elseif ($_SESSION['note'] == UGZ) {//UGZ
-                //строевая по вскму УГЗ
-                   $sql="select * FROM general_table WHERE organ_id = ".$_SESSION['note'];
-                //return R::getAll('select * FROM general_table WHERE organ_id = ?', array($_SESSION['note']));
-            }
-            else {
-                //строевая по obl
-                $sql="select * FROM general_table WHERE id_region= ". $_SESSION['uregions'] ." AND organ_id NOT IN (".  implode(',', $cp).") ";
-              //  return R::getAll('select * FROM general_table WHERE id_region=? AND organ_id NOT IN ('.  implode(',', $cp).')', array($_SESSION['uregions']));
-            }
-        }
-
-        if ($_SESSION['ulevel'] == 3) {//grochs
-            //РОСН
-            if ($_SESSION['note'] == 8) {
-                //строевая по obl
-                $sql="select * FROM general_table WHERE organ_id = ". $_SESSION['note']." and id_locorg= ". $_SESSION['ulocorg'];
-             //   return R::getAll('select * FROM general_table WHERE organ_id = ? and id_locorg=?', array($_SESSION['note'], $_SESSION['ulocorg']));
-            } elseif ($_SESSION['note'] != NULL && $_SESSION['note'] != 8) {//ЦП
-            $sql="select * FROM general_table WHERE organ_id = ".$_SESSION['note']." and id_locorg= ".$_SESSION['ulocorg'];
-               // return R::getAll('select * FROM general_table WHERE organ_id = ? and id_locorg=?', array($_SESSION['note'], $_SESSION['ulocorg']));
-            } else {
-                //строевая по grochs
-                $sql="select * FROM general_table WHERE id_locorg= ".$_SESSION['ulocorg'];
-                //return R::getAll('select * FROM general_table WHERE id_locorg=?', array($_SESSION['ulocorg']));
-            }
-        }
-        if ($_SESSION['ulevel'] == 4) {//pasp
-            //строевая по pasp
-            $sql="'select * FROM general_table WHERE id_record= ".$_SESSION['urec'];
-            //return R::getAll('select * FROM general_table WHERE id_record=?', array($_SESSION['urec']));
-        }
-
-        if($id_card_with_error != NULL && !empty($id_card_with_error)){
-              if ($_SESSION['ulevel'] == 1) {//rcu
-                  $sql=$sql." WHERE id_record IN (".implode (",", $id_card_with_error).")";
-              }
-              else{
-                  $sql=$sql." and id_record IN (".implode (",", $id_card_with_error).")";
-              }
-
-        }
-
-        $list=R::getAll($sql);
-
-        $isolation = R::getAll('select * from isolation');
-        $ids_isolation = array_column($isolation, 'id_card');
-
-
-        if (isset($ids_isolation) && !empty($ids_isolation)) {
-            foreach ($list as $key => $row) {
-                if (in_array($row['id_record'], $ids_isolation))
-                    unset($list[$key]);
-            }
-        }
-
-
-        return $list;
-
-        //return R::getAll($sql);
-    }
-
-
-        function getGeneralTableNew($id_card_with_error = NULL)
+    function getGeneralTable($id_card_with_error = NULL)
     {
         $cp = array(ROSN, UGZ, AVIA);
         if ($_SESSION['ulevel'] == 1) {//rcu
@@ -657,71 +580,7 @@ $app->group('/general', function () use ($app) {
     }
 
     //Общая инф о заполненности строевых ЦОУ
-        function getGeneralTableCou()
-    {
-        $cp = array(ROSN, UGZ, AVIA);
-
-        $result = array();
-        if ($_SESSION['ulevel'] == 1) {//rcu
-            $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou');
-
-            if (!empty($ids_card)) {
-
-                foreach ($ids_card as $value) {
-                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m WHERE m.id_record = ? ORDER BY m.dateduty DESC LIMIT 1', array($value['id_record']));
-                }
-            }
-
-            //строевая по РБ
-            // return R::getAll('select * FROM general_table_cou');
-            return $result;
-        }
-        if ($_SESSION['ulevel'] == 2) {//obl
-            $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou WHERE id_region=? ', array($_SESSION['uregions']));
-
-            if (!empty($ids_card)) {
-
-                foreach ($ids_card as $value) {
-                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m WHERE m.id_record = ? ORDER BY m.dateduty DESC LIMIT 1', array($value['id_record']));
-                }
-            }
-
-            //все ЦОУ по obl
-            // return R::getAll('select * FROM general_table_cou WHERE id_region=? ', array($_SESSION['uregions']));
-            return $result;
-        }
-
-        if ($_SESSION['ulevel'] == 3) {//grochs
-            $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
-
-            if (!empty($ids_card)) {
-
-                foreach ($ids_card as $value) {
-                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m WHERE m.id_record = ? ORDER BY m.dateduty DESC LIMIT 1', array($value['id_record']));
-                }
-            }
-
-            //строевая по grochs
-            // return R::getAll('select * FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
-            return $result;
-        }
-        if ($_SESSION['ulevel'] == 4) {//pasp
-            //
-        //             $ids_card = R::getAll('SELECT distinct id_record FROM general_table_cou WHERE id_locorg=?', array($_SESSION['ulocorg']));
-            if (!empty($ids_card)) {
-
-                foreach ($ids_card as $value) {
-                    $result[] = R::getAll('SELECT * FROM general_table_cou AS m  WHERE id_record=?', array($_SESSION['urec']));
-                }
-            }
-
-            //строевая по pasp
-            //return R::getAll('select * FROM general_table_cou WHERE id_record=?', array($_SESSION['urec']));
-            return $result;
-        }
-    }
-
-            function getGeneralTableCouNew()
+    function getGeneralTableCou()
     {
         $cp = array(ROSN, UGZ, AVIA);
 
@@ -803,8 +662,7 @@ $app->group('/general', function () use ($app) {
                 $data['time_allow_open'] = time_allow_open(); //Время, после которого у областей нет возможности открыть доступ на редактирование
             }
             if ($tab == 1) { //вкладка общая инф активна
-                //$data['general'] = getGeneralTable();
-                 $data['general'] = getGeneralTableNew();
+                $data['general'] = getGeneralTable();
             } elseif ($tab == 5) {//вкладка Недочеты
                 // Недочеты
                 $error = R::getAll("select id_card, case when(t.hsv <> 0) then concat('ШСВ') else concat('да')   end as msg"
@@ -814,8 +672,7 @@ $app->group('/general', function () use ($app) {
                     foreach ($error as $value) {//id подразделений, где есть недочеты
                         $id_card_with_error[] = $value['id_card'];
                     }
-                    //$data['general'] = getGeneralTable($id_card_with_error); //выбираем записи только с недочетами
-                    $data['general'] = getGeneralTableNew($id_card_with_error); //выбираем записи только с недочетами
+                    $data['general'] = getGeneralTable($id_card_with_error); //выбираем записи только с недочетами
                 } else
                     $data['general'] = array(); //нет подразделений с недочетами
             }
@@ -823,8 +680,7 @@ $app->group('/general', function () use ($app) {
                 $data['general'] = R::getAll('select * from small_table'); //группировка по областям- УМЧС
                 $data['general_2'] = R::getAll('select * from small_table_2'); //РОСН,УГЗ, ГИИ, ИППК,Авиация
             } elseif ($tab == 4) {//вкладка ЦОУ, ШЛЧС
-                //$data['general'] = getGeneralTableCou();
-                $data['general'] = getGeneralTableCouNew();
+                $data['general'] = getGeneralTableCou();
 
             }
             /* ---------------------- КОНЕЦ Выбор данных из БД -------------------------- */
