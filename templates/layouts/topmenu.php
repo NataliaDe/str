@@ -115,11 +115,15 @@ if ($_SESSION['login'] == 'spectator') {
                     }
                     /* umchs level=oblast authorized as cou of region, can return  */ elseif (in_array($_SESSION['ulocorg'], $locorg_umchs)) {
 
-                        ?>
+                        if(isset($_SESSION['past_user']) && !empty($_SESSION['past_user'])){
+                             ?>
 
                         <li style="background-color:#f0f168"><a href="/str/login_as_cou/<?= $_SESSION['past_user'] ?>" class="item-menu"><span>ЦОУ</span></a></li>
 
                         <?php
+                        }
+                        
+
                     }
 
 

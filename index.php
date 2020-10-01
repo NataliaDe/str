@@ -556,6 +556,106 @@ $app->group('/general', function () use ($app) {
         //return R::getAll($sql);
     }
 
+
+        function getGeneralTableNew($id_card_with_error = NULL)
+    {
+        $cp = array(ROSN, UGZ, AVIA);
+        if ($_SESSION['ulevel'] == 1) {//rcu
+            //строевая по РБ
+            $sql = "select * FROM all_podr_ss";
+            $sql = $sql . ' WHERE id_divizion NOT IN (8,9,10)'; //not COU, RCU
+        } elseif ($_SESSION['ulevel'] == 2) {//obl
+            //РОСН
+            if ($_SESSION['note'] == 8) {
+                //строевая по всему РОСН
+                $sql = "select * FROM all_podr_ss WHERE organ_id = " . $_SESSION['note'];
+                //return R::getAll('select * FROM general_table WHERE organ_id = ?', array($_SESSION['note']));
+            } elseif ($_SESSION['note'] == UGZ) {//UGZ
+                //строевая по вскму УГЗ
+                $sql = "select * FROM all_podr_ss WHERE organ_id = " . $_SESSION['note'];
+                //return R::getAll('select * FROM general_table WHERE organ_id = ?', array($_SESSION['note']));
+            } else {
+                //строевая по obl
+                $sql = "select * FROM all_podr_ss WHERE id_region= " . $_SESSION['uregions'] . " AND organ_id NOT IN (" . implode(',', $cp) . ") ";
+                //  return R::getAll('select * FROM general_table WHERE id_region=? AND organ_id NOT IN ('.  implode(',', $cp).')', array($_SESSION['uregions']));
+            }
+            $sql = $sql . ' AND id_divizion NOT IN (8,9,10)'; //not COU, RCU
+        } elseif ($_SESSION['ulevel'] == 3) {//grochs
+            //РОСН
+            if ($_SESSION['note'] == 8) {
+                //строевая по obl
+                $sql = "select * FROM all_podr_ss WHERE organ_id = " . $_SESSION['note'] . " and id_locorg= " . $_SESSION['ulocorg'];
+                //   return R::getAll('select * FROM general_table WHERE organ_id = ? and id_locorg=?', array($_SESSION['note'], $_SESSION['ulocorg']));
+            } elseif ($_SESSION['note'] != NULL && $_SESSION['note'] != 8) {//ЦП
+                $sql = "select * FROM all_podr_ss WHERE organ_id = " . $_SESSION['note'] . " and id_locorg= " . $_SESSION['ulocorg'];
+                // return R::getAll('select * FROM general_table WHERE organ_id = ? and id_locorg=?', array($_SESSION['note'], $_SESSION['ulocorg']));
+            } else {
+                //строевая по grochs
+                $sql = "select * FROM all_podr_ss WHERE id_locorg= " . $_SESSION['ulocorg'];
+                //return R::getAll('select * FROM general_table WHERE id_locorg=?', array($_SESSION['ulocorg']));
+            }
+            $sql = $sql . ' AND id_divizion NOT IN (8,9,10)'; //not COU, RCU
+        } elseif ($_SESSION['ulevel'] == 4) {//pasp
+            //строевая по pasp
+            $sql = "'select * FROM all_podr_ss WHERE id_record= " . $_SESSION['urec'];
+            $sql = $sql . ' AND id_divizion NOT IN (8,9,10)'; //not COU, RCU
+            //return R::getAll('select * FROM general_table WHERE id_record=?', array($_SESSION['urec']));
+        }
+
+        if ($id_card_with_error != NULL && !empty($id_card_with_error)) {
+
+            $sql = $sql . " and id_record IN (" . implode(",", $id_card_with_error) . ")";
+        }
+
+
+        $list = R::getAll($sql);
+
+        $isolation = R::getAll('select * from isolation');
+        $ids_isolation = array_column($isolation, 'id_card');
+
+
+        if (isset($ids_isolation) && !empty($ids_isolation)) {
+            foreach ($list as $key => $row) {
+                if (in_array($row['id_record'], $ids_isolation))
+                    unset($list[$key]);
+            }
+        }
+
+        if (!empty($list)) {
+            foreach ($list as $k => $row) {
+                $main = R::getAssoc("CALL get_stat_pasp('{$row['id_record']}');");
+                if (!empty($main)) {
+                    foreach ($main as $value) {
+                        $list[$k]['stat'] = $value['stat'];
+                        $list[$k]['ch'] = $value['ch'];
+                        $list[$k]['dateduty'] = $value['dateduty'];
+                        $list[$k]['open_update'] = $value['open_update'];
+                        $list[$k]['is_fill'] = $value['is_fill'];
+                        $list[$k]['id_main'] = $value['id_main'];
+                        $list[$k]['who_open'] = $value['who_open'];
+                        $list[$k]['id_user'] = $value['id_user'];
+                        $list[$k]['id'] = $value['id'];
+                    }
+                } else {
+                    $list[$k]['stat'] = 'ни разу не заполнялась';
+                    $list[$k]['ch'] = '';
+                    $list[$k]['dateduty'] = '';
+                    $list[$k]['open_update'] = 10;
+                    $list[$k]['is_fill'] = 0;
+                    $list[$k]['id_main'] = 0;
+                    $list[$k]['who_open'] = '';
+                    $list[$k]['id_user'] = 0;
+                    $list[$k]['id'] = 0;
+                }
+            }
+        }
+
+//print_r();exit();
+        return $list;
+
+        //return R::getAll($sql);
+    }
+
     //Общая инф о заполненности строевых ЦОУ
         function getGeneralTableCou()
     {
@@ -620,6 +720,46 @@ $app->group('/general', function () use ($app) {
             return $result;
         }
     }
+
+            function getGeneralTableCouNew()
+    {
+        $cp = array(ROSN, UGZ, AVIA);
+
+        $result = array();
+        if ($_SESSION['ulevel'] == 1) {//rcu
+            $list = R::getAll('SELECT * FROM all_cou_ss');
+        } elseif ($_SESSION['ulevel'] == 2) {//obl
+            $list = R::getAll('SELECT * FROM all_cou_ss WHERE id_region=? ', array($_SESSION['uregions']));
+        } elseif ($_SESSION['ulevel'] == 3) {//grochs
+            $list = R::getAll('SELECT * FROM all_cou_ss WHERE id_locorg=?', array($_SESSION['ulocorg']));
+        }
+        if ($_SESSION['ulevel'] == 4) {//pasp
+            $list = R::getAll('SELECT * FROM all_cou_ss WHERE id_record=?', array($_SESSION['urec']));
+        }
+
+        if (!empty($list)) {
+            foreach ($list as $k => $row) {
+                $main = R::getAssoc("CALL get_stat_cou('{$row['id_record']}');");
+                if (!empty($main)) {
+                    foreach ($main as $value) {
+                        $list[$k]['stat'] = $value['stat'];
+                        $list[$k]['ch'] = $value['ch'];
+                        $list[$k]['dateduty'] = $value['dateduty'];
+                        $list[$k]['open_update'] = $value['open_update'];
+                        $list[$k]['is_fill'] = $value['is_fill'];
+                    }
+                } else {
+                    $list[$k]['stat'] = 'ни разу не заполнялась';
+                    $list[$k]['ch'] = '';
+                    $list[$k]['dateduty'] = '';
+                    $list[$k]['open_update'] = 10;
+                    $list[$k]['is_fill'] = 0;
+                }
+            }
+        }
+        //print_r($list);exit();
+        return $list;
+    }
     //вкладка о заполненности строевой записки
     $app->get('/:tab', function ($tab) use ($app) {
 
@@ -663,7 +803,8 @@ $app->group('/general', function () use ($app) {
                 $data['time_allow_open'] = time_allow_open(); //Время, после которого у областей нет возможности открыть доступ на редактирование
             }
             if ($tab == 1) { //вкладка общая инф активна
-                $data['general'] = getGeneralTable();
+                //$data['general'] = getGeneralTable();
+                 $data['general'] = getGeneralTableNew();
             } elseif ($tab == 5) {//вкладка Недочеты
                 // Недочеты
                 $error = R::getAll("select id_card, case when(t.hsv <> 0) then concat('ШСВ') else concat('да')   end as msg"
@@ -673,7 +814,8 @@ $app->group('/general', function () use ($app) {
                     foreach ($error as $value) {//id подразделений, где есть недочеты
                         $id_card_with_error[] = $value['id_card'];
                     }
-                    $data['general'] = getGeneralTable($id_card_with_error); //выбираем записи только с недочетами
+                    //$data['general'] = getGeneralTable($id_card_with_error); //выбираем записи только с недочетами
+                    $data['general'] = getGeneralTableNew($id_card_with_error); //выбираем записи только с недочетами
                 } else
                     $data['general'] = array(); //нет подразделений с недочетами
             }
@@ -681,7 +823,9 @@ $app->group('/general', function () use ($app) {
                 $data['general'] = R::getAll('select * from small_table'); //группировка по областям- УМЧС
                 $data['general_2'] = R::getAll('select * from small_table_2'); //РОСН,УГЗ, ГИИ, ИППК,Авиация
             } elseif ($tab == 4) {//вкладка ЦОУ, ШЛЧС
-                $data['general'] = getGeneralTableCou();
+                //$data['general'] = getGeneralTableCou();
+                $data['general'] = getGeneralTableCouNew();
+
             }
             /* ---------------------- КОНЕЦ Выбор данных из БД -------------------------- */
 
@@ -14840,7 +14984,13 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
             //формирует б/р, резерв, ТО, ремонт
             if (!empty($array_of_teh)) {
                 //print_r($array_of_teh);
-                    $mas = R::getAll('SELECT  COUNT(c.id) AS br, COUNT(c1.id) AS reserv, COUNT(c2.id) AS too, COUNT(c3.id) AS repair,'
+//                    $mas = R::getAll('SELECT  COUNT(c.id) AS br, COUNT(c1.id) AS reserv, COUNT(c2.id) AS too, COUNT(c3.id) AS repair,'
+//                                    . ' t.id AS id_teh,t.id_view FROM  ss.technics AS t LEFT JOIN str.car AS c ON (c.id_teh=t.id AND  (c.id_type = 1) AND c.dateduty=:date )'
+//                                    . ' LEFT JOIN str.car AS c1 ON (c1.id_teh=t.id AND  (c1.id_type = 2) AND c1.dateduty=:date) '
+//                                    . ' LEFT JOIN str.car AS c2 ON (c2.id_teh=t.id AND  (c2.id_to <> 3) AND c2.dateduty=:date)'
+//                                    . ' LEFT JOIN str.car AS c3 ON (c3.id_teh=t.id AND  (c3.is_repair=1) AND c3.dateduty=:date) WHERE t.id IN(' . implode(",", $array_of_teh) . ')  GROUP BY t.id_view', [':date' => $date]);
+
+                $mas = R::getAll(' SELECT  COUNT(distinct c.id_teh) AS br, COUNT(distinct c1.id_teh) AS reserv, COUNT(distinct c2.id_teh) AS too, COUNT(distinct c3.id_teh) AS repair,'
                                     . ' t.id AS id_teh,t.id_view FROM  ss.technics AS t LEFT JOIN str.car AS c ON (c.id_teh=t.id AND  (c.id_type = 1) AND c.dateduty=:date )'
                                     . ' LEFT JOIN str.car AS c1 ON (c1.id_teh=t.id AND  (c1.id_type = 2) AND c1.dateduty=:date) '
                                     . ' LEFT JOIN str.car AS c2 ON (c2.id_teh=t.id AND  (c2.id_to <> 3) AND c2.dateduty=:date)'
@@ -15809,6 +15959,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
                // print_r($teh);
                 if (!empty($teh)) {
                     foreach ($teh as $t) {
+                        if(!in_array($t, $array_of_teh))
                         $array_of_teh[] = $t;
                     }
                     //print_r($teh);
@@ -15829,6 +15980,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
             $array_of_teh = array();
             if (!empty($teh_rosn)) {
                 foreach ($teh_rosn as $t) {
+                    if(!in_array($t, $array_of_teh))
                     $array_of_teh[] = $t;
                 }
                 //print_r($teh);
@@ -15844,6 +15996,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
             $array_of_teh = array();
             if (!empty($teh_ugz)) {
                 foreach ($teh_ugz as $t) {
+                    if(!in_array($t, $array_of_teh))
                     $array_of_teh[] = $t;
                 }
                 //print_r($teh);
@@ -15856,6 +16009,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
             $array_of_teh = array();
             if (!empty($teh_ugz)) {
                 foreach ($teh_ugz as $t) {
+                    if(!in_array($t, $array_of_teh))
                     $array_of_teh[] = $t;
                 }
                 //print_r($teh);
@@ -15868,6 +16022,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
             $array_of_teh = array();
             if (!empty($teh_ugz)) {
                 foreach ($teh_ugz as $t) {
+                    if(!in_array($t, $array_of_teh))
                     $array_of_teh[] = $t;
                 }
                 //print_r($teh);
@@ -15885,6 +16040,7 @@ if(isset($id_pasp_cou) && !empty($id_pasp_cou)){
             $array_of_teh = array();
             if (!empty($teh_avia)) {
                 foreach ($teh_avia as $t) {
+                    if(!in_array($t, $array_of_teh))
                     $array_of_teh[] = $t;
                 }
                 //print_r($teh);

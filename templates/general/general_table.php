@@ -107,8 +107,8 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                             <td><?= $row['locorg_name'] ?></td>
                             <td><a href="/str/v1/card/<?= $row['id_record'] ?>/ch/<?= $duty_ch ?>/main" data-toggle="tooltip" data-placement="left" title="Просмотр" target="_blank"><?= $row['divizion'] ?></a></td>
                             <td><?= $row['stat'] ?></td>
-                            <td><?= $row['ch'] ?></td>
-                            <td><?= date('d.m.Y', strtotime($row['dateduty'])) ?></td>
+                            <td><?= (!empty($row['ch'])) ? $row['ch'] : '-' ?></td>
+                            <td><?= (!empty($row['dateduty'])) ? date('d.m.Y', strtotime($row['dateduty'])) : '-' ?></td>
 
 
                             <?php
@@ -117,6 +117,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                 ?>
                                 <td>
                                     <?php
+
                                     if ($row['open_update'] == 0) {//доступ закрыт,можно открыть
                                         //можно открыть доступ только той смене, которая сегодня заступила до 11:00:00 (время храним в БД)
                                         if (date('Y-m-d', strtotime($row['dateduty'])) == date("Y-m-d") && ($time_now < $time_allow_open)) {
@@ -128,7 +129,7 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                         ?>
 
                                         <?php
-                                    } else {//доступ открыт-можно закрыть
+                                    } elseif ($row['open_update'] == 1) {//доступ открыт-можно закрыть
                                         if (date('Y-m-d', strtotime($row['dateduty'])) == date("Y-m-d") && $time_now <$time_allow_open) {
                                             if ($_SESSION['uid'] == $row['id_user']) {//закрыть доступ может тот, кто открывал
                                                 ?>
