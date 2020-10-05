@@ -560,7 +560,7 @@ $app->group('/general', function () use ($app) {
                         $list[$k]['id'] = $value['id'];
                     }
                 } else {
-                    $list[$k]['stat'] = 'ни разу не заполнялась';
+                    $list[$k]['stat'] = 'новое подразделение';
                     $list[$k]['ch'] = '';
                     $list[$k]['dateduty'] = '';
                     $list[$k]['open_update'] = 10;
@@ -572,11 +572,7 @@ $app->group('/general', function () use ($app) {
                 }
             }
         }
-
-//print_r();exit();
         return $list;
-
-        //return R::getAll($sql);
     }
 
     //Общая инф о заполненности строевых ЦОУ
@@ -606,17 +602,18 @@ $app->group('/general', function () use ($app) {
                         $list[$k]['dateduty'] = $value['dateduty'];
                         $list[$k]['open_update'] = $value['open_update'];
                         $list[$k]['is_fill'] = $value['is_fill'];
+                        $list[$k]['is_duty'] = $value['is_duty'];
                     }
                 } else {
-                    $list[$k]['stat'] = 'ни разу не заполнялась';
+                    $list[$k]['stat'] = 'новое подразделение';
                     $list[$k]['ch'] = '';
                     $list[$k]['dateduty'] = '';
                     $list[$k]['open_update'] = 10;
                     $list[$k]['is_fill'] = 0;
+                    $list[$k]['is_duty'] = 0;
                 }
             }
         }
-        //print_r($list);exit();
         return $list;
     }
     //вкладка о заполненности строевой записки
@@ -7767,14 +7764,26 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
                  $phone= $app->request()->post('tel' . $i);
 
 
+
+
             //vacant select
             if($is_vacant==1){
+                $vacant_from_date= $app->request()->post('vacant_from_date' . $i);
+
+                if(!empty($vacant_from_date)){
+                    $vd=date("Y-m-d", strtotime($vacant_from_date));
+                }
+                else{
+                    $vd=date('Y-m-d');
+                }
+
                    $listfio = R::dispense('listfio');
                 $listfio->fio = 'ВАКАНТ';
                 $listfio->is_vacant = 1;
                 $listfio->id_rank = $id_rank;
                 $listfio->id_position = $id_position;
                 $listfio->id_cardch = $id_cardch;
+                $listfio->vacant_from_date = $vd;
                 R::store($listfio);
             }
              elseif ($is_nobody == 1) {//нет работников
@@ -7794,6 +7803,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
                 $listfio->id_rank = $id_rank;
                 $listfio->id_position = $id_position;
                 $listfio->id_cardch = $id_cardch_for_nobody;
+                $listfio->vacant_from_date = NULL;
                 R::store($listfio);
             }
             else{
@@ -7805,6 +7815,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
                 $listfio->id_position = $id_position;
                 $listfio->id_cardch = $id_cardch;
                 $listfio->phone = $phone;
+                $listfio->vacant_from_date = NULL;
                 R::store($listfio);
             }
            }
@@ -7820,7 +7831,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         $data['unseen_notifications']=getUnseenNotificationsByUser();
         //
 //инф по работнику
-        $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody,l.phone, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
+        $data['empl'] = R::getAll('SELECT c.id, c.id_card, c.ch, l.fio,l.is_vacant,l.is_nobody,l.phone,l.vacant_from_date, ra.id AS rank, pos.id AS position from str.cardch as c left join str.listfio as l ON c.id=l.id_cardch'
                         . ' left join str.rank AS ra ON l.id_rank=ra.id left join str.position AS pos ON l.id_position=pos.id where l.id = ? ', array($id)
         );
 
@@ -7848,12 +7859,12 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         $fio = $app->request()->post('fio');
         $id_rank = $app->request()->post('id_rank');
         $id_position = $app->request()->post('id_position');
-   $is_vacant = $app->request()->post('is_vacant');
-    $is_nobody= $app->request()->post('is_nobody');
-     $phone= $app->request()->post('tel');
+        $is_vacant = $app->request()->post('is_vacant');
+        $is_nobody = $app->request()->post('is_nobody');
+        $phone = $app->request()->post('tel');
 
 
-             /* if worker was everyday and he became worker of ch - delete his row from everydayfio */
+        /* if worker was everyday and he became worker of ch - delete his row from everydayfio */
 //        $fio_prev = R::load('listfio', $id);
 //        $old_cardch = $fio_prev->id_cardch;
 //        $old_ch = R::getCell("select ch from cardch where id= ?", array($old_cardch));
@@ -7885,15 +7896,24 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
 
         //vacant select
         if ($is_vacant == 1) {
+
+            $vacant_from_date = $app->request()->post('vacant_from_date' . $i);
+
+            if (!empty($vacant_from_date)) {
+                $vd = date("Y-m-d", strtotime($vacant_from_date));
+            } else {
+                $vd = date('Y-m-d');
+            }
+
             $listfio = R::load('listfio', $id);
             $listfio->fio = 'ВАКАНТ';
             $listfio->is_vacant = 1;
             $listfio->id_rank = $id_rank;
             $listfio->id_position = $id_position;
             $listfio->id_cardch = $id_cardch;
+            $listfio->vacant_from_date = $vd;
             R::store($listfio);
-        }
-        elseif ($is_nobody == 1) {//нет работников
+        } elseif ($is_nobody == 1) {//нет работников
             if (R::getCell('select ch from cardch where id=?', array($id_cardch)) != 0) {//должен быть ежедневником
                 $id_card_for_nobody = R::getCell('select id_card from cardch where id=?', array($id_cardch));
                 $id_cardch_for_nobody = R::getCell('select id from cardch where id_card = ? and ch = ?', array($id_card_for_nobody, 0));
@@ -7911,6 +7931,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
             $listfio->id_rank = $id_rank;
             $listfio->id_position = $id_position;
             $listfio->id_cardch = $id_cardch_for_nobody;
+            $listfio->vacant_from_date = NULL;
             R::store($listfio);
         }
 
@@ -7924,12 +7945,13 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
                 $listfio->id_position = $id_position;
                 $listfio->id_cardch = $id_cardch;
                 $listfio->phone = $phone;
+                $listfio->vacant_from_date = NULL;
                 R::store($listfio);
             }
         }
 
-        $log_array = json_decode(R::load('listfio', $id));//что стало после рад
-        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Редактирование listfiostr - запись с id=' . $id . '- Новые данные:: '.json_encode($log_array,JSON_UNESCAPED_UNICODE). '- Старые данные:: '.json_encode($log_array_old,JSON_UNESCAPED_UNICODE));
+        $log_array = json_decode(R::load('listfio', $id)); //что стало после рад
+        $log->info('Сессия - ' . $_SESSION['uid'] . ' :: Редактирование listfiostr - запись с id=' . $id . '- Новые данные:: ' . json_encode($log_array, JSON_UNESCAPED_UNICODE) . '- Старые данные:: ' . json_encode($log_array_old, JSON_UNESCAPED_UNICODE));
         $app->redirect('/str/listfio');
     });
 

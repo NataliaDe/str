@@ -42,6 +42,16 @@ $(function () {
     });
 
 
+    $('.vacant_from_date').datetimepicker({
+        language: 'ru',
+        pickTime: false,
+        autoclose: true,
+        format: 'DD-MM-YYYY'
+                /*доступна только сег.дата+3day
+                 'maxDate':  moment(new Date()).add(2, 'days').startOf('day') */
+    });
+
+
     $('#date_single_report').datetimepicker({
         language: 'ru',
         pickTime: false,

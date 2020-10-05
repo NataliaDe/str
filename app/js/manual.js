@@ -566,43 +566,43 @@ $('#formListFio')
         });
 
 
-        $('#editFormListFio')
-        .bootstrapValidator({
-            message: 'This value is not valid',
-            //live: 'submitted',
-            feedbackIcons: {
-                valid: 'glyphicon glyphicon-ok',
-                invalid: 'glyphicon glyphicon-remove',
-                validating: 'glyphicon glyphicon-refresh'
-            },
-            fields: {
-                id_record: {
-                    message: 'The username is not valid',
-                    validators: {
-                        notEmpty: {
-                            message: 'Выберите подразделение'
-                        }
-                    }
-                },
-                id_cardch: {
-                    message: 'The username is not valid',
-                    validators: {
-                        notEmpty: {
-                            message: 'Вберите смену'
-                        }
-                    }
-                },
-                   fio: {
-                    message: 'The username is not valid',
-                    validators: {
-                        notEmpty: {
-                            message: 'Введите Ф.И.О. работникоа'
-                        }
-                    }
-                }
-            }
-
-        });
+//        $('#editFormListFio')
+//        .bootstrapValidator({
+//            message: 'This value is not valid',
+//            //live: 'submitted',
+//            feedbackIcons: {
+//                valid: 'glyphicon glyphicon-ok',
+//                invalid: 'glyphicon glyphicon-remove',
+//                validating: 'glyphicon glyphicon-refresh'
+//            },
+//            fields: {
+//                id_record: {
+//                    message: 'The username is not valid',
+//                    validators: {
+//                        notEmpty: {
+//                            message: 'Выберите подразделение'
+//                        }
+//                    }
+//                },
+//                id_cardch: {
+//                    message: 'The username is not valid',
+//                    validators: {
+//                        notEmpty: {
+//                            message: 'Вберите смену'
+//                        }
+//                    }
+//                },
+//                   fio: {
+//                    message: 'The username is not valid',
+//                    validators: {
+//                        notEmpty: {
+//                            message: 'Введите Ф.И.О. работникоа'
+//                        }
+//                    }
+//                }
+//            }
+//
+//        });
 
 
 /*-------- DataTables -----------------*/

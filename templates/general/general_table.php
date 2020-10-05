@@ -88,9 +88,14 @@ if (isset($duty_ch) && !empty($duty_ch)) {
                                 ?>
                                 <tr class="success">
                                     <?php
-                                } else {
+                                } elseif ($row['open_update'] == 1){
                                     ?>
                                 <tr class="info">
+                                    <?php
+                                }
+                                else{
+                                    ?>
+ <tr>
                                     <?php
                                 }
                                 ?>
