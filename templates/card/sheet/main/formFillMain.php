@@ -1,5 +1,4 @@
 <?php
-
 //какую дату писать в дате заступления. если смена сег должна заступить - сегодня
 $is_btn_confirm = isset($is_btn_confirm) ? $is_btn_confirm : 0;
 // получаем текущее время в сек. и вычитаем кол-во секунд в 1 сутках
@@ -25,11 +24,11 @@ if (empty($past_everyday_fio)) {
     $p_e_fio = array();
     $count_everyday = 0; //кол-во ежедневников
 } else {
-    $p_e_fio_count=array();
+    $p_e_fio_count = array();
     foreach ($past_everyday_fio as $key => $value) {
         $p_e_fio[] = $value['id'];
-        if($value['is_nobody']==0){
-            $p_e_fio_count[]=$value['id'];
+        if ($value['is_nobody'] == 0) {
+            $p_e_fio_count[] = $value['id'];
         }
     }
     $count_everyday = count($p_e_fio_count); //кол-во ежедневников
@@ -66,13 +65,13 @@ if (isset($main) && !empty($main)) {
         $fio_duty = $row['fio_duty'];
         $is_open_update = $row['open_update']; //доступ на ред.дежурной смены
         $idmain = $row['id'];
-        $response_garnison=$row['response_garnison'];
-        $fio_dop=(isset($row['fio_dop'])) ? $row['fio_dop'] : '';
+        $response_garnison = $row['response_garnison'];
+        $fio_dop = (isset($row['fio_dop'])) ? $row['fio_dop'] : '';
     }
     $date_d = new DateTime($dateduty);
     $dateduty_for_calendar = $date_d->Format('d-m-Y');
 } else {
-    $count_all=0;
+    $count_all = 0;
     $dateduty = 0;
     $dateduty_for_calendar = 0;
     $vacant = 0;
@@ -124,6 +123,7 @@ if (isset($vacant) && ($vacant != $count_vacant_from_list)) {
 }
 
 if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shtat != 0 || $error_vacant != 0) {
+
     ?>
     <div class="container">
         <div class="alert alert-danger">
@@ -138,7 +138,8 @@ if ($error_listls != 0 || $error_face != 0 || $error_calc != 0 || $error_on_shta
 
 
 
-$paso_without_cou=array(598,604,605);
+$paso_without_cou = array(598, 604, 605);
+
 ?>
 <div class="container">
     <div class="row">
@@ -147,11 +148,13 @@ $paso_without_cou=array(598,604,605);
                 <?php
 //смена деж и доступ на редактирование закрыт
 
-                if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) && ($dateduty==$today) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
+                if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) && ($dateduty == $today) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0) ) || ($_SESSION['can_edit'] == 0)) {
+
                     ?>
                     <fieldset disabled>
                         <?php
                     }
+
                     ?>
                     <!-- Инициализация виджета "Bootstrap datetimepicker" -->
                     <!-- в календаре доступна только сегодн дата -->
@@ -165,35 +168,42 @@ $paso_without_cou=array(598,604,605);
                                     <?php
                                     if (isset($dateduty) && $dateduty != 0) {
                                         if ($is_btn_confirm == 1) {
+
                                             ?>
                                             <input type="text" class="form-control" id="dd" name="dateduty" value="<?= $today_for_calendar ?>"/>
                                             <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
                                             <?php
                                         } else {
                                             if ($is_open_update == 1) {//доступ открыт на ред
+
                                                 ?>
                                                 <input type="hidden" class="form-control" id="dd" name="dateduty" value="<?= $dateduty_for_calendar ?>" />
                                                 <input type="text" class="form-control" id="dd" name="dateduty_view" value="<?= $dateduty_for_calendar ?>" disabled=""/>
                                                 <?php
                                             } else {
+
                                                 ?>
                                                 <input type="text" class="form-control" id="dd" name="dateduty" value="<?= $dateduty_for_calendar ?>"/>
                                                 <?php
                                             }
+
                                             ?>
 
                                             <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
                                             <?php
                                         }
+
                                         ?>
 
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control" id="dd" name="dateduty" value="<?= $today_for_calendar ?>" />
                                         <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
                                         <?php
                                     }
+
                                     ?>
 
                                 </div>
@@ -222,6 +232,7 @@ $paso_without_cou=array(598,604,605);
                                 // на сегодня начальник смены доступен в списке или нет.если нет - вывод
 
                                 if (isset($past_head_fio) && !empty($past_head_fio)) {
+
                                     ?>
 
                                     <!--                            <div class="row">
@@ -232,24 +243,27 @@ $paso_without_cou=array(598,604,605);
 //                                    foreach ($past_head_fio as $value) {
 //                                        echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
 //                                    }
+
                                     ?>
                                                                                                             </div>
                                                                                                         </div>
                                                                                                     </div>-->
 
-                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+                                    <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступал прошлый раз: <?php
-                                                foreach ($past_head_fio as $value) {
-                                                    echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
-                                                ?> ">
+                                       title="Заступал прошлый раз: <?php
+                                       foreach ($past_head_fio as $value) {
+                                           echo $value['fio'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                       }
+
+                                       ?> ">
 
                                     </i>
 
                                     <?php
                                 }
                             }
+
                             ?>
 
                         </label>
@@ -268,6 +282,7 @@ $paso_without_cou=array(598,604,605);
                                             printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
                                         }
                                     }
+
                                     ?>
 
                                 </select>
@@ -290,32 +305,34 @@ $paso_without_cou=array(598,604,605);
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="everydayfio[]">Заступают ежедневники
 
 
-                             <?php
-                    if (isset($dateduty) && ($dateduty != $today)) {
-                        //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
-                        if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
-                                                                            $cnt=0;
-                                                 foreach ($past_everyday_fio as $value) {
-                                                     $cnt++;
-                                                }
-                            ?>
+                            <?php
+                            if (isset($dateduty) && ($dateduty != $today)) {
+                                //вывод ежедневников этого ПАСЧ, кто заступал  прошлый раз
+                                if (isset($past_everyday_fio) && !empty($past_everyday_fio)) {
+                                    $cnt = 0;
+                                    foreach ($past_everyday_fio as $value) {
+                                        $cnt++;
+                                    }
+
+                                    ?>
 
 
-                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+                                    <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз <?=$cnt ?> чел: <?php
+                                       title="Заступали прошлый раз <?= $cnt ?> чел: <?php
+                                       foreach ($past_everyday_fio as $value) {
 
-                                                 foreach ($past_everyday_fio as $value) {
+                                           echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                       }
 
-                                                   echo $value['fio'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
-                                                ?> ">
+                                       ?> ">
 
                                     </i>
-                            <?php
-                        }
-                    }
-                    ?>
+                                    <?php
+                                }
+                            }
+
+                            ?>
 
 
                         </label>
@@ -336,6 +353,7 @@ $paso_without_cou=array(598,604,605);
                                             printf("<p><option value='%s'  ><label>%s (%s)</label></option></p>", $present['id'], $present['fio'], mb_strtolower($present['slug']));
                                         }
                                     }
+
                                     ?>
 
                                 </select>
@@ -358,46 +376,48 @@ $paso_without_cou=array(598,604,605);
 
 
 
-                          <?php
+                            <?php
+                            if (isset($dateduty) && ($dateduty != $today)) {
+                                //вывод тех, кто заступал из др пасч прошлый раз
+                                if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
 
-                           if (isset($dateduty) && ($dateduty != $today)) {
-                        //вывод тех, кто заступал из др пасч прошлый раз
-                        if (isset($past_reserve_fio) && !empty($past_reserve_fio)) {
+                                    $cnt_other = 0;
+                                    foreach ($past_reserve_fio as $value) {
+                                        $cnt_other++;
+                                    }
 
-                            $cnt_other=0;
-                                                                            foreach ($past_reserve_fio as $value) {
-            $cnt_other++;
-        }
+                                    ?>
 
-        ?>
-
-<!--                            <div class="row">
-                                <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="id_fio"><u>Заступали из других подразделений (смен)</u></label>
-                                <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
-                                    <div class="form-group">-->
-                                        <?php
+                                    <!--                            <div class="row">
+                                                                    <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="id_fio"><u>Заступали из других подразделений (смен)</u></label>
+                                                                    <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
+                                                                        <div class="form-group">-->
+                                    <?php
 //                                        foreach ($past_reserve_fio as $value) {
 //                                            echo $value['fio'] . ' ' . $present['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . ')<br>';
 //                                        }
-                                        ?>
-<!--                                    </div>
-                                </div>
-                            </div>-->
+
+                                    ?>
+                                    <!--                                    </div>
+                                                                    </div>
+                                                                </div>-->
 
 
-                                      <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
+                                    <i style="color:#ce5050;" class="fa fa-bell"  data-toggle="tooltip" data-placement="right"
 
-                                                title="Заступали прошлый раз <?=$cnt_other ?> чел: <?php
-                                                 foreach ($past_reserve_fio as $value) {
-                                                   echo $value['fio'] . ' ' . $value['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
-                                                }
-                                                ?> ">
+                                       title="Заступали прошлый раз <?= $cnt_other ?> чел: <?php
+                                       foreach ($past_reserve_fio as $value) {
+                                           echo $value['fio'] . ' ' . $value['is_every'] . ' ' . $value['pasp'] . ' ' . $value['locorg_name'] . ' (' . mb_strtolower($value['slug']) . '), ';
+                                       }
+
+                                       ?> ">
 
                                     </i>
 
-                            <?php
-                        }
-                    }
+                                    <?php
+                                }
+                            }
+
                             ?>
 
 
@@ -420,6 +440,7 @@ $paso_without_cou=array(598,604,605);
                                             printf("<p><option value='%s'  ><label>%s %s %s %s  (%s)</label></option></p>", $present['id'], $present['fio'], $present['is_every'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
                                         }
                                     }
+
                                     ?>
 
                                 </select>
@@ -427,18 +448,22 @@ $paso_without_cou=array(598,604,605);
                             <!--                                    reserve, который выбран как начальник смены-->
                             <?php
                             if (isset($reserve_add)) {
+
                                 ?>
                                 <input type="hidden" value="<?= $reserve_add ?>" name="reserve_add">
                                 <?php
                             }
+
                             ?>
                             <!--   ежедневник, который выбран как начальник смены -->
                             <?php
                             if (isset($everyday_add)) {
+
                                 ?>
                                 <input type="hidden" value="<?= $everyday_add ?>" name="everyday_add">
                                 <?php
                             }
+
                             ?>
                         </div>
 
@@ -460,14 +485,17 @@ $paso_without_cou=array(598,604,605);
                                                     <div class="form-group">
                         <?php
 //  if (isset($fiodisp)) {
+
                         ?>
                                                             <textarea class="form-control" rows="2" cols="22" name="fiodisp" id="fiodisp"><? $fiodisp ?></textarea>
                         <?php
                         //  } else {
+
                         ?>
                                                             <textarea class="form-control" rows="2" cols="22" name="fiodisp" id="fiodisp"></textarea>
                         <?php
                         // }
+
                         ?>
 
                                                     </div>
@@ -485,21 +513,25 @@ $paso_without_cou=array(598,604,605);
                             <div class="form-group">
                                 <?php
                                 if (isset($count_ls_shtat)) {
+
                                     ?>
                                     <input type="text" class="form-control" placeholder="0" value="<?= $count_ls_shtat ?>" disabled="">
                                     <input type="hidden" class="form-control" id="countls" placeholder="0" name="countls" value="<?= $count_ls_shtat ?>" >
                                     <?php
                                 } elseif (isset($countls)) {
+
                                     ?>
                                     <input type="text" class="form-control"  placeholder="0" value="<?= $countls ?>" disabled="">
                                     <input type="hidden" class="form-control" id="countls" placeholder="0" name="countls" value="<?= $countls ?>" >
                                     <?php
                                 } else {
+
                                     ?>
                                     <input type="text" class="form-control"  placeholder="0"   disabled="">
                                     <input type="hidden" class="form-control" id="countls" placeholder="0" name="countls"  disabled="" value="0">
                                     <?php
                                 }
+
                                 ?>
                             </div>
 
@@ -520,10 +552,12 @@ $paso_without_cou=array(598,604,605);
                             <?php
                             if ((isset($listls) && ($listls != $on_list) ) || (!isset($listls) && (0 != $on_list) )) {
                                 $error_listls = 1;
+
                                 ?>
                                 <span class="glyphicon glyphicon-exclamation-sign" style="color: red;" data-toggle="tooltip" data-placement="left" title="Введенные данные не соответствуют количеству работников в смене(<?= $on_list ?>)"></span>
                                 <?php
                             }
+
                             ?>
                             <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="left" title="Соответствует количеству введенных работников в списке смен"></span>
                         </label>
@@ -532,11 +566,13 @@ $paso_without_cou=array(598,604,605);
                                 <?php
                                 if (isset($listls)) {
                                     if ($error_listls != 0) {
+
                                         ?>
                                         <input type="text" class="form-control"  placeholder="0"  value="<?= $on_list ?>" style="background-color: #ff00002e !important;" disabled="">
                                         <input type="hidden" class="form-control" id="listls" placeholder="0" name="listls" value="<?= $on_list ?>" >
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control"  placeholder="0"  value="<?= $on_list ?>" disabled="">
                                         <input type="hidden" class="form-control" id="listls" placeholder="0" name="listls" value="<?= $on_list ?>">
@@ -544,17 +580,20 @@ $paso_without_cou=array(598,604,605);
                                     }
                                 } else {
                                     if ($error_listls != 0) {
+
                                         ?>
                                         <input type="text" class="form-control"  placeholder="0"  style="background-color: #ff00002e !important;" disabled="" value="<?= $on_list ?>">
                                         <input type="hidden" class="form-control" id="listls" placeholder="0" name="listls"  value="<?= $on_list ?>">
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control"  placeholder="0"  disabled="" value="<?= $on_list ?>">
                                         <input type="hidden" class="form-control" id="listls" placeholder="0" name="listls" value="<?= $on_list ?>">
                                         <?php
                                     }
                                 }
+
                                 ?>
 
                             </div>
@@ -578,10 +617,12 @@ $paso_without_cou=array(598,604,605);
                             <span class="glyphicon glyphicon-check" style="color: green;" data-toggle="tooltip" data-placement="left" title="Соответствует количеству введенных вакансий в списке смен"></span>
                             <?php
                             if ($error_vacant != 0) {
+
                                 ?>
                                 <span class="glyphicon glyphicon-exclamation-sign" style="color: red;" data-toggle="tooltip" data-placement="left" title="Введенные данные не соответствуют реальным данным(<?= $count_vacant_from_list ?>)"></span>
                                 <?php
                             }
+
                             ?>
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
@@ -589,16 +630,19 @@ $paso_without_cou=array(598,604,605);
 
                                 <?php
                                 if (isset($count_vacant_from_list)) {
+
                                     ?>
                                     <input type="text" class="form-control"  placeholder="0" value="<?= $count_vacant_from_list ?>" disabled="" >
                                     <input type="hidden" class="form-control"  placeholder="0" value="<?= $count_vacant_from_list ?>"   id="vacant" name="vacant">
                                     <?php
                                 } else {
+
                                     ?>
                                     <input type="text" class="form-control"  placeholder="0" disabled="">
                                     <input type="hidden" class="form-control"  placeholder="0"  id="vacant" name="vacant">
                                     <?php
                                 }
+
                                 ?>
                             </div>
                             <hr>
@@ -615,10 +659,12 @@ $paso_without_cou=array(598,604,605);
                             <?php
                             if ((isset($face) && ($face != $on_face_rule) ) || (!isset($face) && (0 != $on_face_rule) )) {
                                 $error_face = 1;
+
                                 ?>
                                 <span class="glyphicon glyphicon-exclamation-sign" style="color: red;" data-toggle="tooltip" data-placement="left" title="Введенные данные не соответствуют реальным данным(<?= $on_face_rule ?>)"></span>
                                 <?php
                             }
+
                             ?>
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
@@ -626,26 +672,31 @@ $paso_without_cou=array(598,604,605);
                                 <?php
                                 if (isset($face)) {
                                     if ($error_face != 0) {
+
                                         ?>
                                         <input type="text" class="form-control" id="face" placeholder="0" name="face" value="<?= $face ?>" style="background-color: #ff00002e !important;">
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control" id="face" placeholder="0" name="face" value="<?= $face ?>">
                                         <?php
                                     }
                                 } else {
                                     if ($error_face != 0) {
+
                                         ?>
                                         <input type="text" class="form-control" id="face" placeholder="0" name="face" style="background-color: #ff00002e !important;">
 
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control" id="face" placeholder="0" name="face">
                                         <?php
                                     }
                                 }
+
                                 ?>
 
                             </div>
@@ -666,10 +717,12 @@ $paso_without_cou=array(598,604,605);
                             <?php
                             if ((isset($calc) && ($calc != $count_fio_on_car) ) || (!isset($calc) && (0 != $count_fio_on_car) )) {
                                 $error_calc = 1;
+
                                 ?>
                                 <span class="glyphicon glyphicon-exclamation-sign" style="color: red;" data-toggle="tooltip" data-placement="left" title="Введенные данные не соответствуют количеству работников, заступивших на технику(<?= $count_fio_on_car ?>)"></span>
                                 <?php
                             }
+
                             ?>
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
@@ -677,25 +730,30 @@ $paso_without_cou=array(598,604,605);
                                 <?php
                                 if (isset($calc)) {
                                     if ($error_calc != 0) {//red field
+
                                         ?>
                                         <input type="text" class="form-control" id="calc" placeholder="0" name="calc" value="<?= $calc ?>" style="background-color: #ff00002e !important;">
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control" id="calc" placeholder="0" name="calc" value="<?= $calc ?>">
                                         <?php
                                     }
                                 } else {
                                     if ($error_calc != 0) {//red field
+
                                         ?>
                                         <input type="text" class="form-control" id="calc" placeholder="0" name="calc" style="background-color: #ff00002e !important;">
                                         <?php
                                     } else {
+
                                         ?>
                                         <input type="text" class="form-control" id="calc" placeholder="0" name="calc">
                                         <?php
                                     }
                                 }
+
                                 ?>
 
                             </div>
@@ -711,14 +769,17 @@ $paso_without_cou=array(598,604,605);
                             <div class="form-group">
                                 <?php
                                 if (isset($dutyls)) {
+
                                     ?>
                                     <input type="text" class="form-control" id="duty" placeholder="0" name="duty"  value="<?= $dutyls ?>">
                                     <?php
                                 } else {
+
                                     ?>
                                     <input type="text" class="form-control" id="duty" placeholder="0" name="duty" >
                                     <?php
                                 }
+
                                 ?>
 
                             </div>
@@ -731,20 +792,23 @@ $paso_without_cou=array(598,604,605);
 
                         <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="fiodisp">Ф.И.О работников в наряде
 
-                        <span class="glyphicon glyphicon-star" style="color: green;" data-toggle="tooltip" data-placement="left" title="указывать должность"></span>
+                            <span class="glyphicon glyphicon-star" style="color: green;" data-toggle="tooltip" data-placement="left" title="указывать должность"></span>
                         </label>
                         <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
                             <div class="form-group">
                                 <?php
                                 if (isset($fiodisp)) {
+
                                     ?>
                                     <textarea class="form-control" rows="2" cols="22" name="fio_duty" id="fio_duty"><?= $fio_duty ?></textarea>
                                     <?php
                                 } else {
+
                                     ?>
                                     <textarea class="form-control" rows="2" cols="22" name="fio_duty" id="fio_duty"></textarea>
                                     <?php
                                 }
+
                                 ?>
 
                             </div>
@@ -760,14 +824,17 @@ $paso_without_cou=array(598,604,605);
                                                 <div class="form-group">
                     <?php
                     if (isset($fio_duty)) {
+
                         ?>
-                                                                    <textarea class="form-control" rows="2" cols="22" name="fio_duty" id="fio_duty"><? $fio_duty ?></textarea>
+                                                                                <textarea class="form-control" rows="2" cols="22" name="fio_duty" id="fio_duty"><? $fio_duty ?></textarea>
                         <?php
                     } else {
+
                         ?>
-                                                                    <textarea class="form-control" rows="2" cols="22" name="fio_duty" id="fio_duty"></textarea>
+                                                                                <textarea class="form-control" rows="2" cols="22" name="fio_duty" id="fio_duty"></textarea>
                         <?php
                     }
+
                     ?>
 
                                                 </div>
@@ -781,14 +848,17 @@ $paso_without_cou=array(598,604,605);
                             <div class="form-group">
                                 <?php
                                 if (isset($gas)) {
+
                                     ?>
                                     <input type="text" class="form-control" id="gas" placeholder="0" name="gas" value="<?= $gas ?>">
                                     <?php
                                 } else {
+
                                     ?>
                                     <input type="text" class="form-control" id="gas" placeholder="0" name="gas">
                                     <?php
                                 }
+
                                 ?>
 
                             </div>
@@ -799,8 +869,9 @@ $paso_without_cou=array(598,604,605);
 
                     <?php
                     if (in_array($record_id, $paso_without_cou)) {
+
                         ?>
-                    <div class="row">
+                        <div class="row">
 
                             <label class="control-label col-sm-4 col-lg-3 col-xs-9" for="response_garnison">Ответственный по гарнизону</label>
                             <div class="col-sm-6 col-lg-3 col-md-4 col-xs-9">
@@ -847,19 +918,162 @@ $paso_without_cou=array(598,604,605);
 
                     <?php
                     if (isset($idmain)) {
+
                         ?>
                         <input type="hidden" class="form-control"   id="idmain" name="idmain" value="<?= $idmain ?>">
                         <?php
                     }
                     if (isset($post) && ($post == 0)) {//put
                         //echo $post;
+
                         ?>
 
                         <input type="hidden" name="_METHOD" value="PUT"/>
 
                         <?php
                     }
+
                     ?>
+
+                    <div class="row">
+                        <p class="line"><span>Информация для специальных донесений по должностям, которых нет в списке смен</span></p>
+                        <table class="dop-table">
+                            <thead>
+                            <th>кол-во</th>
+                            <th>должность</th>
+                            <th>дата вакансии 1 (если есть)</th>
+                            <th>дата вакансии 2 (если есть)</th>
+                            <th></th>
+                            </thead>
+                            <tbody>
+
+                                <?php
+                                if (isset($main_dop_pos) && !empty($main_dop_pos)) {
+                                    $i = 0;
+                                    foreach ($main_dop_pos as $md) {
+                                        $i++;
+
+                                        ?>
+                                        <tr class="dop_row" data-loop="<?= $i ?>" id="dop_id_row<?= $i ?>" >
+                                            <td>
+
+                                                <input type="number" min="0" max="2" class="form-control dop_cnt"  placeholder="кол-во" name="dop[<?= $i ?>][cnt]" value="<?= (isset($md['cnt'])) ? $md['cnt'] : 0 ?>">
+
+                                            </td>
+
+                                            <td>
+
+                                                <select class="  form-control dop_name" name="dop[<?= $i ?>][id_pos]"  tabindex="2" data-placeholder="Выбрать"  >
+                                                    <option value="0">не выбрано</option>
+                                                    <?php
+                                                    foreach ($dop_name_list as $row) {
+
+                                                        ?>
+                                                        <option value="<?= $row['id'] ?>" <?= (isset($md['id_pos']) && $md['id_pos'] == $row['id']) ? 'selected' : '' ?>><?= $row['name'] ?></option>
+                                                        <?php
+                                                    }
+
+                                                    ?>
+
+                                                </select>
+
+                                            </td>
+
+                                            <td>
+                                                <div class="input-group input-append date vacant_from_date" >
+                                                    <input type="text" autocomplete="off" class="form-control cls-vacant-date dop_vacant_date_1" name="dop[<?= $i ?>][vacant_date_1]" value="<?= (isset($md['vacant_date_1'])) ? (\DateTime::createFromFormat("Y-m-d", trim($md['vacant_date_1']))->format('d-m-Y')) : '' ?>" />
+                                                    <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
+
+                                                </div>
+                                            </td>
+
+
+                                            <td>
+                                                <div class="input-group input-append date vacant_from_date" >
+                                                    <input type="text" autocomplete="off" class="form-control cls-vacant-date dop_vacant_date_2" name="dop[<?= $i ?>][vacant_date_2]" value="<?= (isset($md['vacant_date_2'])) ? (\DateTime::createFromFormat("Y-m-d", trim($md['vacant_date_2']))->format('d-m-Y')) : '' ?>" />
+                                                    <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
+
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <a href="#" class="del-row-dop delete-cross"  data-toggle="tooltip" data-placement="right" title="Удалить строку" ><i class="fa fa-times" aria-hidden="true"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                } else {
+
+                                    ?>
+                                    <tr class="dop_row" data-loop="1" id="dop_id_row1" >
+                                        <td>
+
+                                            <input type="number" min="0" max="2" class="form-control dop_cnt"  placeholder="кол-во" name="dop[1][cnt]" value="0">
+
+                                        </td>
+
+                                        <td>
+
+                                            <select class="  form-control dop_name" name="dop[1][id_pos]"  tabindex="2" data-placeholder="Выбрать"  >
+                                                <option value="0">не выбрано</option>
+                                                <?php
+                                                foreach ($dop_name_list as $row) {
+
+                                                    ?>
+                                                    <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
+                                                    <?php
+                                                }
+
+                                                ?>
+
+                                            </select>
+
+                                        </td>
+
+                                        <td>
+                                            <div class="input-group input-append date vacant_from_date" >
+                                                <input type="text" autocomplete="off" class="form-control cls-vacant-date dop_vacant_date_1" name="dop[1][vacant_date_1]" value="" />
+                                                <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
+
+                                            </div>
+                                        </td>
+
+
+                                        <td>
+                                            <div class="input-group input-append date vacant_from_date" >
+                                                <input type="text" autocomplete="off" class="form-control cls-vacant-date dop_vacant_date_2" name="dop[1][vacant_date_2]" value="" />
+                                                <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
+
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <a href="#" class="del-row-dop delete-cross"  data-toggle="tooltip" data-placement="right" title="Удалить строку" ><i class="fa fa-times" aria-hidden="true"></i></a>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                }
+
+                                ?>
+
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="form-group">
+                            <a href="#" id="add-row-dop" >+  добавить еще</a>
+                        </div>
+
+                    </div>
+
+                    <br>
+
+
                     <div class="col-lg-12 col-lg-offset-1">
                         <div class="row">
 
@@ -875,16 +1089,89 @@ $paso_without_cou=array(598,604,605);
                     <?php
 //смена деж и доступ на редактирование закрыт
                     if ((($is_btn_confirm == 1) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 1) && ($is_open_update == 0) ) || ( ($is_btn_confirm == 0) && ($duty == 0) && ($is_open_update == 0)) || ($_SESSION['can_edit'] == 0)) {
+
                         ?>
                     </fieldset>
                     <?php
                 }
+
                 ?>
             </form>
         </div>
 
     </div>
 </div>
+
+
+<script type="text/javascript" src="/str/app/js/jquery-1.11.1.js"></script>
+<script>
+                            $('body').on('click', '#add-row-dop', function (e) {
+                                e.preventDefault();
+
+                                //var $div = $('div[id^="informing_id_row"]:last');
+                                var $div_for_clon = $('.dop_row:last');
+
+                                var id_car_block = $div_for_clon.data('loop');
+                                //var new_loop=parseInt($div_for_clon.find('.loop-index').text())+1;
+
+                                var num = parseInt(id_car_block) + 1;
+
+                                var is = $('div #dop_id_row' + num);
+                                while ((is.length > 0)) {
+                                    var num = num + 1;
+                                    var is = $('div #dop_id_row' + num);
+                                }
+
+                                // Clone it and assign the new ID (i.e: from num 4 to ID "klon4")
+                                var $klon = $div_for_clon.clone().prop('id', 'dop_id_row' + num);
+
+                                $klon.insertAfter($('.dop_row').last());
+
+                                /* new name */
+                                var $div_new = $('#dop_id_row' + num);
+                                $div_new.find('td').find('.dop_cnt').attr('name', 'dop[' + num + '][cnt]');
+                                $div_new.find('td').find('.dop_name').attr('name', 'dop[' + num + '][id_pos]');
+                                $div_new.find('td').find('.dop_vacant_date_1').attr('name', 'dop[' + num + '][vacant_date_1]');
+                                $div_new.find('td').find('.dop_vacant_date_2').attr('name', 'dop[' + num + '][vacant_date_2]');
+
+
+                                $div_new.find('td').find('input').val(0);
+                                $div_new.find('td').find('select').val(0);
+                                $div_new.find('td').find('.dop_vacant_date_1').val('');
+                                $div_new.find('td').find('.dop_vacant_date_2').val('');
+                                //$div_new.find('.loop-index').text(new_loop);
+                                $div_new.attr('data-loop', num);
+
+                                // $div_new.find('td').find('.sort').val(new_loop);
+
+
+                                $('.vacant_from_date').datetimepicker({
+                                    language: 'ru',
+                                    pickTime: false,
+                                    autoclose: true,
+                                    format: 'DD-MM-YYYY'
+                                            /*доступна только сег.дата+3day
+                                             'maxDate':  moment(new Date()).add(2, 'days').startOf('day') */
+                                });
+
+                                return false;
+                            });
+
+
+                            $('body').on('click', '.del-row-dop', function (e) {
+
+                                e.preventDefault();
+
+                                if ($(".dop_cnt").length > 1) {
+
+                                    $(this).parent().parent().remove();
+
+                                }
+                                return false;
+                            });
+
+
+</script>
 
 
 

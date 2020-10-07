@@ -7897,7 +7897,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
         //vacant select
         if ($is_vacant == 1) {
 
-            $vacant_from_date = $app->request()->post('vacant_from_date' . $i);
+            $vacant_from_date = $app->request()->post('vacant_from_date');
 
             if (!empty($vacant_from_date)) {
                 $vd = date("Y-m-d", strtotime($vacant_from_date));
@@ -7908,10 +7908,12 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
             $listfio = R::load('listfio', $id);
             $listfio->fio = 'ВАКАНТ';
             $listfio->is_vacant = 1;
+            $listfio->is_nobody = 0;
             $listfio->id_rank = $id_rank;
             $listfio->id_position = $id_position;
             $listfio->id_cardch = $id_cardch;
             $listfio->vacant_from_date = $vd;
+            $listfio->phone = $phone;
             R::store($listfio);
         } elseif ($is_nobody == 1) {//нет работников
             if (R::getCell('select ch from cardch where id=?', array($id_cardch)) != 0) {//должен быть ежедневником
@@ -7931,6 +7933,7 @@ $app->group('/listfio',$is_auth, function () use ($app, $log) {
             $listfio->id_rank = $id_rank;
             $listfio->id_position = $id_position;
             $listfio->id_cardch = $id_cardch_for_nobody;
+            $listfio->phone = $phone;
             $listfio->vacant_from_date = NULL;
             R::store($listfio);
         }
@@ -9917,6 +9920,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 
         /*------------- по штату выбираем из карточки для данной смены! ----------------*/
         $data['count_ls_shtat']=  getShtatFromKUSiS($change, $id);
+        $data['dop_name_list']=R::getAll('select * from dop_pos_list');
 
         $app->render('layouts/header.php');
         $app->render('layouts/menu.php', $data);
@@ -9938,6 +9942,7 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
                 /*  $date = new DateTime($value['dateduty']);
                   $last_data = $date->Format('Y-m-d'); */
                 $last_data = $value['dateduty'];
+                $id_main=$value['id'];
             }
 
             /* ------------ кол-во больных, отпусков, командировок,др.причины ------------ */
@@ -9949,6 +9954,10 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
             $data['main'] = $main;
 
             $data['post'] = 0; //put data main...при хранении инф за месяц =1: не обновляем, а добавляем запись
+
+                    /* main_dop_pos SD */
+        $data['main_dop_pos']=R::getAll('select * from main_dop_pos where id_main = ?',array($id_main));
+
         } else {
             //empty form
             //выводим пустую формы
@@ -10060,6 +10069,37 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 
         R::store($main);
 
+        $new_id_main = R::getInsertID();
+
+
+        //echo $new_id_main;exit();
+
+        if (isset($new_id_main) && !empty($new_id_main)) {
+            /* main_dop_pos SD */
+            R::exec('delete from main_dop_pos  where id_main = ? ', array($id_main));
+            $dop = $app->request()->post('dop');
+            if (isset($dop) && !empty($dop)) {
+
+                foreach ($dop as $row) {
+                    $new_dop = [];
+                    if ($row['cnt'] > 0 && $row['id_pos'] != 0) {
+                        $new_dop['id_main']=$new_id_main;
+                        $new_dop['cnt'] = $row['cnt'];
+                        $new_dop['id_pos'] = $row['id_pos'];
+                        $new_dop['vacant_date_1'] = (isset($row['vacant_date_1']) && !empty($row['vacant_date_1'])) ? (\DateTime::createFromFormat("d-m-Y", trim($row['vacant_date_1']))->format('Y-m-d')) : NULL;
+                        $new_dop['vacant_date_2'] = (isset($row['vacant_date_2']) && !empty($row['vacant_date_2'])) ? (\DateTime::createFromFormat("d-m-Y", trim($row['vacant_date_2']))->format('Y-m-d')) : NULL;
+                        $new_dop['id_user'] = $_SESSION['uid'];
+                        $new_dop['date_insert'] = date('Y-m-d H:i:s');
+                    }
+                    if (!empty($new_dop)) {//add
+                        $w = R::load('main_dop_pos', 0);
+                        $w->import($new_dop);
+                        R::store($w);
+                    }
+                }
+            }
+        }
+
         if (isset($reserve)) {
             setReserve($reserve, $id, $change, $dateduty, $id_head_fio, $log); //заступающие из другич частей
         }
@@ -10073,6 +10113,8 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
 
     $app->put('/:id/ch/:change/main', function ($id, $change) use ($app, $log) {//update main information
         array($app, 'is_auth'); //авторизован ли пользователь
+
+        //print_r($_POST);exit();
 
         $data = bread($id);
         $data['change'] = $change;
@@ -10167,6 +10209,32 @@ $app->group('/v1/card', $is_auth, function () use ($app, $log) {
             $main->response_garnison = $response_garnison;
 
         R::store($main);
+
+        /* main_dop_pos SD */
+        R::exec('delete from main_dop_pos  where id_main = ? ', array($id_main));
+        $dop=$app->request()->post('dop');
+        if (isset($dop) && !empty($dop)) {
+
+                foreach ($dop as $row) {
+                    $new_dop = [];
+                    if ($row['cnt'] > 0 && $row['id_pos'] != 0) {
+                        $new_dop['id_main']=$id_main;
+                        $new_dop['cnt'] = $row['cnt'];
+                        $new_dop['id_pos'] = $row['id_pos'];
+                        $new_dop['vacant_date_1'] = (isset($row['vacant_date_1']) && !empty($row['vacant_date_1'])) ? (\DateTime::createFromFormat("d-m-Y", trim($row['vacant_date_1']))->format('Y-m-d')) : NULL;
+                        $new_dop['vacant_date_2'] = (isset($row['vacant_date_2']) && !empty($row['vacant_date_2'])) ? (\DateTime::createFromFormat("d-m-Y", trim($row['vacant_date_2']))->format('Y-m-d')) : NULL;
+                        $new_dop['id_user'] = $_SESSION['uid'];
+                        $new_dop['date_insert'] = date('Y-m-d H:i:s');
+                    }
+                    if (!empty($new_dop)) {//add
+                        $w = R::load('main_dop_pos', 0);
+                        $w->import($new_dop);
+                        R::store($w);
+                    }
+                }
+        }
+
+
 
 
         /*---- поставить на учет всех отсутствующих, кто отсутствовал прошлое дежурство (вдруг надо продлить даты) ----*/
@@ -20756,6 +20824,8 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
         // список ФИО  смены, учитываем "нет работников"
         $data['present_head_fio'] = getPresentHeadFio($id, $change);
 
+        $data['main_dop_pos']=R::getAll('select * from maincou_dop_pos where id_card = ? and ch = ?',array($id, $change));
+        $data['dop_name_list']=R::getAll('select * from dop_pos_list');
 
 
 
@@ -21431,6 +21501,34 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
           /* ------------------------------------ КОНЕЦ все ФИО, выбранные на форме в массив ------------------------------------------- */
 
 
+                /* main_dop_pos SD */
+        R::exec('delete from maincou_dop_pos  where id_card = ? and ch = ?', array($id,$change));
+        $dop=$app->request()->post('dop');
+        if (isset($dop) && !empty($dop)) {
+
+                foreach ($dop as $row) {
+                    $new_dop = [];
+                    if ($row['cnt'] > 0 && $row['id_pos'] != 0 && $dateduty != NULL) {
+                        $new_dop['id_card']=$id;
+                        $new_dop['ch']=$change;
+                        $new_dop['dateduty']=$dateduty;
+                        $new_dop['cnt'] = $row['cnt'];
+                        $new_dop['id_pos'] = $row['id_pos'];
+                        $new_dop['vacant_date_1'] = (isset($row['vacant_date_1']) && !empty($row['vacant_date_1'])) ? (\DateTime::createFromFormat("d-m-Y", trim($row['vacant_date_1']))->format('Y-m-d')) : NULL;
+                        $new_dop['vacant_date_2'] = (isset($row['vacant_date_2']) && !empty($row['vacant_date_2'])) ? (\DateTime::createFromFormat("d-m-Y", trim($row['vacant_date_2']))->format('Y-m-d')) : NULL;
+                        $new_dop['id_user'] = $_SESSION['uid'];
+                        $new_dop['date_insert'] = date('Y-m-d H:i:s');
+                    }
+                    if (!empty($new_dop)) {//add
+                        $w = R::load('maincou_dop_pos', 0);
+                        $w->import($new_dop);
+                        R::store($w);
+                    }
+                }
+        }
+
+
+
         if (isset($reserve)) {
              setReserve($reserve, $id, $change, $dateduty, $id_head_fio_new, $log); //заступающие из другич частей
         }
@@ -21508,6 +21606,8 @@ $app->group('/v2/card', $is_auth, function () use ($app, $log) {
 
         /* -------------------- END ЗАСТУПАЛИ прошлый раз  --------------------------- */
 
+        $data['main_dop_pos']=R::getAll('select * from main_dop_pos where id_card = ? and ch = ?',array($id, $change));
+        $data['dop_name_list']=R::getAll('select * from dop_pos_list');
 
         //кнопка "Подтвердить данные"
         $data['is_btn_confirm'] = is_btn_confirm($change);

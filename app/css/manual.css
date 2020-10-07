@@ -1701,3 +1701,47 @@ ol.tree
     padding-left: 15px;
     cursor: pointer !important;
 }
+
+.del-row-dop>i{
+    padding-top: 10px;
+    padding-left: 10px;
+}
+
+/*.dop-cnt{
+    width: 56px !important;
+}
+.dop-name{
+    width: 50px !important;
+}
+*/
+
+
+.dop-table{
+        color: blue;
+        font-style: italic;
+font-weight: 600;
+}
+
+
+.dop-table thead tr th{
+    border: none !important;
+    background-color: #e9eee6 !important;
+}
+
+.dop-table tbody tr td{
+    border: none !important;
+
+}
+
+.dop_cnt, .dop_name, .dop_vacant_date_1, .dop_vacant_date_2{
+    background-color: #dcf9ff;
+}
+
+#add-row-dop{
+    color: blue;
+    font-style: italic;
+}
+
+.delete-cross{
+    color: blue;
+}
