@@ -758,6 +758,7 @@ if (isset($dateduty) && ($dateduty != $today)) {
                                     ?>
 
                     </label>
+
                     <select class=" chosen-select-deselect form-control " name="disp[]" multiple tabindex="4" data-placeholder="Выбрать"  >
                         <option ></option>
                         <?php
@@ -767,7 +768,7 @@ if (isset($dateduty) && ($dateduty != $today)) {
                                 printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
                             } elseif (isset($disp) && !empty($disp) && in_array($present['id'], $disp)) {
                                 printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            } else {
+                            } elseif($present['id_position'] != 25) {//not komandir otdelenia
                                 printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
                             }
                         }

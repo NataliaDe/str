@@ -498,7 +498,7 @@ if (isset($main) && !empty($main)) {
                                 printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
                             } elseif (isset($disp) && !empty($disp) && in_array($present['id'], $disp)) {
                                 printf("<p><option value='%s' selected ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
-                            } else {
+                            } elseif($present['id_position'] != 25) {
                                 printf("<p><option value='%s' ><label>%s %s %s (%s)</label></option></p>", $present['id'], $present['fio'], $present['pasp'], $present['locorg_name'], mb_strtolower($present['slug']));
                             }
                         }
